@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="results-scroll-pane" xmlns:fx="http://javafx.com/fxml" fx:controller="ru.vkr.ldpcapp.controller.CompareController">
+    <content>
+        <VBox spacing="18.0" styleClass="screen-root results-screen-content">
+    <children>
+        <VBox spacing="12.0" styleClass="screen-hero hero-gradient-card hero-gradient-pink results-hero-compact">
+            <children>
+                <VBox spacing="3.0">
+                    <children>
+                        <Label styleClass="screen-eyebrow" text="Сравнение сценариев" />
+                        <Label styleClass="screen-title" text="Сравнительный анализ сценариев" />
+                    </children>
+                </VBox>
+                <Label fx:id="compareStatusLabel" styleClass="screen-subtitle" wrapText="true" text="Подготовка сравнительного анализа..." />
+            </children>
+        </VBox>
+
+        <VBox spacing="8.0" styleClass="panel-card compact-card action-panel-card results-actions-panel results-actions-panel-top results-actions-panel-minimal">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                    <children>
+                        <Label styleClass="panel-title results-toolbar-title" text="Панель действий" />
+                    </children>
+                </HBox>
+                <HBox spacing="8.0" styleClass="compact-action-flow results-toolbar-flow">
+                    <children>
+                        <MenuButton mnemonicParsing="false" styleClass="secondary-button compact-action-button" text="Сводка и отчёты">
+                            <items>
+                                <MenuItem mnemonicParsing="false" onAction="#onSavePresentationSummary" text="Сохранить summary для защиты" />
+                                <MenuItem mnemonicParsing="false" onAction="#onSaveWordFriendlyReport" text="Сохранить Word-friendly отчёт" />
+                                <MenuItem mnemonicParsing="false" onAction="#onSaveHtmlReport" text="Сохранить HTML-отчёт" />
+                            </items>
+                        </MenuButton>
+                        <MenuButton mnemonicParsing="false" styleClass="secondary-button compact-action-button" text="Копирование">
+                            <items>
+                                <MenuItem mnemonicParsing="false" onAction="#onCopyComparisonNarrative" text="Скопировать текст сравнения" />
+                            </items>
+                        </MenuButton>
+                        <CheckBox fx:id="defenseModeCheckBox" onAction="#onToggleDefenseMode" styleClass="check-box" text="Режим защиты" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+
+        <HBox fx:id="defenseSummaryBox" managed="false" spacing="14.0" styleClass="defense-strip" visible="false">
+            <children>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-violet">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Победитель" />
+                        <Label fx:id="defenseWinnerLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Автоматический выбор по BER/BLER, throughput и required SNR" wrapText="true" />
+                    </children>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-blue">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Peak throughput" />
+                        <Label fx:id="defenseThroughputLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Лучший сценарий по полезной пропускной способности" wrapText="true" />
+                    </children>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-mint">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Peak spectral efficiency" />
+                        <Label fx:id="defenseSpectralLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Лучший сценарий по спектральной эффективности" wrapText="true" />
+                    </children>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-sun">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Required SNR" />
+                        <Label fx:id="defenseSnrLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Целевой SNR для BER=10⁻³ / BLER=10⁻¹" wrapText="true" />
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+
+        <VBox spacing="12.0" styleClass="panel-card compact-card results-summary-panel results-summary-table-card">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Label styleClass="panel-title" text="Параметры сравниваемых сценариев" />
+                        <Label styleClass="metric-pill winner-legend winner-legend-a" text="A — базовый сценарий" />
+                        <Label styleClass="metric-pill winner-legend winner-legend-b" text="B — сравниваемый сценарий" />
+                        <Label styleClass="metric-pill winner-legend winner-legend-best" text="Подсветка показывает победителя" />
+                    </children>
+                </HBox>
+                <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid summary-table-grid-matrix">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="16.5" />
+                        <ColumnConstraints percentWidth="16.5" />
+                        <ColumnConstraints percentWidth="16.5" />
+                        <ColumnConstraints percentWidth="16.5" />
+                        <ColumnConstraints percentWidth="16.5" />
+                        <ColumnConstraints percentWidth="17.5" />
+                    </columnConstraints>
+                    <children>
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Сценарий A" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Waveform A" />
+                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Spatial A" />
+                        <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Сценарий B" />
+                        <Label GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Waveform B" />
+                        <Label GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Spatial B" />
+
+                        <Label fx:id="leftScenarioLabel" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="results-selected-value-cell summary-table-multiline" text="-" wrapText="true" />
+                        <Label fx:id="leftWaveformChip" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Waveform" />
+                        <Label fx:id="leftSpatialChip" GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Spatial" />
+                        <Label fx:id="rightScenarioLabel" GridPane.columnIndex="3" GridPane.rowIndex="1" styleClass="results-selected-value-cell summary-table-multiline" text="-" wrapText="true" />
+                        <Label fx:id="rightWaveformChip" GridPane.columnIndex="4" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Waveform" />
+                        <Label fx:id="rightSpatialChip" GridPane.columnIndex="5" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Spatial" />
+                    </children>
+                </GridPane>
+                <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="24.0" />
+                        <ColumnConstraints percentWidth="38.0" />
+                        <ColumnConstraints percentWidth="38.0" />
+                    </columnConstraints>
+                    <children>
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Сценарий A" />
+                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Сценарий B" />
+
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Конфигурация" />
+                        <TextArea fx:id="leftSummaryLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" editable="false" wrapText="true" prefRowCount="7" styleClass="mono-text-area summary-table-text-area" />
+                        <TextArea fx:id="rightSummaryLabel" GridPane.columnIndex="2" GridPane.rowIndex="1" editable="false" wrapText="true" prefRowCount="7" styleClass="mono-text-area summary-table-text-area" />
+                    </children>
+                </GridPane>
+            </children>
+        </VBox>
+
+        <VBox spacing="10.0" styleClass="panel-card compact-card results-summary-panel hero-gradient-yellow results-summary-table-card">
+            <children>
+                <Label styleClass="panel-title" text="Итог сравнения" />
+                <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid summary-table-grid-single">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="34.0" />
+                        <ColumnConstraints percentWidth="66.0" />
+                    </columnConstraints>
+                    <children>
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Значение" />
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Победитель" />
+                        <Label fx:id="winnerLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-multiline compare-winner-cell" wrapText="true" text="-" />
+                    </children>
+                </GridPane>
+            </children>
+        </VBox>
+
+        <VBox spacing="18.0" styleClass="results-chart-panel">
+            <children>
+                <VBox spacing="12.0" styleClass="panel-card chart-card-large">
+                    <children>
+                        <Label styleClass="panel-title" text="Сравнение BER LDPC" />
+                        <LineChart fx:id="compareBerChart" animated="false" createSymbols="true" legendVisible="true">
+                            <xAxis>
+                                <NumberAxis label="SNR, дБ" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="BER" autoRanging="true" />
+                            </yAxis>
+                        </LineChart>
+                    </children>
+                </VBox>
+                <VBox spacing="12.0" styleClass="panel-card chart-card-large">
+                    <children>
+                        <Label styleClass="panel-title" text="Сравнение BLER LDPC" />
+                        <LineChart fx:id="compareBlerChart" animated="false" createSymbols="true" legendVisible="true">
+                            <xAxis>
+                                <NumberAxis label="SNR, дБ" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="BLER" autoRanging="true" />
+                            </yAxis>
+                        </LineChart>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <VBox spacing="10.0" styleClass="panel-card compact-card results-modeling-table-card results-modeling-table-shell">
+            <children>
+                <Label styleClass="panel-title" text="Сводная таблица сравнения" />
+                <GridPane hgap="0.0" vgap="0.0" styleClass="results-header-table">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="42.0" />
+                        <ColumnConstraints percentWidth="58.0" />
+                    </columnConstraints>
+                    <children>
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица сравнения по точкам SNR" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Позволяет сравнить BER/BLER, throughput и spectral efficiency сценариев A и B по каждой точке SNR." wrapText="true" />
+                    </children>
+                </GridPane>
+                <TableView fx:id="compareTable" styleClass="results-data-table results-data-table-elevated" prefHeight="330.0">
+                    <columns>
+                        <TableColumn fx:id="snrColumn" prefWidth="70.0" text="SNR" />
+                        <TableColumn fx:id="leftBerColumn" prefWidth="95.0" text="BER A" />
+                        <TableColumn fx:id="rightBerColumn" prefWidth="95.0" text="BER B" />
+                        <TableColumn fx:id="leftBlerColumn" prefWidth="95.0" text="BLER A" />
+                        <TableColumn fx:id="rightBlerColumn" prefWidth="95.0" text="BLER B" />
+                        <TableColumn fx:id="leftThroughputColumn" prefWidth="120.0" text="Thr A" />
+                        <TableColumn fx:id="rightThroughputColumn" prefWidth="120.0" text="Thr B" />
+                        <TableColumn fx:id="leftSpectralColumn" prefWidth="120.0" text="SE A" />
+                        <TableColumn fx:id="rightSpectralColumn" prefWidth="120.0" text="SE B" />
+                    </columns>
+                </TableView>
+            </children>
+        </VBox>
+
+        <TitledPane animated="true" expanded="true" styleClass="results-titled-pane" text="Текст сравнения">
+            <content>
+                <VBox spacing="12.0" styleClass="panel-card results-collapsible-content">
+                    <children>
+                        <TextArea fx:id="compareNarrativeArea" editable="false" wrapText="true" prefRowCount="14" styleClass="mono-text-area" />
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+    </children>
+    <padding>
+        <Insets top="4.0" right="4.0" bottom="4.0" left="4.0" />
+    </padding>
+</VBox>
+    </content>
+</ScrollPane>

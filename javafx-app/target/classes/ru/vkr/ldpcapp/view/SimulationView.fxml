@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true"
+            pannable="true"
+            styleClass="results-scroll-pane simulation-scroll-pane"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ru.vkr.ldpcapp.controller.SimulationController">
+    <content>
+        <VBox spacing="12.0"
+              styleClass="screen-root results-screen-content simulation-screen-content">
+            <children>
+
+                <VBox spacing="8.0" styleClass="panel-card compact-card action-panel-card results-actions-panel-top simulation-actions-panel simulation-actions-panel-refined">
+                    <children>
+                        <FlowPane hgap="10.0" vgap="10.0" styleClass="compact-action-flow results-toolbar-flow">
+                            <children>
+                                <Button fx:id="runButton" onAction="#onRunSimulation" styleClass="simulation-run-button" text="Запустить моделирование" />
+                                <CheckBox fx:id="advancedModeCheckBox" onAction="#onToggleAdvancedMode" styleClass="simulation-mode-toggle" text="Расширенный режим" />
+                                <MenuButton styleClass="secondary-button secondary-button-strong compact-action-button" text="Профили эксперимента">
+                                    <items>
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyRecommendedProfile" text="Применить рекомендуемый профиль" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyResearchReferenceProfile" text="Опорный 5G-like сценарий" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyAwgnBaselineProfile" text="AWGN baseline / SISO" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyRayleighOfdmProfile" text="Rayleigh + OFDM baseline" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDiversityRobustProfile" text="Diversity-устойчивый профиль" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyHighRate16QamProfile" text="Высокоскоростной 16-QAM" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyEducationalCalibrationProfile" text="Учебная калибровка" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDeepFadeOfdmProfile" text="Глубокий fading + OFDM" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onResetForm" text="Очистить форму" />
+                                    </items>
+                                </MenuButton>
+                                <MenuButton styleClass="secondary-button secondary-button-strong compact-action-button" text="Сценарии для защиты">
+                                    <items>
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseAwgnProfile" text="Защита · AWGN baseline — опорный сценарий" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseRayleighProfile" text="Защита · Rayleigh vs OFDM — влияние fading" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseDiversityProfile" text="Защита · Diversity gain — выигрыш 2x2" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseHighRateProfile" text="Защита · 16-QAM trade-off — скорость vs BER" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseOfdmProfile" text="Защита · OFDM showcase — waveform-эффект" />
+                                    </items>
+                                </MenuButton>
+                                <MenuButton styleClass="secondary-button secondary-button-strong compact-action-button" text="Файлы конфигурации">
+                                    <items>
+                                        <MenuItem mnemonicParsing="false" onAction="#onSaveConfig" text="Сохранить конфигурацию" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onLoadConfig" text="Открыть конфигурацию" />
+                                    </items>
+                                </MenuButton>
+                            </children>
+                        </FlowPane>
+                        <Label styleClass="helper-text" wrapText="true" text="Используйте базовый режим для быстрого старта, включайте расширенный режим для OFDM/MIMO-настроек и выбирайте отдельные сценарии для защиты, если нужно быстро показать ключевые эффекты на защите ВКР." />
+                    </children>
+                </VBox>
+
+                <GridPane hgap="16.0" vgap="16.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="66.0" />
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="34.0" />
+                    </columnConstraints>
+
+                    <children>
+                        <VBox GridPane.columnIndex="0" spacing="14.0" styleClass="panel-card simulation-form-card">
+                    <children>
+                        <Label styleClass="panel-title" text="Параметры исследовательского эксперимента" />
+
+                        <VBox spacing="12.0" styleClass="panel-card compact-card simulation-section-card simulation-section-coding">
+                            <children>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <Label styleClass="field-label simulation-section-title" text="Кодирование, модуляция и профиль исследования" />
+                                        <Label styleClass="helper-text simulation-section-subtitle" text="Выберите один из готовых исследовательских профилей или настройте LDPC, модуляцию и длину информационного блока вручную." />
+                                    </children>
+                                </VBox>
+                                <GridPane hgap="14.0" vgap="14.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50.0" />
+                                        <ColumnConstraints percentWidth="50.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <children>
+                                                <Label styleClass="field-label" text="Профиль LDPC" />
+                                                <ComboBox fx:id="ldpcProfileComboBox" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <children>
+                                                <Label styleClass="field-label" text="Модуляция" />
+                                                <ComboBox fx:id="modulationComboBox" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                            <children>
+                                                <Label styleClass="field-label" text="Длина информационного блока" />
+                                                <Spinner fx:id="infoBlockSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox fx:id="advancedIterationsBox" spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <children>
+                                                <Label styleClass="field-label" text="Максимум итераций декодера" />
+                                                <Spinner fx:id="maxIterationsSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox fx:id="advancedNormalizationBox" spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                            <children>
+                                                <Label styleClass="field-label" text="Коэффициент normalized min-sum" />
+                                                <Spinner fx:id="normalizationSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox fx:id="advancedSeedBox" spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                            <children>
+                                                <Label styleClass="field-label" text="Seed генератора" />
+                                                <Spinner fx:id="seedSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                            </children>
+                        </VBox>
+
+                        <VBox fx:id="advancedChannelSection" spacing="12.0" styleClass="panel-card compact-card simulation-section-card simulation-section-channel">
+                            <children>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <Label styleClass="field-label simulation-section-title" text="Канал, OFDM и пространственный режим" />
+                                        <Label styleClass="helper-text simulation-section-subtitle" text="Настройте радиоканал, waveform, cyclic prefix, equalizer и diversity-режим." />
+                                    </children>
+                                </VBox>
+                                <GridPane hgap="14.0" vgap="14.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50.0" />
+                                        <ColumnConstraints percentWidth="50.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <children>
+                                                <Label styleClass="field-label" text="Тип канала" />
+                                                <ComboBox fx:id="channelComboBox" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <children>
+                                                <Label styleClass="field-label" text="Waveform" />
+                                                <ComboBox fx:id="waveformComboBox" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                            <children>
+                                                <Label styleClass="field-label" text="Spatial mode" />
+                                                <ComboBox fx:id="spatialModeComboBox" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <children>
+                                                <Label styleClass="field-label" text="Cyclic Prefix" />
+                                                <Spinner fx:id="cyclicPrefixSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                            <children>
+                                                <Label styleClass="field-label" text="Equalizer" />
+                                                <ComboBox fx:id="equalizerComboBox" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="12.0" styleClass="panel-card compact-card simulation-section-card simulation-section-snr">
+                            <children>
+                                <VBox spacing="2.0">
+                                    <children>
+                                        <Label styleClass="field-label simulation-section-title" text="Диапазон SNR и объём эксперимента" />
+                                        <Label styleClass="helper-text simulation-section-subtitle" text="Определите диапазон отношения сигнал/шум и число блоков для статистической оценки BER и BLER." />
+                                    </children>
+                                </VBox>
+                                <GridPane hgap="14.0" vgap="14.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50.0" />
+                                        <ColumnConstraints percentWidth="50.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <children>
+                                                <Label styleClass="field-label" text="SNR от, дБ" />
+                                                <Spinner fx:id="snrStartSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <children>
+                                                <Label styleClass="field-label" text="SNR до, дБ" />
+                                                <Spinner fx:id="snrEndSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                            <children>
+                                                <Label styleClass="field-label" text="Шаг SNR, дБ" />
+                                                <Spinner fx:id="snrStepSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                            <children>
+                                                <Label styleClass="field-label" text="Количество блоков на точку SNR" />
+                                                <Spinner fx:id="blocksSpinner" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="6.0" styleClass="panel-card compact-card simulation-status-card simulation-status-card-refined">
+                            <children>
+                                <Label styleClass="field-label" text="Состояние запуска" />
+                                <ProgressBar fx:id="simulationProgressBar" maxWidth="Infinity" progress="0.0" />
+                                <Label fx:id="progressLabel" styleClass="helper-text" text="Расчёт не запущен" />
+                                <Label fx:id="validationLabel" styleClass="helper-text helper-text-accent" text="Параметры ожидают проверки" />
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+
+                        <VBox GridPane.columnIndex="1" spacing="14.0" styleClass="panel-card simulation-side-card">
+                            <children>
+                                <VBox spacing="8.0" styleClass="panel-card compact-card pastel-card-blue simulation-preview-card simulation-preview-card-extended">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                            <children>
+                                                <Label styleClass="panel-title" text="Предпросмотр конфигурации" />
+                                                <Label fx:id="modeStatusChip" styleClass="segment-chip simulation-mode-chip" text="Расширенный режим" />
+                                            </children>
+                                        </HBox>
+                                        <Label styleClass="helper-text" wrapText="true" text="Здесь отображается полное резюме текущего исследовательского сценария: LDPC-профиль, модуляция, канал, OFDM/MIMO-like режимы и диапазон SNR." />
+                                        <TextArea fx:id="configPreviewArea" editable="false" focusTraversable="false" prefRowCount="22" styleClass="mono-text-area simulation-preview-area simulation-preview-area-extended" wrapText="true" />
+                                    </children>
+                                </VBox>
+                                <Label fx:id="configFileStatusLabel" styleClass="helper-text" text="Конфигурацию можно сохранить в файл и затем повторно загрузить." />
+                            </children>
+                        </VBox>
+                    </children>
+                </GridPane>
+            </children>
+            <padding>
+                <Insets top="4.0" right="4.0" bottom="12.0" left="4.0" />
+            </padding>
+        </VBox>
+    </content>
+</ScrollPane>

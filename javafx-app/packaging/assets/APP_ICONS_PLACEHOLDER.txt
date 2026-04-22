@@ -1,0 +1,15 @@
+Поместите сюда файлы иконок приложения для jpackage:
+
+- app-icon.ico  -> для Windows
+- app-icon.png  -> для Linux / RED OS
+- app-icon.icns -> для macOS (если понадобится)
+
+После добавления файлов можно расширить packaging-скрипты параметром:
+
+Windows:
+  --icon packaging/assets/app-icon.ico
+
+Linux:
+  --icon packaging/assets/app-icon.png
+
+Рекомендуемый размер исходной иконки: 512x512.

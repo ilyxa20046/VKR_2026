@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true"
+            hbarPolicy="NEVER"
+            vbarPolicy="AS_NEEDED"
+            styleClass="screen-scroll-pane dashboard-scroll-pane"
+            xmlns:fx="http://javafx.com/fxml">
+    <content>
+        <VBox spacing="16.0" styleClass="screen-root dashboard-screen-content">
+            <children>
+                <VBox spacing="12.0" styleClass="screen-hero hero-gradient-card hero-gradient-blue dashboard-home-hero">
+                    <children>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label styleClass="screen-eyebrow" text="Главное" />
+                                <Label styleClass="screen-title dashboard-home-title" text="LDPC Research Studio — среда моделирования и анализа 5G-like PHY" />
+                                <Label styleClass="screen-subtitle dashboard-home-subtitle"
+                                       wrapText="true"
+                                       text="Приложение предназначено для имитационного исследования цифровой передачи данных в зашумлённом канале связи с использованием LDPC-кодирования, современных схем модуляции, OFDM/MIMO-like параметров и инженерных метрик качества передачи." />
+                            </children>
+                        </VBox>
+                        <HBox spacing="8.0" styleClass="dashboard-chip-row">
+                            <children>
+                                <Label styleClass="segment-chip segment-chip-active" text="LDPC / 5G-like PHY" />
+                                <Label styleClass="segment-chip" text="BER / BLER / SE" />
+                                <Label styleClass="segment-chip" text="OFDM / MIMO-like" />
+                                <Label styleClass="segment-chip" text="Defense / Export" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <FlowPane hgap="14.0" vgap="14.0" prefWrapLength="980.0" styleClass="dashboard-kpi-flow">
+                    <children>
+                        <VBox spacing="6.0" styleClass="info-card pastel-card-violet dashboard-kpi-card dashboard-kpi-flow-card">
+                            <children>
+                                <Label styleClass="info-title" text="Что делает приложение" />
+                                <Label styleClass="helper-text dashboard-helper" wrapText="true" text="Моделирует передачу цифровых данных по каналу связи, рассчитывает BER/BLER, throughput, spectral efficiency, energy gain и required SNR, а также формирует графики и отчёты для ВКР." />
+                            </children>
+                            <padding>
+                                <Insets top="16.0" right="16.0" bottom="16.0" left="16.0" />
+                            </padding>
+                        </VBox>
+                        <VBox spacing="6.0" styleClass="info-card pastel-card-mint dashboard-kpi-card dashboard-kpi-flow-card">
+                            <children>
+                                <Label styleClass="info-title" text="Какие режимы поддерживаются" />
+                                <Label styleClass="helper-text dashboard-helper" wrapText="true" text="BPSK, QPSK и 16-QAM; AWGN и Rayleigh fading; Single-carrier, OFDM-64, OFDM-128; SISO и 2x2 Diversity; учебный и QC-inspired LDPC-профили." />
+                            </children>
+                            <padding>
+                                <Insets top="16.0" right="16.0" bottom="16.0" left="16.0" />
+                            </padding>
+                        </VBox>
+                        <VBox spacing="6.0" styleClass="info-card pastel-card-yellow dashboard-kpi-card dashboard-kpi-flow-card">
+                            <children>
+                                <Label styleClass="info-title" text="Для чего это нужно в ВКР" />
+                                <Label styleClass="helper-text dashboard-helper" wrapText="true" text="Приложение помогает получить и сравнить численные результаты, подготовить графики BER(SNR) и BLER(SNR), сформировать материалы главы 3 и оформить результаты для защиты диплома." />
+                            </children>
+                            <padding>
+                                <Insets top="16.0" right="16.0" bottom="16.0" left="16.0" />
+                            </padding>
+                        </VBox>
+                    </children>
+                </FlowPane>
+
+                <GridPane hgap="14.0" vgap="14.0" styleClass="dashboard-main-grid">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="56.0" hgrow="ALWAYS" />
+                        <ColumnConstraints percentWidth="44.0" hgrow="ALWAYS" />
+                    </columnConstraints>
+                    <children>
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-slate">
+                            <children>
+                                <Label styleClass="info-title" text="Что исследуется в работе" />
+                                <VBox spacing="8.0" styleClass="dashboard-bullet-list">
+                                    <children>
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Влияние LDPC-кодирования на BER и BLER в условиях зашумлённого цифрового канала связи." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Влияние модуляции, типа канала, OFDM-параметров и пространственного режима на качество и устойчивость передачи данных." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Компромисс между помехоустойчивостью и производительностью по метрикам throughput, spectral efficiency и required SNR." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Сравнение одиночных, попарных и пакетных сценариев моделирования в единой программной среде." />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-coral">
+                            <children>
+                                <Label styleClass="info-title" text="Что делает приложение" />
+                                <VBox spacing="8.0" styleClass="dashboard-bullet-list">
+                                    <children>
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Формирует настраиваемый сценарий моделирования с LDPC, модуляцией, каналом, OFDM/MIMO-like параметрами и диапазоном SNR." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Выполняет расчёт BER, BLER, throughput, spectral efficiency, energy gain и required SNR для выбранной конфигурации." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Позволяет сравнивать два сценария и проводить пакетный анализ нескольких конфигураций в едином интерфейсе." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Готовит графики, таблицы и отчёты для главы 3, приложений и защиты ВКР." />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-blue">
+                            <children>
+                                <Label styleClass="info-title" text="Архитектура приложения" />
+                                <GridPane hgap="10.0" vgap="8.0" styleClass="dashboard-metrics-grid">
+                                    <children>
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="dashboard-metric-label" text="Главные экраны" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="dashboard-metric-value" wrapText="true" text="Главное / Моделирование / Результаты / Сравнение / Пакетный анализ" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="dashboard-metric-label" text="Аналитические режимы" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="dashboard-metric-value" wrapText="true" text="Single / Compare / Batch / Defense Mode" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="dashboard-metric-label" text="Вычислительное ядро" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="dashboard-metric-value" wrapText="true" text="SimulationService / LDPC / OFDM / MIMO-like" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="dashboard-metric-label" text="Экспорт и отчёты" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="dashboard-metric-value" wrapText="true" text="CSV / PNG / TXT / Word / HTML / summary" />
+                                    </children>
+                                </GridPane>
+                                <Label styleClass="helper-text dashboard-helper" wrapText="true" text="Архитектура разделена на экран настройки сценария, вычислительное ядро, аналитические представления результатов и контур формирования экспортных материалов для ВКР." />
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-lime">
+                            <children>
+                                <Label styleClass="info-title" text="Что нового по сравнению с базовой моделью" />
+                                <VBox spacing="8.0" styleClass="dashboard-bullet-list">
+                                    <children>
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Вместо простого учебного сравнения «с кодированием / без кодирования» реализована исследовательская среда с несколькими PHY-сценариями." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Добавлены QPSK и 16-QAM, AWGN и Rayleigh fading, OFDM-64 / OFDM-128, SISO и 2x2 Diversity." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Помимо BER и BLER рассчитываются throughput, spectral efficiency, energy gain и required SNR." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Реализованы Compare, Пакетный анализ, Defense Mode и экспорт материалов для текста диплома и защиты." />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-violet">
+                            <children>
+                                <Label styleClass="info-title" text="Как работать с приложением" />
+                                <GridPane hgap="10.0" vgap="10.0" styleClass="dashboard-steps-grid">
+                                    <children>
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="1" />
+                                                <Label styleClass="dashboard-step-title" text="Настройка" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Перейдите в раздел «Моделирование» и задайте параметры исследуемого сценария." />
+                                            </children>
+                                        </VBox>
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="2" />
+                                                <Label styleClass="dashboard-step-title" text="Расчёт" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Запустите моделирование и дождитесь расчёта кривых BER/BLER и инженерных метрик." />
+                                            </children>
+                                              </children>
+                                        </VBox>
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="3" />
+                                                <Label styleClass="dashboard-step-title" text="Анализ" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Изучите результаты на экранах «Результаты», «Сравнение» и «Пакетный анализ», а затем переходите к выгрузке материалов для ВКР и защиты." />
+                                            </children>
+                                        </VBox>
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="4" />
+                                                <Label styleClass="dashboard-step-title" text="Экспорт" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Сохраните графики, таблицы, отчёты и презентационные summary для диплома и защиты." />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="2" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-mint">
+                            <children>
+                                <Label styleClass="info-title" text="Что уже умеет система" />
+                                <GridPane hgap="10.0" vgap="8.0" styleClass="dashboard-metrics-grid">
+                                    <children>
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="dashboard-metric-label" text="LDPC-профили" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="dashboard-metric-value" text="2" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="dashboard-metric-label" text="Модуляции" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="dashboard-metric-value" text="3" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="dashboard-metric-label" text="Режимы PHY" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="dashboard-metric-value" wrapText="true" text="AWGN / Rayleigh / OFDM / 2x2" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="dashboard-metric-label" text="Экспорт" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="dashboard-metric-value" wrapText="true" text="CSV / PNG / TXT / Word / HTML" />
+                                    </children>
+                                </GridPane>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="3" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-yellow">
+                            <children>
+                                <Label styleClass="info-title" text="Практическая значимость для ВКР" />
+                                <VBox spacing="8.0" styleClass="dashboard-bullet-list">
+                                    <children>
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Система позволяет получить воспроизводимые численные результаты для главы 3 и оформить их в виде графиков, таблиц и аналитических выводов." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Приложение уменьшает объём ручной обработки результатов: поддерживает Compare, Пакетный анализ, экспорт отчётов и presentation-summary для защиты." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Графическое JavaFX-приложение выступает не только как демонстрационный интерфейс, но и как рабочий инструмент анализа исследуемых сценариев передачи." />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-blue">
+                            <children>
+                                <Label styleClass="info-title" text="Какие метрики и графики формирует система" />
+                                <GridPane hgap="10.0" vgap="8.0" styleClass="dashboard-metrics-grid">
+                                    <children>
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="dashboard-metric-label" text="Метрики качества" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="dashboard-metric-value" wrapText="true" text="BER, BLER, success ratio, decoder iterations" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="dashboard-metric-label" text="Инженерные метрики" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="dashboard-metric-value" wrapText="true" text="throughput, spectral efficiency, required SNR, energy gain" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="dashboard-metric-label" text="Графики" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="dashboard-metric-value" wrapText="true" text="BER(SNR), BLER(SNR), compare-curves, batch-curves" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="dashboard-metric-label" text="Форматы выгрузки" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="dashboard-metric-value" wrapText="true" text="PNG, CSV, TXT, Word-friendly, HTML-friendly" />
+                                    </children>
+                                </GridPane>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="4" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-violet">
+                            <children>
+                                <Label styleClass="info-title" text="Рекомендуемые сценарии для защиты" />
+                                <VBox spacing="8.0" styleClass="dashboard-bullet-list">
+                                    <children>
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• AWGN baseline — опорный сценарий для демонстрации базовой BER/BLER-кривой и LDPC-выигрыша." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Rayleigh vs OFDM — наглядный сценарий влияния fading и роли OFDM-like waveform." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Diversity gain — сценарий показа выигрыша от 2x2 Diversity по BER, BLER и required SNR." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• 16-QAM trade-off — демонстрация компромисса между скоростью передачи и помехоустойчивостью." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• OFDM showcase — удобный сценарий для показа waveform-, cyclic prefix- и equalizer-параметров." />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-slate">
+                            <children>
+                                <Label styleClass="info-title" text="Как быстро показать приложение на защите" />
+                                <VBox spacing="8.0" styleClass="dashboard-bullet-list">
+                                    <children>
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Выберите готовый сценарий для защиты на вкладке «Моделирование» и запустите расчёт без ручной настройки десятков параметров." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Используйте вкладку «Результаты» для показа BER/BLER, throughput, spectral efficiency и energy gain в компактном представлении." />
+                                        <Label styleClass="dashboard-bullet" wrapText="true" text="• Сохраните summary для защиты или Word/HTML-friendly отчёт прямо из аналитических экранов." />
+                                    </children>
+                                </VBox>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2" spacing="10.0" styleClass="info-card dashboard-section-card pastel-card-slate">
+                            <children>
+                                <Label styleClass="info-title" text="Типовой сценарий исследования" />
+                                <GridPane hgap="12.0" vgap="10.0" styleClass="dashboard-steps-grid">
+                                    <children>
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="1" />
+                                                <Label styleClass="dashboard-step-title" text="Базовый сценарий" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Задайте QPSK, AWGN и single-carrier либо OFDM-like режим для получения опорной кривой BER/BLER." />
+                                            </children>
+                                        </VBox>
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="2" />
+                                                <Label styleClass="dashboard-step-title" text="Усложнение канала" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Переключите канал на Rayleigh, измените waveform и spatial mode, чтобы оценить влияние fading и diversity." />
+                                            </children>
+                                        </VBox>
+                                        <VBox GridPane.columnIndex="2" GridPane.rowIndex="0" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="3" />
+                                                <Label styleClass="dashboard-step-title" text="Сравнение режимов" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Используйте Compare и Пакетный анализ, чтобы сопоставить сценарии по BER, BLER, throughput, spectral efficiency и required SNR." />
+                                            </children>
+                                        </VBox>
+                                        <VBox GridPane.columnIndex="3" GridPane.rowIndex="0" spacing="4.0" styleClass="dashboard-step-card">
+                                            <children>
+                                                <Label styleClass="dashboard-step-index" text="4" />
+                                                <Label styleClass="dashboard-step-title" text="Экспорт материалов" />
+                                                <Label styleClass="dashboard-step-text" wrapText="true" text="Сформируйте отчёт, графики и summary-материалы для главы 3, приложений и защиты ВКР." />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                            </children>
+                            <padding>
+                                <Insets top="18.0" right="18.0" bottom="18.0" left="18.0" />
+                            </padding>
+                        </VBox>
+                    </children>
+                </GridPane>
+            </children>
+            <padding>
+                <Insets top="4.0" right="0.0" bottom="20.0" left="0.0" />
+            </padding>
+        </VBox>
+    </content>
+</ScrollPane>

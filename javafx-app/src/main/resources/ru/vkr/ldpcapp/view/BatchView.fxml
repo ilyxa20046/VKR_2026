@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="results-scroll-pane" xmlns:fx="http://javafx.com/fxml" fx:controller="ru.vkr.ldpcapp.controller.BatchController">
+    <content>
+        <VBox spacing="18.0" styleClass="screen-root results-screen-content">
+    <children>
+        <VBox spacing="10.0" styleClass="panel-card compact-card results-actions-panel results-actions-panel-top results-actions-panel-minimal">
+            <children>
+                <Label styleClass="panel-title results-toolbar-title" text="Панель действий" />
+                <HBox spacing="8.0" styleClass="compact-action-flow results-toolbar-flow">
+                    <children>
+                        <Button fx:id="batchRunButton" onAction="#onRunBatch" styleClass="primary-button compact-action-button" text="Запустить анализ" />
+                        <MenuButton styleClass="secondary-button compact-action-button" text="Сценарии">
+                            <items>
+                                <MenuItem onAction="#onLoadCurrentExperiment" text="Добавить текущий сценарий" />
+                                <MenuItem onAction="#onUseRecommendedProfile" text="Применить рекомендуемый пресет" />
+                                <MenuItem onAction="#onSaveBatchProject" text="Сохранить проект анализа" />
+                                <MenuItem onAction="#onLoadBatchProject" text="Открыть проект анализа" />
+                            </items>
+                        </MenuButton>
+                        <MenuButton styleClass="secondary-button compact-action-button" text="Документы и экспорт">
+                            <items>
+                                <MenuItem onAction="#onSavePresentationSummary" text="Сохранить сводку для защиты" />
+                                <MenuItem onAction="#onExportBatchBundle" text="Сохранить комплект материалов" />
+                                <MenuItem onAction="#onExportBatchReport" text="Сохранить отчёт" />
+                                <MenuItem onAction="#onExportBatchCsv" text="Сохранить CSV" />
+                                <MenuItem onAction="#onSaveWordFriendlyReport" text="Сохранить Word-версию" />
+                                <MenuItem onAction="#onSaveHtmlReport" text="Сохранить HTML-версию" />
+                            </items>
+                        </MenuButton>
+                        <MenuButton styleClass="secondary-button compact-action-button" text="Копирование">
+                            <items>
+                                <MenuItem onAction="#onCopyBatchReport" text="Скопировать текст отчёта" />
+                            </items>
+                        </MenuButton>
+                        <CheckBox fx:id="defenseModeCheckBox" onAction="#onToggleDefenseMode" styleClass="check-box" text="Режим защиты" />
+                    </children>
+                </HBox>
+                <ProgressBar fx:id="batchProgressBar" prefWidth="Infinity" progress="0.0" />
+            </children>
+        </VBox>
+
+        <VBox spacing="8.0" styleClass="screen-hero results-hero-lite">
+            <children>
+                <Label styleClass="screen-title results-screen-title" text="Пакетный анализ" />
+                <Label fx:id="batchStatusLabel" styleClass="screen-subtitle" wrapText="true" text="Сравните несколько сценариев в одном запуске и определите наилучший режим по качеству передачи и эффективности использования канала." />
+            </children>
+        </VBox>
+
+        <HBox fx:id="defenseSummaryBox" managed="false" spacing="14.0" styleClass="defense-strip" visible="false">
+            <children>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-violet">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Лучший сценарий" />
+                        <Label fx:id="defenseWinnerLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Автовыбор по BER/BLER, throughput и required SNR" wrapText="true" />
+                    </children>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-blue">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Peak throughput" />
+                        <Label fx:id="defenseThroughputLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Максимальная полезная скорость в группе сценариев" wrapText="true" />
+                    </children>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-mint">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Peak spectral efficiency" />
+                        <Label fx:id="defenseSpectralLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Максимальная спектральная эффективность среди сценариев" wrapText="true" />
+                    </children>
+                </VBox>
+                <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-sun">
+                    <children>
+                        <Label styleClass="defense-kpi-label" text="Required SNR" />
+                        <Label fx:id="defenseSnrLabel" styleClass="defense-kpi-value" text="—" />
+                        <Label styleClass="defense-kpi-meta" text="Лучший требуемый SNR по BER=10⁻³ / BLER=10⁻¹" wrapText="true" />
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+
+        <VBox spacing="12.0" styleClass="panel-card compact-card results-summary-panel results-summary-table-card">
+            <children>
+                <Label styleClass="panel-title" text="Параметры пакетного анализа" />
+                <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid summary-table-grid-matrix">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="20.0" />
+                        <ColumnConstraints percentWidth="20.0" />
+                        <ColumnConstraints percentWidth="20.0" />
+                        <ColumnConstraints percentWidth="20.0" />
+                        <ColumnConstraints percentWidth="20.0" />
+                    </columnConstraints>
+                    <children>
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Waveform" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Spatial" />
+                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Модуляции" />
+                        <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Каналы" />
+                        <Label GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="LDPC-профили" />
+
+                        <Label fx:id="batchWaveformChip" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Waveform" />
+                        <Label fx:id="batchSpatialChip" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Spatial" />
+                        <Label GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="results-selected-value-cell summary-table-inline-note" text="Выбираются ниже" />
+                        <Label GridPane.columnIndex="3" GridPane.rowIndex="1" styleClass="results-selected-value-cell summary-table-inline-note" text="Выбираются ниже" />
+                        <Label GridPane.columnIndex="4" GridPane.rowIndex="1" styleClass="results-selected-value-cell summary-table-inline-note" text="Выбираются ниже" />
+                    </children>
+                </GridPane>
+                <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="34.0" />
+                        <ColumnConstraints percentWidth="66.0" />
+                    </columnConstraints>
+                    <children>
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Значение" />
+
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Сценарии для сравнения" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Выберите модуляции, каналы и LDPC-профили. Приложение автоматически сформирует комбинации и рассчитает их в одном цикле анализа." wrapText="true" />
+
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="summary-table-key-cell" text="Базовая конфигурация" />
+                        <TextArea fx:id="batchBaseConfigArea" GridPane.columnIndex="1" GridPane.rowIndex="2" editable="false" wrapText="true" prefRowCount="12" styleClass="mono-text-area summary-table-text-area" />
+                    </children>
+                </GridPane>
+
+                <GridPane hgap="18.0" vgap="18.0">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="40.0" />
+                        <ColumnConstraints percentWidth="60.0" />
+                    </columnConstraints>
+                    <children>
+                        <VBox GridPane.columnIndex="0" spacing="14.0" styleClass="panel-card pastel-card-blue">
+                            <children>
+                        <Label styleClass="panel-title" text="Набор сценариев для расчёта" />
+                        <Label styleClass="helper-text" wrapText="true" text="Выберите модуляции, каналы и LDPC-профили. Для каждой комбинации будет выполнен отдельный расчёт при общей базовой конфигурации." />
+
+                                <VBox spacing="8.0" styleClass="compact-card pastel-card-mint">
+                                    <children>
+                                        <Label styleClass="field-label" text="Модуляции" />
+                                        <HBox spacing="14.0">
+                                            <children>
+                                                <CheckBox fx:id="bpskCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="BPSK" />
+                                                <CheckBox fx:id="qpskCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="QPSK" />
+                                                <CheckBox fx:id="qam16CheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="16-QAM" />
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="8.0" styleClass="compact-card pastel-card-yellow">
+                                    <children>
+                                        <Label styleClass="field-label" text="Каналы" />
+                                        <HBox spacing="14.0">
+                                            <children>
+                                                <CheckBox fx:id="awgnCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="AWGN" />
+                                                <CheckBox fx:id="rayleighCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Rayleigh" />
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="8.0" styleClass="compact-card pastel-card-pink">
+                                    <children>
+                                        <Label styleClass="field-label" text="LDPC-профили" />
+                                        <HBox spacing="14.0">
+                                            <children>
+                                                <CheckBox fx:id="educationalProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Учебный (24,12)" />
+                                                <CheckBox fx:id="qcProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="QC-inspired (96,48)" />
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <VBox GridPane.columnIndex="1" spacing="12.0" styleClass="panel-card results-modeling-table-shell">
+                            <children>
+                                <Label styleClass="panel-title" text="Логика пакетного расчёта" />
+                                <GridPane hgap="0.0" vgap="0.0" styleClass="results-header-table">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="42.0" />
+                                        <ColumnConstraints percentWidth="58.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Принцип расчёта" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Каждая выбранная комбинация модуляции, канала и LDPC-профиля формирует отдельный сценарий и рассчитывается по общей сетке SNR для прямого сравнения результатов." wrapText="true" />
+                                    </children>
+                                </GridPane>
+                            </children>
+                        </VBox>
+                    </children>
+                </GridPane>
+            </children>
+        </VBox>
+
+        <VBox spacing="18.0" styleClass="results-chart-panel">
+            <children>
+                <VBox spacing="12.0" styleClass="panel-card chart-card-large">
+                    <children>
+                        <Label styleClass="panel-title" text="График BER(SNR)" />
+                        <LineChart fx:id="batchBerChart" animated="false" createSymbols="false" legendVisible="true">
+                            <xAxis>
+                                <NumberAxis label="SNR, дБ" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="BER" autoRanging="true" />
+                            </yAxis>
+                        </LineChart>
+                    </children>
+                </VBox>
+                <VBox spacing="12.0" styleClass="panel-card chart-card-large">
+                    <children>
+                        <Label styleClass="panel-title" text="График BLER(SNR)" />
+                        <LineChart fx:id="batchBlerChart" animated="false" createSymbols="false" legendVisible="true">
+                            <xAxis>
+                                <NumberAxis label="SNR, дБ" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="BLER" autoRanging="true" />
+                            </yAxis>
+                        </LineChart>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+
+        <VBox spacing="10.0" styleClass="panel-card compact-card results-modeling-table-card results-modeling-table-shell">
+            <children>
+                <Label styleClass="panel-title" text="Результаты пакетного анализа" />
+                <GridPane hgap="0.0" vgap="0.0" styleClass="results-header-table">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="42.0" />
+                        <ColumnConstraints percentWidth="58.0" />
+                    </columnConstraints>
+                    <children>
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
+                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Сводка по сценариям" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Содержит итоговые метрики всех рассчитанных сценариев: BER/BLER gain, throughput, spectral efficiency и required SNR." wrapText="true" />
+                    </children>
+                </GridPane>
+                <TableView fx:id="batchTable" styleClass="results-data-table results-data-table-elevated batch-best-table" prefHeight="350.0">
+                    <columns>
+                        <TableColumn fx:id="scenarioColumn" prefWidth="240.0" text="Сценарий" />
+                        <TableColumn fx:id="modulationColumn" prefWidth="90.0" text="Мод." />
+                        <TableColumn fx:id="channelColumn" prefWidth="90.0" text="Канал" />
+                        <TableColumn fx:id="profileColumn" prefWidth="170.0" text="LDPC" />
+                        <TableColumn fx:id="bestBerGainColumn" prefWidth="100.0" text="BER gain" />
+                        <TableColumn fx:id="bestBlerGainColumn" prefWidth="100.0" text="BLER gain" />
+                        <TableColumn fx:id="berEnergyGainColumn" prefWidth="100.0" text="BER, дБ" />
+                        <TableColumn fx:id="blerEnergyGainColumn" prefWidth="100.0" text="BLER, дБ" />
+                        <TableColumn fx:id="throughputColumn" prefWidth="120.0" text="Peak thrpt" />
+                        <TableColumn fx:id="spectralEfficiencyColumn" prefWidth="120.0" text="Peak η" />
+                        <TableColumn fx:id="requiredSnrBerColumn" prefWidth="120.0" text="Req SNR BER" />
+                        <TableColumn fx:id="requiredSnrBlerColumn" prefWidth="120.0" text="Req SNR BLER" />
+                    </columns>
+                </TableView>
+            </children>
+        </VBox>
+
+        <TitledPane animated="true" expanded="true" styleClass="results-titled-pane" text="Аналитический вывод">
+            <content>
+                <VBox spacing="12.0" styleClass="panel-card results-collapsible-content">
+                    <children>
+                        <TextArea fx:id="batchNarrativeArea" editable="false" wrapText="true" prefRowCount="16" styleClass="mono-text-area" />
+                    </children>
+                </VBox>
+            </content>
+        </TitledPane>
+    </children>
+    <padding>
+        <Insets top="4.0" right="4.0" bottom="4.0" left="4.0" />
+    </padding>
+</VBox>
+    </content>
+</ScrollPane>
