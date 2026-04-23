@@ -160,7 +160,7 @@ public class ResultsController {
         if (ExperimentSession.hasResults()) {
             currentConfig = ExperimentSession.getLastConfig();
             setResults(ExperimentSession.getLastResults());
-            exportStatusLabel.setText("Результаты подготовлены. Если в gain-метриках указано «ошибки не наблюдались», это означает отсутствие ошибок в текущей выборке эксперимента.");
+            exportStatusLabel.setText("Если в gain-метриках указано «ошибки не наблюдались», это означает отсутствие ошибок в текущей выборке эксперимента.");
         } else {
             currentConfig = SimulationConfig.recommendedProfile();
             currentConfig.setWaveform(SimulationConfig.WAVEFORM_OFDM64);
@@ -168,7 +168,7 @@ public class ResultsController {
             currentConfig.setCyclicPrefix(SimulationConfig.normalizeCyclicPrefix(8, currentConfig.getWaveform()));
             currentConfig.setEqualizerMode(SimulationConfig.EQUALIZER_ZF);
             loadDemoData();
-            exportStatusLabel.setText("Открыты демонстрационные результаты. Можно просмотреть графики и экспортировать материалы.");
+            exportStatusLabel.setText("На данный момент, открыты демонстрационные результаты.");
         }
     }
 

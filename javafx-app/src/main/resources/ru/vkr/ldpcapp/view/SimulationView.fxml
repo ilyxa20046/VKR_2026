@@ -64,7 +64,6 @@
                                 </MenuButton>
                             </children>
                         </FlowPane>
-                        <Label styleClass="helper-text" wrapText="true" text="Используйте базовый режим для быстрого старта, включайте расширенный режим для OFDM/MIMO-настроек и выбирайте отдельные сценарии для защиты, если нужно быстро показать ключевые эффекты на защите ВКР." />
                     </children>
                 </VBox>
 
@@ -81,12 +80,6 @@
 
                         <VBox spacing="12.0" styleClass="panel-card compact-card simulation-section-card simulation-section-coding">
                             <children>
-                                <VBox spacing="2.0">
-                                    <children>
-                                        <Label styleClass="field-label simulation-section-title" text="Кодирование, модуляция и профиль исследования" />
-                                        <Label styleClass="helper-text simulation-section-subtitle" text="Выберите один из готовых исследовательских профилей или настройте LDPC, модуляцию и длину информационного блока вручную." />
-                                    </children>
-                                </VBox>
                                 <GridPane hgap="14.0" vgap="14.0">
                                     <columnConstraints>
                                         <ColumnConstraints percentWidth="50.0" />
@@ -187,7 +180,6 @@
                             <children>
                                 <VBox spacing="2.0">
                                     <children>
-                                        <Label styleClass="field-label simulation-section-title" text="Диапазон SNR и объём эксперимента" />
                                         <Label styleClass="helper-text simulation-section-subtitle" text="Определите диапазон отношения сигнал/шум и число блоков для статистической оценки BER и BLER." />
                                     </children>
                                 </VBox>
@@ -243,7 +235,7 @@
                                     <children>
                                         <HBox alignment="CENTER_LEFT" spacing="8.0">
                                             <children>
-                                                <Label styleClass="panel-title" text="Предпросмотр конфигурации" />
+                                                <Label styleClass="panel-title" text="Предпросмотр" />
                                                 <Label fx:id="modeStatusChip" styleClass="segment-chip simulation-mode-chip" text="Расширенный режим" />
                                             </children>
                                         </HBox>
@@ -251,7 +243,7 @@
                                         <TextArea fx:id="configPreviewArea" editable="false" focusTraversable="false" prefRowCount="22" styleClass="mono-text-area simulation-preview-area simulation-preview-area-extended" wrapText="true" />
                                     </children>
                                 </VBox>
-                                <Label fx:id="configFileStatusLabel" styleClass="helper-text" text="Конфигурацию можно сохранить в файл и затем повторно загрузить." />
+                                <Label fx:id="configFileStatusLabel" styleClass="helper-text" text="Конфигурацию можно сохранить в файл и затем повторно загрузить." wrapText="true" />
                             </children>
                         </VBox>
                     </children>

@@ -32,14 +32,9 @@
             <children>
                 <VBox spacing="8.0" styleClass="panel-card compact-card action-panel-card results-actions-panel results-actions-panel-top results-actions-panel-minimal">
                     <children>
-                        <HBox alignment="CENTER_LEFT" spacing="8.0">
-                            <children>
-                                <Label styleClass="panel-title results-toolbar-title" text="Действия с результатами" />
-                            </children>
-                        </HBox>
                         <FlowPane hgap="8.0" vgap="8.0" prefWrapLength="1100.0" styleClass="toolbar-row compact-action-flow results-toolbar-flow results-compare-action-row">
                             <children>
-                                <Label fx:id="compareScenarioStatusChip" styleClass="metric-pill compare-stage-pill" text="Сценарий A не выбран" />
+                                <Label fx:id="compareScenarioStatusChip" styleClass="dashboard-bullet" text="Сценарий A не выбран" />
                                 <MenuButton mnemonicParsing="false" styleClass="secondary-button compact-action-button" text="Экспорт данных">
                                     <items>
                                         <MenuItem mnemonicParsing="false" onAction="#onExportExperimentBundle" text="Сохранить полный комплект" />
@@ -73,7 +68,7 @@
                                 <CheckBox fx:id="defenseModeCheckBox" mnemonicParsing="false" onAction="#onToggleDefenseMode" styleClass="check-box" text="Режим защиты" />
                             </children>
                         </FlowPane>
-                        <Label fx:id="exportStatusLabel" styleClass="helper-text" text="Готово к экспорту результатов эксперимента." wrapText="true" />
+                        <Label fx:id="exportStatusLabel" styleClass="summary-table-header-cell results-selected-header-cell" text="Готово к экспорту результатов эксперимента." wrapText="true" />
                         <Label styleClass="helper-text subtle-helper" text="Для сравнения: выберите один запуск как A, затем откройте второй и нажмите «Сравнить A/B»." wrapText="true" />
                     </children>
                 </VBox>
@@ -82,13 +77,12 @@
                     <children>
                         <VBox spacing="2.0">
                             <children>
-                                <Label styleClass="screen-eyebrow" text="Результаты эксперимента" />
-                                <Label styleClass="screen-title results-screen-title" text="Итоги моделирования и выбранные параметры" />
+                                <Label styleClass="panel-title" text="Результаты эксперимента" />
                             </children>
                         </VBox>
                         <VBox spacing="6.0" styleClass="results-selected-params-box">
                             <children>
-                                <Label styleClass="helper-text helper-text-strong" text="Параметры текущего сценария" />
+                                <Label styleClass="summary-table-value-cell summary-value-success" text="Параметры текущего сценария" />
                                 <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid results-selected-params-table">
                                     <columnConstraints>
                                         <ColumnConstraints percentWidth="16.5" />
@@ -99,12 +93,12 @@
                                         <ColumnConstraints percentWidth="17.0" />
                                     </columnConstraints>
                                     <children>
-                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell results-selected-header-cell" text="Модуляция" />
-                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell results-selected-header-cell" text="Канал" />
-                                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="summary-table-header-cell results-selected-header-cell" text="Waveform" />
-                                        <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="summary-table-header-cell results-selected-header-cell" text="Spatial mode" />
-                                        <Label GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="summary-table-header-cell results-selected-header-cell" text="LDPC" />
-                                        <Label GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="summary-table-header-cell results-selected-header-cell" text="Режим канала" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Модуляция" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Канал" />
+                                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Waveform" />
+                                        <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Spatial mode" />
+                                        <Label GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="LDPC" />
+                                        <Label GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Режим канала" />
 
                                         <Label fx:id="resultsModulationChip" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-value-cell results-selected-value-cell" text="QPSK" />
                                         <Label fx:id="resultsChannelChip" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell results-selected-value-cell" text="AWGN" />
@@ -134,9 +128,9 @@
                                 <ColumnConstraints percentWidth="25.0" />
                             </columnConstraints>
                             <children>
-                                <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
+                                <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-key-cell" text="Параметр" />
                                 <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Значение" />
-                                <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
+                                <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="summary-table-key-cell" text="Параметр" />
                                 <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Значение" />
 
                                 <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Лучший выигрыш BER" />
@@ -208,10 +202,9 @@
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                             <children>
                                 <Label styleClass="panel-title" text="Графики BER(SNR) и BLER(SNR)" />
-                                <Label styleClass="metric-pill" text="Charts" />
                             </children>
                         </HBox>
-                        <Label styleClass="helper-text results-chart-helper" wrapText="true" text="Основной визуальный блок анализа: влияние кодирования, OFDM/MIMO-параметров и условий канала на BER/BLER." />
+                        <Label styleClass="dashboard-bullet" wrapText="true" text="Основной визуальный блок анализа: влияние кодирования, OFDM/MIMO-параметров и условий канала на BER/BLER." />
                         <GridPane hgap="18.0" vgap="18.0">
                             <columnConstraints>
                                 <ColumnConstraints percentWidth="50.0" />
@@ -263,8 +256,6 @@
                                 <ColumnConstraints percentWidth="45.0" />
                             </columnConstraints>
                             <children>
-                                <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
-                                <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
                                 <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица BER / BLER / Throughput / Spectral Efficiency" />
                                 <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Каждая строка показывает состояние канала для отдельной точки SNR." wrapText="true" />
                             </children>
@@ -289,16 +280,7 @@
                     <content>
                         <VBox spacing="12.0" styleClass="panel-card compact-card pastel-card-blue results-collapsible-content">
                             <children>
-                                <HBox spacing="8.0">
-                                    <children>
-                                        <Label styleClass="metric-pill" text="Narrative" />
-                                        <Label styleClass="metric-pill" text="Report" />
-                                        <Label styleClass="metric-pill" text="Export-ready" />
-                                    </children>
-                                </HBox>
                                 <TextArea fx:id="narrativeArea" editable="false" focusTraversable="false" prefRowCount="14" styleClass="mono-text-area" wrapText="true" />
-                                <Separator />
-                                <Label styleClass="helper-text" wrapText="true" text="Экран учитывает расширенную научную модель: тип модуляции, Rayleigh/AWGN-канал, профиль LDPC, waveform, spatial mode, энергетический выигрыш, effective throughput, spectral efficiency и требуемый SNR по заданным целям качества." />
                             </children>
                         </VBox>
                     </content>
