@@ -33,6 +33,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "E:/File_Cods/JAVA/VKR_2026",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -59,6 +60,17 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <option name="filePath" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Application.Launcher" />
@@ -80,7 +92,10 @@
       <workItem from="1773421707324" duration="6606000" />
       <workItem from="1773947290574" duration="29000" />
       <workItem from="1774635166024" duration="908000" />
-      <workItem from="1776872230555" duration="1653000" />
+      <workItem from="1776872230555" duration="10364000" />
+      <workItem from="1776962189978" duration="686000" />
+      <workItem from="1776962904285" duration="39000" />
+      <workItem from="1776964843181" duration="74000" />
     </task>
     <servers />
   </component>

@@ -2262,7 +2262,7 @@
 
 .dashboard-main-grid > .info-card,
 .dashboard-section-card {
-    -fx-max-width: 1.0e8;
+    -fx-max-width: 100000000;
 }
 
 .dashboard-section-card .info-title,
@@ -2271,13 +2271,13 @@
 .dashboard-step-text,
 .dashboard-step-title {
     -fx-wrap-text: true;
-    -fx-max-width: 1.0e8;
+    -fx-max-width: 100000000;
 }
 
 .dashboard-metric-value {
     -fx-wrap-text: true;
     -fx-min-width: 0;
-    -fx-max-width: 1.0e8;
+    -fx-max-width: 100000000;
 }
 
 .dashboard-metric-label {
