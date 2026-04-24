@@ -14,6 +14,8 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import ru.vkr.ldpcapp.model.ResultPoint;
@@ -50,6 +52,8 @@ public class SimulationController {
 
     @FXML
     private ComboBox<String> ldpcProfileComboBox;
+    @FXML
+    private ScrollPane simulationScrollPane;
 
     @FXML
     private ComboBox<String> modulationComboBox;
@@ -131,6 +135,7 @@ public class SimulationController {
 
     @FXML
     public void initialize() {
+        setupFastScroll();
         ldpcProfileComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedLdpcProfiles()));
         modulationComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedModulations()));
         channelComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedChannels()));
@@ -451,6 +456,43 @@ public class SimulationController {
         if (autoRun) {
             onRunSimulation();
         }
+    }
+
+    private void setupFastScroll() {
+        if (simulationScrollPane == null) {
+            return;
+        }
+
+        simulationScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
+            // Не мешаем zoom-механикам (если где-то используешь Ctrl+wheel)
+            if (event.isControlDown()) {
+                return;
+            }
+
+            double deltaY = event.getDeltaY();
+            if (Math.abs(deltaY) < 0.001) {
+                return;
+            }
+
+            // Коэффициент скорости прокрутки: подбери 1.6..3.0
+            double speedFactor = 2.2;
+
+            double contentHeight = simulationScrollPane.getContent() == null
+                    ? 1.0
+                    : simulationScrollPane.getContent().getBoundsInLocal().getHeight();
+            double viewportHeight = simulationScrollPane.getViewportBounds().getHeight();
+            double scrollableHeight = Math.max(1.0, contentHeight - viewportHeight);
+
+            double dv = -(deltaY * speedFactor) / scrollableHeight;
+            double newV = clamp(simulationScrollPane.getVvalue() + dv, 0.0, 1.0);
+
+            simulationScrollPane.setVvalue(newV);
+            event.consume();
+        });
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private void attachPreviewListeners() {

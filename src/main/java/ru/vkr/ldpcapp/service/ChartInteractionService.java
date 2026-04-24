@@ -62,33 +62,34 @@ public class ChartInteractionService {
             return;
         }
 
-        Platform.runLater(() -> {
-            Node plotArea = chart.lookup(".chart-plot-background");
-            if (plotArea == null) {
+        final boolean initialXAuto = xAxis.isAutoRanging();
+        final boolean initialYAuto = yAxis.isAutoRanging();
+
+        chart.addEventFilter(javafx.scene.input.ScrollEvent.SCROLL, event -> {
+            // Зум только с Ctrl, иначе событие отдаем ScrollPane
+            if (!event.isControlDown()) {
                 return;
             }
 
-            final boolean initialXAuto = xAxis.isAutoRanging();
-            final boolean initialYAuto = yAxis.isAutoRanging();
+            // Если Ctrl зажат, блокируем прокрутку страницы полностью
+            event.consume();
 
-            plotArea.setOnScroll(event -> {
-                if (xAxis.isAutoRanging() || yAxis.isAutoRanging()) {
-                    xAxis.setAutoRanging(false);
-                    yAxis.setAutoRanging(false);
-                }
+            if (xAxis.isAutoRanging() || yAxis.isAutoRanging()) {
+                xAxis.setAutoRanging(false);
+                yAxis.setAutoRanging(false);
+            }
 
-                double factor = event.getDeltaY() > 0 ? 0.90 : 1.10;
-                zoomAxis(xAxis, factor);
-                zoomAxis(yAxis, factor);
+            double factor = event.getDeltaY() > 0 ? 0.90 : 1.10;
+            zoomAxis(xAxis, factor);
+            zoomAxis(yAxis, factor);
+        });
+
+        chart.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_CLICKED, event -> {
+            if (event.getClickCount() == 2) {
+                xAxis.setAutoRanging(initialXAuto);
+                yAxis.setAutoRanging(initialYAuto);
                 event.consume();
-            });
-
-            plotArea.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2) {
-                    xAxis.setAutoRanging(initialXAuto);
-                    yAxis.setAutoRanging(initialYAuto);
-                }
-            });
+            }
         });
     }
 

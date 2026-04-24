@@ -20,8 +20,10 @@
 
 <ScrollPane fitToWidth="true"
             pannable="true"
+            hbarPolicy="NEVER"
             styleClass="results-scroll-pane simulation-scroll-pane"
             xmlns:fx="http://javafx.com/fxml"
+            vbarPolicy="ALWAYS"
             fx:controller="ru.vkr.ldpcapp.controller.SimulationController">
     <content>
         <VBox spacing="12.0"
