@@ -25,6 +25,10 @@ public class SimulationConfig {
 
     public static final String EQUALIZER_NONE = "None";
     public static final String EQUALIZER_ZF = "One-tap ZF";
+    public static final boolean DEFAULT_ADAPTIVE_STOP_ENABLED = true;
+    public static final int DEFAULT_MIN_ERROR_EVENTS_PER_SNR = 50;
+    public static final int DEFAULT_MAX_BLOCKS_PER_SNR = 2000;
+    public static final double DEFAULT_CONFIDENCE_LEVEL = 0.95;
 
     private int infoBlockLength;
     private double snrStart;
@@ -41,6 +45,10 @@ public class SimulationConfig {
     private String spatialMode;
     private int cyclicPrefix;
     private String equalizerMode;
+    private boolean adaptiveStopEnabled;
+    private int minErrorEventsPerSnr;
+    private int maxBlocksPerSnr;
+    private double confidenceLevel;
 
     public SimulationConfig() {
     }
@@ -77,6 +85,53 @@ public class SimulationConfig {
         this.spatialMode = spatialMode;
         this.cyclicPrefix = cyclicPrefix;
         this.equalizerMode = equalizerMode;
+        this.adaptiveStopEnabled = DEFAULT_ADAPTIVE_STOP_ENABLED;
+        this.minErrorEventsPerSnr = DEFAULT_MIN_ERROR_EVENTS_PER_SNR;
+        this.maxBlocksPerSnr = DEFAULT_MAX_BLOCKS_PER_SNR;
+        this.confidenceLevel = DEFAULT_CONFIDENCE_LEVEL;
+    }
+    public SimulationConfig(
+            int infoBlockLength,
+            double snrStart,
+            double snrEnd,
+            double snrStep,
+            int blocks,
+            int maxIterations,
+            double normalization,
+            int seed,
+            String modulation,
+            String channelModel,
+            String ldpcProfile,
+            String waveform,
+            String spatialMode,
+            int cyclicPrefix,
+            String equalizerMode,
+            boolean adaptiveStopEnabled,
+            int minErrorEventsPerSnr,
+            int maxBlocksPerSnr,
+            double confidenceLevel
+    ) {
+        this(
+                infoBlockLength,
+                snrStart,
+                snrEnd,
+                snrStep,
+                blocks,
+                maxIterations,
+                normalization,
+                seed,
+                modulation,
+                channelModel,
+                ldpcProfile,
+                waveform,
+                spatialMode,
+                cyclicPrefix,
+                equalizerMode
+        );
+        this.adaptiveStopEnabled = adaptiveStopEnabled;
+        this.minErrorEventsPerSnr = minErrorEventsPerSnr;
+        this.maxBlocksPerSnr = maxBlocksPerSnr;
+        this.confidenceLevel = confidenceLevel;
     }
 
     public static SimulationConfig recommendedProfile() {
@@ -476,6 +531,18 @@ public class SimulationConfig {
         if (seed < 1) {
             throw new IllegalArgumentException("Seed генератора должен быть положительным.");
         }
+        if (minErrorEventsPerSnr < 1) {
+            throw new IllegalArgumentException("Минимальное число событий ошибок на точку SNR должно быть не меньше 1.");
+        }
+        if (maxBlocksPerSnr < blocks) {
+            throw new IllegalArgumentException("Лимит блоков на точку SNR должен быть не меньше базового количества блоков.");
+        }
+        if (confidenceLevel <= 0.0 || confidenceLevel >= 1.0) {
+            throw new IllegalArgumentException("Уровень доверия должен находиться в интервале (0; 1).");
+        }
+        if (adaptiveStopEnabled && maxBlocksPerSnr < 20) {
+            throw new IllegalArgumentException("Для адаптивного режима max blocks per SNR должен быть не меньше 20.");
+        }
     }
 
     public List<Double> buildSnrPoints() {
@@ -494,7 +561,8 @@ public class SimulationConfig {
     }
 
     public int getExperimentBlockCount() {
-        return getSnrPointCount() * blocks;
+        int perSnr = adaptiveStopEnabled ? maxBlocksPerSnr : blocks;
+        return getSnrPointCount() * perSnr;
     }
 
     public int getEstimatedInformationBits() {
@@ -532,7 +600,11 @@ public class SimulationConfig {
                         "• коэффициент нормализации: %.2f%n" +
                         "• скорость кода: %.2f%n" +
                         "• описание профиля: %s%n" +
-                        "• seed генератора: %d",
+                        "• seed генератора: %d" +
+                        "• адаптивная остановка: %s%n" +
+                        "• min error events per SNR: %d%n" +
+                        "• max blocks per SNR: %d%n" +
+                        "• confidence level: %.2f%n",
                 getProfileName(ldpcProfile),
                 getProfileFamily(ldpcProfile),
                 modulation,
@@ -554,7 +626,11 @@ public class SimulationConfig {
                 normalization,
                 getCodeRate(),
                 getProfileDescription(ldpcProfile),
-                seed
+                seed,
+                adaptiveStopEnabled ? "включена" : "выключена",
+                minErrorEventsPerSnr,
+                maxBlocksPerSnr,
+                confidenceLevel
         );
     }
 
@@ -680,5 +756,36 @@ public class SimulationConfig {
 
     public void setEqualizerMode(String equalizerMode) {
         this.equalizerMode = equalizerMode;
+    }
+    public boolean isAdaptiveStopEnabled() {
+        return adaptiveStopEnabled;
+    }
+
+    public void setAdaptiveStopEnabled(boolean adaptiveStopEnabled) {
+        this.adaptiveStopEnabled = adaptiveStopEnabled;
+    }
+
+    public int getMinErrorEventsPerSnr() {
+        return minErrorEventsPerSnr;
+    }
+
+    public void setMinErrorEventsPerSnr(int minErrorEventsPerSnr) {
+        this.minErrorEventsPerSnr = minErrorEventsPerSnr;
+    }
+
+    public int getMaxBlocksPerSnr() {
+        return maxBlocksPerSnr;
+    }
+
+    public void setMaxBlocksPerSnr(int maxBlocksPerSnr) {
+        this.maxBlocksPerSnr = maxBlocksPerSnr;
+    }
+
+    public double getConfidenceLevel() {
+        return confidenceLevel;
+    }
+
+    public void setConfidenceLevel(double confidenceLevel) {
+        this.confidenceLevel = confidenceLevel;
     }
 }

@@ -34,6 +34,21 @@ public class SimulationController {
     private final ConfigFileService configFileService = new ConfigFileService();
 
     @FXML
+    private CheckBox adaptiveStopCheckBox;
+
+    @FXML
+    private Spinner<Integer> minErrorEventsSpinner;
+
+    @FXML
+    private Spinner<Integer> maxBlocksPerSnrSpinner;
+
+    @FXML
+    private Spinner<Double> confidenceLevelSpinner;
+
+    @FXML
+    private VBox advancedStatisticsBox;
+
+    @FXML
     private ComboBox<String> ldpcProfileComboBox;
 
     @FXML
@@ -132,6 +147,22 @@ public class SimulationController {
         maxIterationsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(2, 100, 12, 1));
         normalizationSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(0.50, 1.00, 0.85, 0.05));
         seedSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, Integer.MAX_VALUE, 2025, 1));
+
+        if (minErrorEventsSpinner != null) {
+            minErrorEventsSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                    1, 100000, SimulationConfig.DEFAULT_MIN_ERROR_EVENTS_PER_SNR, 5
+            ));
+        }
+        if (maxBlocksPerSnrSpinner != null) {
+            maxBlocksPerSnrSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                    20, 200000, SimulationConfig.DEFAULT_MAX_BLOCKS_PER_SNR, 50
+            ));
+        }
+        if (confidenceLevelSpinner != null) {
+            confidenceLevelSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(
+                    0.80, 0.999, SimulationConfig.DEFAULT_CONFIDENCE_LEVEL, 0.01
+            ));
+        }
 
         configureEditableSpinners();
         attachPreviewListeners();
@@ -374,7 +405,8 @@ public class SimulationController {
         commitEditorValues();
         String profile = ldpcProfileComboBox.getValue();
         String waveform = waveformComboBox.getValue();
-        return new SimulationConfig(
+
+        SimulationConfig config = new SimulationConfig(
                 SimulationConfig.normalizeInfoBlockLength(infoBlockSpinner.getValue(), profile),
                 snrStartSpinner.getValue(),
                 snrEndSpinner.getValue(),
@@ -391,6 +423,19 @@ public class SimulationController {
                 SimulationConfig.normalizeCyclicPrefix(cyclicPrefixSpinner.getValue(), waveform),
                 equalizerComboBox.getValue()
         );
+
+        config.setAdaptiveStopEnabled(adaptiveStopCheckBox == null || adaptiveStopCheckBox.isSelected());
+        config.setMinErrorEventsPerSnr(minErrorEventsSpinner == null
+                ? SimulationConfig.DEFAULT_MIN_ERROR_EVENTS_PER_SNR
+                : minErrorEventsSpinner.getValue());
+        config.setMaxBlocksPerSnr(maxBlocksPerSnrSpinner == null
+                ? SimulationConfig.DEFAULT_MAX_BLOCKS_PER_SNR
+                : maxBlocksPerSnrSpinner.getValue());
+        config.setConfidenceLevel(confidenceLevelSpinner == null
+                ? SimulationConfig.DEFAULT_CONFIDENCE_LEVEL
+                : confidenceLevelSpinner.getValue());
+
+        return config;
     }
 
     public void openFromExternalConfig(SimulationConfig config, boolean autoRun) {
@@ -418,6 +463,19 @@ public class SimulationController {
         maxIterationsSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         normalizationSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         seedSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+
+        if (adaptiveStopCheckBox != null) {
+            adaptiveStopCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
+        if (minErrorEventsSpinner != null) {
+            minErrorEventsSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
+        if (maxBlocksPerSnrSpinner != null) {
+            maxBlocksPerSnrSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
+        if (confidenceLevelSpinner != null) {
+            confidenceLevelSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
     }
 
     private void attachScientificListeners() {
@@ -445,6 +503,16 @@ public class SimulationController {
         maxIterationsSpinner.setEditable(true);
         normalizationSpinner.setEditable(true);
         seedSpinner.setEditable(true);
+
+        if (minErrorEventsSpinner != null) {
+            minErrorEventsSpinner.setEditable(true);
+        }
+        if (maxBlocksPerSnrSpinner != null) {
+            maxBlocksPerSnrSpinner.setEditable(true);
+        }
+        if (confidenceLevelSpinner != null) {
+            confidenceLevelSpinner.setEditable(true);
+        }
     }
 
     private void applyConfig(SimulationConfig config) {
@@ -464,6 +532,19 @@ public class SimulationController {
         normalizationSpinner.getValueFactory().setValue(config.getNormalization());
         seedSpinner.getValueFactory().setValue(config.getSeed());
         adjustInfoBlockForProfile(config.getLdpcProfile());
+
+        if (adaptiveStopCheckBox != null) {
+            adaptiveStopCheckBox.setSelected(config.isAdaptiveStopEnabled());
+        }
+        if (minErrorEventsSpinner != null && minErrorEventsSpinner.getValueFactory() != null) {
+            minErrorEventsSpinner.getValueFactory().setValue(config.getMinErrorEventsPerSnr());
+        }
+        if (maxBlocksPerSnrSpinner != null && maxBlocksPerSnrSpinner.getValueFactory() != null) {
+            maxBlocksPerSnrSpinner.getValueFactory().setValue(config.getMaxBlocksPerSnr());
+        }
+        if (confidenceLevelSpinner != null && confidenceLevelSpinner.getValueFactory() != null) {
+            confidenceLevelSpinner.getValueFactory().setValue(config.getConfidenceLevel());
+        }
     }
 
     private void updatePreview() {
@@ -514,6 +595,7 @@ public class SimulationController {
         setManagedVisible(advancedIterationsBox, advanced);
         setManagedVisible(advancedNormalizationBox, advanced);
         setManagedVisible(advancedSeedBox, advanced);
+        setManagedVisible(advancedStatisticsBox, advanced);
     }
 
     private void setManagedVisible(VBox node, boolean visible) {
@@ -565,6 +647,16 @@ public class SimulationController {
         maxIterationsSpinner.increment(0);
         normalizationSpinner.increment(0);
         seedSpinner.increment(0);
+
+        if (minErrorEventsSpinner != null) {
+            minErrorEventsSpinner.increment(0);
+        }
+        if (maxBlocksPerSnrSpinner != null) {
+            maxBlocksPerSnrSpinner.increment(0);
+        }
+        if (confidenceLevelSpinner != null) {
+            confidenceLevelSpinner.increment(0);
+        }
     }
 
     private void adjustCyclicPrefixForWaveform(String waveform) {

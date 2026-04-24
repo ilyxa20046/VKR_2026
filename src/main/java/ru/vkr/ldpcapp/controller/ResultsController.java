@@ -256,7 +256,13 @@ public class ResultsController {
         String narrative = reportService.buildShortNarrative(currentConfig, points);
         currentDetailedReport = reportService.buildDetailedReport(currentConfig, points);
         currentChapterThreeMaterials = chapterThreeMaterialsService.buildChapterThreeMaterials(currentConfig, points);
-        narrativeArea.setText(narrative);
+
+        narrativeArea.setText(
+                narrative
+                        + System.lineSeparator()
+                        + System.lineSeparator()
+                        + buildConfidenceAppendix(points)
+        );
     }
 
     @FXML
@@ -638,5 +644,29 @@ public class ResultsController {
 
     private String formatFixed(double value) {
         return String.format("%.2f", value);
+    }
+    private String buildConfidenceAppendix(List<ResultPoint> points) {
+        if (points == null || points.isEmpty()) {
+            return "Доверительные интервалы недоступны: нет данных.";
+        }
+        ResultPoint last = points.get(points.size() - 1);
+        return String.format(
+                "Статистическая достоверность:%n" +
+                        "• confidence level: %.2f%n" +
+                        "• BER LDPC CI (последняя точка): [%s; %s]%n" +
+                        "• BLER LDPC CI (последняя точка): [%s; %s]%n" +
+                        "• объём выборки последней точки: %d бит, %d блоков",
+                last.getConfidenceLevel(),
+                formatSci(last.getBerLdpcCiLow()),
+                formatSci(last.getBerLdpcCiHigh()),
+                formatSci(last.getBlerLdpcCiLow()),
+                formatSci(last.getBlerLdpcCiHigh()),
+                last.getTotalBits(),
+                last.getTotalBlocks()
+        );
+    }
+
+    private String formatSci(double value) {
+        return String.format("%.3e", value);
     }
 }

@@ -71,26 +71,27 @@ public class SimulationService {
         Random codedRandom = new Random(config.getSeed() + 5003L * (index + 1));
         double sigmaUncoded = sigmaFromEbN0(snrDb, config.getModulation(), 1.0);
         double sigmaCoded = sigmaFromEbN0(snrDb, config.getModulation(), code.rate);
-        int totalBits = config.getBlocks() * config.getInfoBlockLength();
         int codewordsPerBlock = config.getInfoBlockLength() / code.k;
-        int totalCodewords = config.getBlocks() * codewordsPerBlock;
+        int targetBlocks = config.isAdaptiveStopEnabled() ? config.getMaxBlocksPerSnr() : config.getBlocks();
 
         int uncodedBitErrors = 0;
         int uncodedBlockErrors = 0;
-        for (int block = 0; block < config.getBlocks(); block++) {
-            BlockStat result = simulateUncodedBlock(config, sigmaUncoded, uncodedRandom);
-            uncodedBitErrors += result.bitErrors;
-            if (result.blockError) {
-                uncodedBlockErrors++;
-            }
-        }
 
         int codedBitErrors = 0;
         int codedBlockErrors = 0;
         double iterationsSum = 0.0;
         int successfulCodewords = 0;
+        int processedBlocks = 0;
 
-        for (int block = 0; block < config.getBlocks(); block++) {
+        for (int block = 0; block < targetBlocks; block++) {
+            processedBlocks++;
+
+            BlockStat uncodedResult = simulateUncodedBlock(config, sigmaUncoded, uncodedRandom);
+            uncodedBitErrors += uncodedResult.bitErrors;
+            if (uncodedResult.blockError) {
+                uncodedBlockErrors++;
+            }
+
             boolean blockHasError = false;
             for (int word = 0; word < codewordsPerBlock; word++) {
                 int[] info = randomBits(code.k, codedRandom);
@@ -111,28 +112,49 @@ public class SimulationService {
                     }
                 }
             }
+
             if (blockHasError) {
                 codedBlockErrors++;
             }
+
+            if (shouldStopAdaptive(config, codedBitErrors, codedBlockErrors, processedBlocks)) {
+                break;
+            }
         }
 
+        int totalBlocks = Math.max(1, processedBlocks);
+        int totalBits = totalBlocks * config.getInfoBlockLength();
+        int totalCodewords = totalBlocks * codewordsPerBlock;
+
         double berLdpc = safeDivide(codedBitErrors, totalBits);
-        double blerLdpc = safeDivide(codedBlockErrors, config.getBlocks());
+        double blerLdpc = safeDivide(codedBlockErrors, totalBlocks);
         double averageIterations = safeDivide(iterationsSum, totalCodewords);
         double successRatio = safeDivide(successfulCodewords, totalCodewords);
         double spectralEfficiency = estimateSpectralEfficiency(config, code.rate, blerLdpc);
         double throughputMbps = estimateThroughputMbps(config, code.rate, blerLdpc);
 
+        Interval berCi = wilsonInterval(codedBitErrors, totalBits, config.getConfidenceLevel());
+        Interval blerCi = wilsonInterval(codedBlockErrors, totalBlocks, config.getConfidenceLevel());
+
         return new ResultPoint(
                 snrDb,
                 safeDivide(uncodedBitErrors, totalBits),
                 berLdpc,
-                safeDivide(uncodedBlockErrors, config.getBlocks()),
+                safeDivide(uncodedBlockErrors, totalBlocks),
                 blerLdpc,
                 averageIterations,
                 successRatio,
                 throughputMbps,
-                spectralEfficiency
+                spectralEfficiency,
+                berCi.low(),
+                berCi.high(),
+                blerCi.low(),
+                blerCi.high(),
+                codedBitErrors,
+                codedBlockErrors,
+                totalBits,
+                totalBlocks,
+                config.getConfidenceLevel()
         );
     }
 
@@ -430,6 +452,42 @@ public class SimulationService {
         }
         return gains;
     }
+    private boolean shouldStopAdaptive(SimulationConfig config, int codedBitErrors, int codedBlockErrors, int processedBlocks) {
+        if (!config.isAdaptiveStopEnabled()) {
+            return false;
+        }
+        if (processedBlocks < config.getBlocks()) {
+            return false;
+        }
+        return codedBitErrors >= config.getMinErrorEventsPerSnr()
+                && codedBlockErrors >= config.getMinErrorEventsPerSnr();
+    }
+
+    private Interval wilsonInterval(int errors, int total, double confidenceLevel) {
+        if (total <= 0) {
+            return new Interval(0.0, 0.0);
+        }
+        double p = (double) errors / total;
+        double z = zScore(confidenceLevel);
+        double z2 = z * z;
+        double denominator = 1.0 + z2 / total;
+        double center = (p + z2 / (2.0 * total)) / denominator;
+        double radius = (z / denominator) * Math.sqrt((p * (1.0 - p) + z2 / (4.0 * total)) / total);
+        return new Interval(
+                Math.max(0.0, center - radius),
+                Math.min(1.0, center + radius)
+        );
+    }
+
+    private double zScore(double confidenceLevel) {
+        if (confidenceLevel >= 0.999) return 3.29;
+        if (confidenceLevel >= 0.99) return 2.58;
+        if (confidenceLevel >= 0.98) return 2.33;
+        if (confidenceLevel >= 0.95) return 1.96;
+        if (confidenceLevel >= 0.90) return 1.64;
+        if (confidenceLevel >= 0.80) return 1.28;
+        return 1.0;
+    }
 
     private double safeDivide(int numerator, int denominator) {
         return denominator == 0 ? 0.0 : (double) numerator / denominator;
@@ -635,6 +693,8 @@ public class SimulationService {
     }
 
     private record LdpcCode(int k, int m, int n, double rate, int[][] messageTaps, int[][] checkToVars, List<EdgeRef>[] varToChecks) {
+    }
+    private record Interval(double low, double high) {
     }
 
     private static class Complex {
