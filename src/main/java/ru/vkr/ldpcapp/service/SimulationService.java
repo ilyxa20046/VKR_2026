@@ -220,7 +220,7 @@ public class SimulationService {
 
 // 3) Segmentation (опционально)
             boolean segmentationEnabled = config.isSegmentationEnabled();
-            List<int[]> segments = segmentationEnabled ? segmentBits(transportBlock, code.k) : List.of(transportBlock);
+            List<int[]> segments = segmentBits(transportBlock, code.k);
 
 // 4) Обработка сегментов
             for (int[] rawSegment : segments) {
@@ -247,7 +247,7 @@ public class SimulationService {
                 }
 
                 // Считаем ошибки по исходной длине сегмента (до padding)
-                int compareLength = rawSegment.length;
+                int compareLength = Math.min(rawSegment.length, decoded.decodedInfo.length);
                 for (int i = 0; i < compareLength; i++) {
                     if (decoded.decodedInfo[i] != rawSegment[i]) {
                         codedBitErrors++;
