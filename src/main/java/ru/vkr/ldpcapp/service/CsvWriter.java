@@ -34,9 +34,17 @@ public class CsvWriter {
         appendRow(builder, "Max_Iterations", Integer.toString(safeConfig.getMaxIterations()));
         appendRow(builder, "Normalization_Factor", formatNumber(safeConfig.getNormalization()));
         appendRow(builder, "Random_Seed", Integer.toString(safeConfig.getSeed()));
-        appendRow(builder, "Modulation", "BPSK");
-        appendRow(builder, "Channel", "AWGN");
-        appendRow(builder, "Coding", "LDPC (24,12), normalized min-sum");
+        appendRow(builder, "Modulation", safeConfig.getModulation());
+        appendRow(builder, "Channel", safeConfig.getChannelModel());
+        appendRow(builder, "Waveform", safeConfig.getWaveform());
+        appendRow(builder, "Spatial_Mode", safeConfig.getSpatialMode());
+        appendRow(builder, "Equalizer", safeConfig.getEqualizerMode());
+        appendRow(builder, "LDPC_Profile", safeConfig.getLdpcProfile());
+        appendRow(builder, "Coding", SimulationConfig.getProfileName(safeConfig.getLdpcProfile()) + ", normalized min-sum");
+        appendRow(builder, "Adaptive_Stop_Enabled", Boolean.toString(safeConfig.isAdaptiveStopEnabled()));
+        appendRow(builder, "Min_Error_Events_Per_SNR", Integer.toString(safeConfig.getMinErrorEventsPerSnr()));
+        appendRow(builder, "Max_Blocks_Per_SNR", Integer.toString(safeConfig.getMaxBlocksPerSnr()));
+        appendRow(builder, "Confidence_Level", formatNumber(safeConfig.getConfidenceLevel()));
 
         builder.append(System.lineSeparator());
 
@@ -45,12 +53,27 @@ public class CsvWriter {
         appendRow(builder, "Best_BER_Gain", formatNumber(summary.getBestBerGain()));
         appendRow(builder, "Best_BLER_Gain", formatNumber(summary.getBestBlerGain()));
         appendRow(builder, "Min_Coded_BER", formatNumber(summary.getMinCodedBer()));
+        appendRow(builder, "Min_Coded_BLER", formatNumber(summary.getMinCodedBler()));
         appendRow(builder, "Average_Iterations", formatNumber(summary.getAverageIterations()));
         appendRow(builder, "Average_Success_Ratio", formatNumber(summary.getAverageSuccessRatio()));
+        appendRow(builder, "Average_Throughput_Mbps", formatNumber(summary.getAverageThroughputMbps()));
+        appendRow(builder, "Peak_Throughput_Mbps", formatNumber(summary.getPeakThroughputMbps()));
+        appendRow(builder, "Average_Spectral_Efficiency", formatNumber(summary.getAverageSpectralEfficiency()));
+        appendRow(builder, "Peak_Spectral_Efficiency", formatNumber(summary.getPeakSpectralEfficiency()));
         appendRow(
                 builder,
                 "First_Stable_BLER_SNR_dB",
                 summary.getFirstStableBlerSnr() == null ? "" : formatNumber(summary.getFirstStableBlerSnr())
+        );
+        appendRow(
+                builder,
+                "Required_SNR_BER_dB",
+                summary.getRequiredSnrBerDb() == null ? "" : formatNumber(summary.getRequiredSnrBerDb())
+        );
+        appendRow(
+                builder,
+                "Required_SNR_BLER_dB",
+                summary.getRequiredSnrBlerDb() == null ? "" : formatNumber(summary.getRequiredSnrBlerDb())
         );
 
         builder.append(System.lineSeparator());
@@ -61,10 +84,21 @@ public class CsvWriter {
                 "SNR_dB",
                 "BER_Uncoded",
                 "BER_LDPC",
+                "BER_LDPC_CI_Low",
+                "BER_LDPC_CI_High",
                 "BLER_Uncoded",
                 "BLER_LDPC",
+                "BLER_LDPC_CI_Low",
+                "BLER_LDPC_CI_High",
                 "Average_Iterations",
-                "Success_Ratio"
+                "Success_Ratio",
+                "Effective_Throughput_Mbps",
+                "Spectral_Efficiency",
+                "Bit_Errors_LDPC",
+                "Block_Errors_LDPC",
+                "Total_Bits",
+                "Total_Blocks",
+                "Confidence_Level"
         );
 
         for (ResultPoint point : safePoints) {
@@ -73,10 +107,21 @@ public class CsvWriter {
                     formatNumber(point.getSnr()),
                     formatNumber(point.getBerUncoded()),
                     formatNumber(point.getBerLdpc()),
+                    formatNumber(point.getBerLdpcCiLow()),
+                    formatNumber(point.getBerLdpcCiHigh()),
                     formatNumber(point.getBlerUncoded()),
                     formatNumber(point.getBlerLdpc()),
+                    formatNumber(point.getBlerLdpcCiLow()),
+                    formatNumber(point.getBlerLdpcCiHigh()),
                     formatNumber(point.getAverageIterations()),
-                    formatNumber(point.getSuccessRatio())
+                    formatNumber(point.getSuccessRatio()),
+                    formatNumber(point.getEffectiveThroughputMbps()),
+                    formatNumber(point.getSpectralEfficiency()),
+                    Integer.toString(point.getBitErrorsLdpc()),
+                    Integer.toString(point.getBlockErrorsLdpc()),
+                    Integer.toString(point.getTotalBits()),
+                    Integer.toString(point.getTotalBlocks()),
+                    formatNumber(point.getConfidenceLevel())
             );
         }
 

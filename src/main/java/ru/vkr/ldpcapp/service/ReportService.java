@@ -18,6 +18,7 @@ public class ReportService {
         SimulationConfig safeConfig = config == null ? SimulationConfig.recommendedProfile() : config;
         ExperimentSummary summary = ExperimentSummary.from(points);
         ResultPoint bestBlerPoint = findBestBlerPoint(points);
+        ResultPoint lastPoint = points.get(points.size() - 1);
 
         String requiredSnrText = summary.getRequiredSnrBlerDb() == null
                 ? "требуемый SNR по критерию BLER = 10^-1 в исследованном диапазоне не достигнут"
@@ -50,7 +51,9 @@ public class ReportService {
                 + formatFixed(summary.getAverageIterations())
                 + ", доля успешной сходимости составляет "
                 + formatPercent(summary.getAverageSuccessRatio())
-                + ".";
+                + ". Для последней точки SNR оценка сопровождается доверительными интервалами (confidence level = "
+                + formatFixed(lastPoint.getConfidenceLevel())
+                + ").";
     }
 
     public String buildDetailedReport(SimulationConfig config, List<ResultPoint> points) {
@@ -83,7 +86,11 @@ public class ReportService {
                         + formatFixed(Math.max(safeConfig.getSnrStart(), safeConfig.getSnrEnd()))
                         + " дБ"),
                 buildParameterLine("Шаг SNR", formatFixed(safeConfig.getSnrStep()) + " дБ"),
-                buildParameterLine("Количество блоков на точку", String.valueOf(safeConfig.getBlocks())),
+                buildParameterLine("Количество блоков на точку (базово)", String.valueOf(safeConfig.getBlocks())),
+                buildParameterLine("Adaptive stop", safeConfig.isAdaptiveStopEnabled() ? "включен" : "выключен"),
+                buildParameterLine("Min error events per SNR", String.valueOf(safeConfig.getMinErrorEventsPerSnr())),
+                buildParameterLine("Max blocks per SNR", String.valueOf(safeConfig.getMaxBlocksPerSnr())),
+                buildParameterLine("Confidence level", formatFixed(safeConfig.getConfidenceLevel())),
                 buildParameterLine("Максимум итераций декодера", String.valueOf(safeConfig.getMaxIterations())),
                 buildParameterLine("Коэффициент нормализации", formatFixed(safeConfig.getNormalization())),
                 "",
@@ -112,8 +119,53 @@ public class ReportService {
                 "Для рассматриваемого сценария пиковый throughput достигается в точке SNR = " + formatFixed(bestThroughputPoint.getSnr()) + " дБ, а пиковая спектральная эффективность — в точке SNR = " + formatFixed(bestEfficiencyPoint.getSnr()) + " дБ. Эти значения полезны для инженерной интерпретации компромисса между надёжностью и производительностью канала.",
                 "",
                 "4. Итоговый вывод",
-                buildShortNarrative(safeConfig, points)
+                buildShortNarrative(safeConfig, points),
+                "",
+                "5. Ограничения модели",
+                "Модель является 5G-like имитацией канального уровня и предназначена для сравнительного исследования помехоустойчивого кодирования.",
+                "Реализация не покрывает полный набор процедур 3GPP NR PHY и содержит упрощения в части канала, OFDM/MIMO-представления и декодирования.",
+                "Полученные результаты следует интерпретировать как исследовательские сравнительные оценки, а не как сертификационные характеристики промышленного оборудования.",
+                "",
+                "6. Воспроизводимость эксперимента",
+                "Для воспроизводимости необходимо фиксировать seed, полную конфигурацию эксперимента и режим статистической остановки.",
+                "Рекомендуется сохранять adaptive stop параметры (min error events per SNR, max blocks per SNR), confidence level и полный набор экспортируемых артефактов (CSV, графики, отчёт, manifest).",
+                "При повторном запуске с идентичной конфигурацией и seed результаты должны быть сопоставимы в пределах статистической погрешности.",
+                "",
+                "7. Статистическая достоверность",
+                buildStatisticalReliabilityLine(points)
         );
+    }
+
+    private String buildStatisticalReliabilityLine(List<ResultPoint> points) {
+        if (points == null || points.isEmpty()) {
+            return "Данные для оценки статистической достоверности отсутствуют.";
+        }
+
+        ResultPoint last = points.get(points.size() - 1);
+        long weakPoints = points.stream()
+                .filter(p -> p.getBitErrorsLdpc() < 20 || p.getBlockErrorsLdpc() < 20)
+                .count();
+
+        String reliabilityNote = weakPoints == 0
+                ? "Во всех точках SNR количество событий ошибок достаточное для устойчивой оценки."
+                : "Обнаружены точки с низкой статистической опорой (событий ошибок < 20): " + weakPoints + ".";
+
+        return "Для последней точки SNR: BER LDPC CI = ["
+                + formatSci(last.getBerLdpcCiLow())
+                + "; "
+                + formatSci(last.getBerLdpcCiHigh())
+                + "], BLER LDPC CI = ["
+                + formatSci(last.getBlerLdpcCiLow())
+                + "; "
+                + formatSci(last.getBlerLdpcCiHigh())
+                + "], объём выборки = "
+                + last.getTotalBits()
+                + " бит / "
+                + last.getTotalBlocks()
+                + " блоков, confidence level = "
+                + formatFixed(last.getConfidenceLevel())
+                + ". "
+                + reliabilityNote;
     }
 
     private ResultPoint findBestBerPoint(List<ResultPoint> points) {
@@ -181,5 +233,9 @@ public class ReportService {
 
     private String formatFixed(double value) {
         return String.format(Locale.US, "%.2f", value);
+    }
+
+    private String formatSci(double value) {
+        return String.format(Locale.US, "%.3e", value);
     }
 }

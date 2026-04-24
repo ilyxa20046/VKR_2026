@@ -262,6 +262,8 @@ public class ResultsController {
                         + System.lineSeparator()
                         + System.lineSeparator()
                         + buildConfidenceAppendix(points)
+                        + System.lineSeparator() + System.lineSeparator()
+                        + buildReliabilityWarning(points)
         );
     }
 
@@ -668,5 +670,18 @@ public class ResultsController {
 
     private String formatSci(double value) {
         return String.format("%.3e", value);
+    }
+    private String buildReliabilityWarning(List<ResultPoint> points) {
+        if (points == null || points.isEmpty()) {
+            return "";
+        }
+        long weak = points.stream()
+                .filter(p -> p.getBitErrorsLdpc() < 20 || p.getBlockErrorsLdpc() < 20)
+                .count();
+
+        if (weak == 0) {
+            return "Статистическая надежность: достаточная по всем точкам SNR.";
+        }
+        return "Внимание: в " + weak + " точк(ах) SNR мало событий ошибок (<20), оценка может быть нестабильной.";
     }
 }

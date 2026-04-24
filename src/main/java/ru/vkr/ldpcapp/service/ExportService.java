@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 public class ExportService {
 
@@ -84,13 +85,11 @@ public class ExportService {
         Path berChartPath = bundleDirectory.resolve("ber_chart.png");
         Path blerChartPath = bundleDirectory.resolve("bler_chart.png");
         Path reportPath = bundleDirectory.resolve("report.txt");
-        Path manifestPath = bundleDirectory.resolve("manifest.txt");
-
         exportResultsCsv(csvPath, config, points);
         exportChartPng(berChartPath, berChart);
         exportChartPng(blerChartPath, blerChart);
         exportTextReport(reportPath, reportContent);
-        exportTextReport(manifestPath, buildBundleManifest(config, points, bundleDirectory));
+        exportManifest(bundleDirectory, config, points);
 
         return bundleDirectory;
     }
@@ -326,5 +325,56 @@ public class ExportService {
                 "",
                 "Scenarios exported: " + (scenarios == null ? 0 : scenarios.size())
         );
+    }
+
+    private String buildManifestText(SimulationConfig config, List<ResultPoint> points) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("LDPC Research Studio Manifest").append(System.lineSeparator());
+        sb.append("timestamp=").append(java.time.OffsetDateTime.now()).append(System.lineSeparator());
+        sb.append("appName=").append(AppMetadata.PRODUCT_NAME).append(System.lineSeparator());
+        sb.append("appVersion=").append(AppMetadata.VERSION).append(System.lineSeparator());
+
+        if (config != null) {
+            sb.append("seed=").append(config.getSeed()).append(System.lineSeparator());
+            sb.append("ldpcProfile=").append(config.getLdpcProfile()).append(System.lineSeparator());
+            sb.append("modulation=").append(config.getModulation()).append(System.lineSeparator());
+            sb.append("channel=").append(config.getChannelModel()).append(System.lineSeparator());
+            sb.append("waveform=").append(config.getWaveform()).append(System.lineSeparator());
+            sb.append("spatialMode=").append(config.getSpatialMode()).append(System.lineSeparator());
+            sb.append("equalizer=").append(config.getEqualizerMode()).append(System.lineSeparator());
+
+            sb.append("snrStart=").append(config.getSnrStart()).append(System.lineSeparator());
+            sb.append("snrEnd=").append(config.getSnrEnd()).append(System.lineSeparator());
+            sb.append("snrStep=").append(config.getSnrStep()).append(System.lineSeparator());
+
+            sb.append("infoBlockLength=").append(config.getInfoBlockLength()).append(System.lineSeparator());
+            sb.append("blocks=").append(config.getBlocks()).append(System.lineSeparator());
+            sb.append("maxIterations=").append(config.getMaxIterations()).append(System.lineSeparator());
+            sb.append("normalization=").append(config.getNormalization()).append(System.lineSeparator());
+
+            sb.append("adaptiveStopEnabled=").append(config.isAdaptiveStopEnabled()).append(System.lineSeparator());
+            sb.append("minErrorEventsPerSnr=").append(config.getMinErrorEventsPerSnr()).append(System.lineSeparator());
+            sb.append("maxBlocksPerSnr=").append(config.getMaxBlocksPerSnr()).append(System.lineSeparator());
+            sb.append("confidenceLevel=").append(config.getConfidenceLevel()).append(System.lineSeparator());
+        }
+
+        int snrPointCount = points == null ? 0 : points.size();
+        sb.append("snrPointCount=").append(snrPointCount).append(System.lineSeparator());
+
+        if (points != null && !points.isEmpty()) {
+            ResultPoint last = points.get(points.size() - 1);
+            sb.append("lastPointConfidenceLevel=").append(last.getConfidenceLevel()).append(System.lineSeparator());
+            sb.append("lastPointTotalBits=").append(last.getTotalBits()).append(System.lineSeparator());
+            sb.append("lastPointTotalBlocks=").append(last.getTotalBlocks()).append(System.lineSeparator());
+            sb.append("lastPointBitErrorsLdpc=").append(last.getBitErrorsLdpc()).append(System.lineSeparator());
+            sb.append("lastPointBlockErrorsLdpc=").append(last.getBlockErrorsLdpc()).append(System.lineSeparator());
+        }
+
+        return sb.toString();
+    }
+    private Path exportManifest(Path targetDir, SimulationConfig config, List<ResultPoint> points) throws IOException {
+        Path out = targetDir.resolve("manifest.txt");
+        Files.writeString(out, buildManifestText(config, points), StandardCharsets.UTF_8);
+        return out;
     }
 }
