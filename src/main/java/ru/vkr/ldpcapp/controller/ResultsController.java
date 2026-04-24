@@ -13,6 +13,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.chart.NumberAxis;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
@@ -24,6 +25,7 @@ import ru.vkr.ldpcapp.service.CompareSession;
 import ru.vkr.ldpcapp.service.ExperimentSession;
 import ru.vkr.ldpcapp.service.ExportService;
 import ru.vkr.ldpcapp.service.ReportService;
+import ru.vkr.ldpcapp.service.ChartInteractionService;
 
 import java.io.File;
 import java.io.IOException;
@@ -152,6 +154,14 @@ public class ResultsController {
     @FXML
     private TextArea narrativeArea;
 
+    private final ChartInteractionService chartInteractionService = new ChartInteractionService();
+
+    @FXML
+    private LineChart<Number, Number> throughputChart;
+
+    @FXML
+    private LineChart<Number, Number> spectralChart;
+
     @FXML
     public void initialize() {
         configureTable();
@@ -195,6 +205,16 @@ public class ResultsController {
     private void updateCharts(List<ResultPoint> points) {
         berChart.getData().clear();
         blerChart.getData().clear();
+        if (throughputChart != null) {
+            throughputChart.getData().clear();
+        }
+        if (spectralChart != null) {
+            spectralChart.getData().clear();
+        }
+
+        if (points == null || points.isEmpty()) {
+            return;
+        }
 
         XYChart.Series<Number, Number> berUncodedSeries = new XYChart.Series<>();
         berUncodedSeries.setName("BER без кодирования");
@@ -206,15 +226,129 @@ public class ResultsController {
         XYChart.Series<Number, Number> blerLdpcSeries = new XYChart.Series<>();
         blerLdpcSeries.setName("BLER LDPC");
 
+        XYChart.Series<Number, Number> throughputSeries = new XYChart.Series<>();
+        throughputSeries.setName("Throughput LDPC");
+
+        XYChart.Series<Number, Number> spectralSeries = new XYChart.Series<>();
+        spectralSeries.setName("Spectral Efficiency LDPC");
+
+        double minSnr = Double.POSITIVE_INFINITY;
+        double maxSnr = Double.NEGATIVE_INFINITY;
+        double maxThroughput = 0.0;
+        double maxSpectral = 0.0;
+
         for (ResultPoint point : points) {
-            berUncodedSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
-            berLdpcSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerLdpc()));
-            blerUncodedSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerUncoded()));
-            blerLdpcSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerLdpc()));
+            double snr = point.getSnr();
+            minSnr = Math.min(minSnr, snr);
+            maxSnr = Math.max(maxSnr, snr);
+
+            berUncodedSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBerUncoded())));
+            berLdpcSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBerLdpc())));
+
+            blerUncodedSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBlerUncoded())));
+            blerLdpcSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBlerLdpc())));
+
+            throughputSeries.getData().add(new XYChart.Data<>(snr, point.getEffectiveThroughputMbps()));
+            spectralSeries.getData().add(new XYChart.Data<>(snr, point.getSpectralEfficiency()));
+
+            maxThroughput = Math.max(maxThroughput, point.getEffectiveThroughputMbps());
+            maxSpectral = Math.max(maxSpectral, point.getSpectralEfficiency());
         }
 
         berChart.getData().addAll(berUncodedSeries, berLdpcSeries);
         blerChart.getData().addAll(blerUncodedSeries, blerLdpcSeries);
+
+        if (throughputChart != null) {
+            throughputChart.getData().add(throughputSeries);
+        }
+        if (spectralChart != null) {
+            spectralChart.getData().add(spectralSeries);
+        }
+
+        configureBerBlerAxes(minSnr, maxSnr);
+        configureMetricAxes(minSnr, maxSnr, maxThroughput, maxSpectral);
+
+        chartInteractionService.installPointTooltips(berChart, "SNR (dB)", "BER", true);
+        chartInteractionService.installPointTooltips(blerChart, "SNR (dB)", "BLER", true);
+
+        if (throughputChart != null) {
+            chartInteractionService.installPointTooltips(throughputChart, "SNR (dB)", "Throughput (Mbps)", false);
+        }
+        if (spectralChart != null) {
+            chartInteractionService.installPointTooltips(spectralChart, "SNR (dB)", "Spectral (bit/s/Hz)", false);
+        }
+
+        chartInteractionService.enableZoomAndReset(berChart);
+        chartInteractionService.enableZoomAndReset(blerChart);
+
+        if (throughputChart != null) {
+            chartInteractionService.enableZoomAndReset(throughputChart);
+        }
+        if (spectralChart != null) {
+            chartInteractionService.enableZoomAndReset(spectralChart);
+        }
+    }
+
+    private void configureBerBlerAxes(double minSnr, double maxSnr) {
+        NumberAxis berX = (NumberAxis) berChart.getXAxis();
+        NumberAxis berY = (NumberAxis) berChart.getYAxis();
+        NumberAxis blerX = (NumberAxis) blerChart.getXAxis();
+        NumberAxis blerY = (NumberAxis) blerChart.getYAxis();
+
+        double xMin = Math.floor(minSnr) - 0.5;
+        double xMax = Math.ceil(maxSnr) + 0.5;
+
+        berX.setAutoRanging(false);
+        berX.setLowerBound(xMin);
+        berX.setUpperBound(xMax);
+        berX.setTickUnit(1.0);
+
+        blerX.setAutoRanging(false);
+        blerX.setLowerBound(xMin);
+        blerX.setUpperBound(xMax);
+        blerX.setTickUnit(1.0);
+
+        berY.setAutoRanging(false);
+        berY.setLowerBound(-6.0);
+        berY.setUpperBound(0.0);
+        berY.setTickUnit(1.0);
+
+        blerY.setAutoRanging(false);
+        blerY.setLowerBound(-6.0);
+        blerY.setUpperBound(0.0);
+        blerY.setTickUnit(1.0);
+    }
+
+    private void configureMetricAxes(double minSnr, double maxSnr, double maxThroughput, double maxSpectral) {
+        if (throughputChart != null) {
+            NumberAxis x = (NumberAxis) throughputChart.getXAxis();
+            NumberAxis y = (NumberAxis) throughputChart.getYAxis();
+
+            x.setAutoRanging(false);
+            x.setLowerBound(Math.floor(minSnr) - 0.5);
+            x.setUpperBound(Math.ceil(maxSnr) + 0.5);
+            x.setTickUnit(1.0);
+
+            y.setAutoRanging(false);
+            y.setLowerBound(0.0);
+            y.setUpperBound(Math.max(1.0, maxThroughput * 1.15));
+            y.setTickUnit(Math.max(1.0, y.getUpperBound() / 8.0));
+        }
+
+        if (spectralChart != null) {
+            NumberAxis x = (NumberAxis) spectralChart.getXAxis();
+            NumberAxis y = (NumberAxis) spectralChart.getYAxis();
+
+            x.setAutoRanging(false);
+            x.setLowerBound(Math.floor(minSnr) - 0.5);
+            x.setUpperBound(Math.ceil(maxSnr) + 0.5);
+            x.setTickUnit(1.0);
+
+            y.setAutoRanging(false);
+            y.setLowerBound(0.0);
+            y.setUpperBound(Math.max(0.2, maxSpectral * 1.15));
+            y.setTickUnit(Math.max(0.1, y.getUpperBound() / 8.0));
+        }
     }
 
     private void updateSummary(List<ResultPoint> points) {
@@ -670,6 +804,10 @@ public class ResultsController {
 
     private String formatSci(double value) {
         return String.format("%.3e", value);
+    }
+
+    private double toLog10(double value) {
+        return Math.log10(Math.max(1e-8, value));
     }
     private String buildReliabilityWarning(List<ResultPoint> points) {
         if (points == null || points.isEmpty()) {

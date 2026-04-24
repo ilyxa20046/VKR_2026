@@ -21,6 +21,7 @@ import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
 import ru.vkr.ldpcapp.service.CompareSession;
 import ru.vkr.ldpcapp.service.ExportService;
+import ru.vkr.ldpcapp.service.ChartInteractionService;
 
 import java.io.File;
 import java.io.IOException;
@@ -122,6 +123,8 @@ public class CompareController {
     @FXML
     private TextArea compareNarrativeArea;
 
+    private final ChartInteractionService chartInteractionService = new ChartInteractionService();
+
     @FXML
     public void initialize() {
         configureTable();
@@ -208,17 +211,31 @@ public class CompareController {
         XYChart.Series<Number, Number> rightBlerSeries = new XYChart.Series<>();
         rightBlerSeries.setName(CompareSession.getRightTitle() + " — BLER LDPC");
 
+        XYChart.Series<Number, Number> leftBerUncodedSeries = new XYChart.Series<>();
+        leftBerUncodedSeries.setName(CompareSession.getLeftTitle() + " — BER без кодирования");
+
+        XYChart.Series<Number, Number> rightBerUncodedSeries = new XYChart.Series<>();
+        rightBerUncodedSeries.setName(CompareSession.getRightTitle() + " — BER без кодирования");
+
         for (ResultPoint point : leftResults) {
             leftBerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerLdpc()));
+            leftBerUncodedSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
             leftBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerLdpc()));
         }
+
         for (ResultPoint point : rightResults) {
             rightBerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerLdpc()));
+            rightBerUncodedSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
             rightBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerLdpc()));
         }
 
-        compareBerChart.getData().addAll(leftBerSeries, rightBerSeries);
+        compareBerChart.getData().addAll(leftBerSeries, rightBerSeries, leftBerUncodedSeries, rightBerUncodedSeries);
         compareBlerChart.getData().addAll(leftBlerSeries, rightBlerSeries);
+
+        chartInteractionService.installPointTooltips(compareBerChart, "SNR (dB)", "BER", true);
+        chartInteractionService.installPointTooltips(compareBlerChart, "SNR (dB)", "BLER", true);
+        chartInteractionService.enableZoomAndReset(compareBerChart);
+        chartInteractionService.enableZoomAndReset(compareBlerChart);
     }
 
     private void updateTable(List<ResultPoint> leftResults, List<ResultPoint> rightResults) {

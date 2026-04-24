@@ -8,7 +8,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
@@ -17,9 +17,7 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.ScrollPane?>
 
 <ScrollPane fx:controller="ru.vkr.ldpcapp.controller.ResultsController"
             fitToWidth="true"
@@ -162,131 +160,159 @@
                     </children>
                 </VBox>
 
-        <HBox fx:id="defenseSummaryBox" managed="false" spacing="14.0" styleClass="defense-strip" visible="false">
-            <children>
-                <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-violet">
+                <HBox fx:id="defenseSummaryBox" managed="false" spacing="14.0" styleClass="defense-strip" visible="false">
                     <children>
-                        <Label styleClass="defense-kpi-label" text="Главный итог BER" />
-                        <Label fx:id="defenseBerLabel" styleClass="defense-kpi-value" text="-" />
-                        <Label styleClass="defense-kpi-meta" text="Максимальный энергетический выигрыш кодирования" />
-                    </children>
-                </VBox>
-                <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-blue">
-                    <children>
-                        <Label styleClass="defense-kpi-label" text="Главный итог BLER" />
-                        <Label fx:id="defenseBlerLabel" styleClass="defense-kpi-value" text="-" />
-                        <Label styleClass="defense-kpi-meta" text="Снижение вероятности ошибочного блока" />
-                    </children>
-                </VBox>
-                <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-mint">
-                    <children>
-                        <Label styleClass="defense-kpi-label" text="Peak throughput" />
-                        <Label fx:id="defenseThroughputLabel" styleClass="defense-kpi-value" text="-" />
-                        <Label styleClass="defense-kpi-meta" text="Максимальная полезная скорость передачи" />
-                    </children>
-                </VBox>
-                <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-sun">
-                    <children>
-                        <Label styleClass="defense-kpi-label" text="Требуемый SNR" />
-                        <Label fx:id="defenseSnrLabel" styleClass="defense-kpi-value" text="-" />
-                        <Label styleClass="defense-kpi-meta" text="Порог достижения целевого качества" />
-                    </children>
-                </VBox>
-            </children>
-        </HBox>
-
-        <VBox spacing="12.0">
-            <children>
-                <VBox spacing="10.0" styleClass="panel-card results-chart-panel results-chart-panel-prominent">
-                    <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                        <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-violet">
                             <children>
-                                <Label styleClass="panel-title" text="Графики BER(SNR) и BLER(SNR)" />
-                            </children>
-                        </HBox>
-                        <Label styleClass="dashboard-bullet" wrapText="true" text="Основной визуальный блок анализа: влияние кодирования, OFDM/MIMO-параметров и условий канала на BER/BLER." />
-                        <GridPane hgap="18.0" vgap="18.0">
-                            <columnConstraints>
-                                <ColumnConstraints percentWidth="50.0" />
-                                <ColumnConstraints percentWidth="50.0" />
-                            </columnConstraints>
-                            <children>
-                                <VBox GridPane.columnIndex="0" spacing="12.0" styleClass="chart-card-large pastel-card-violet">
-                                    <children>
-                                        <Label styleClass="panel-title" text="График BER(SNR)" />
-                                        <LineChart fx:id="berChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="410.0">
-                                            <xAxis>
-                                                <NumberAxis label="SNR, дБ" />
-                                            </xAxis>
-                                            <yAxis>
-                                                <NumberAxis label="BER" autoRanging="true" />
-                                            </yAxis>
-                                        </LineChart>
-                                    </children>
-                                </VBox>
-
-                                <VBox GridPane.columnIndex="1" spacing="12.0" styleClass="chart-card-large pastel-card-blue">
-                                    <children>
-                                        <Label styleClass="panel-title" text="График BLER(SNR)" />
-                                        <LineChart fx:id="blerChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="410.0">
-                                            <xAxis>
-                                                <NumberAxis label="SNR, дБ" />
-                                            </xAxis>
-                                            <yAxis>
-                                                <NumberAxis label="BLER" autoRanging="true" />
-                                            </yAxis>
-                                        </LineChart>
-                                    </children>
-                                </VBox>
-                            </children>
-                        </GridPane>
-                    </children>
-                </VBox>
-
-                <VBox spacing="10.0" styleClass="panel-card compact-card results-modeling-table-card results-modeling-table-shell">
-                    <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10.0">
-                            <children>
-                                <Label styleClass="panel-title" text="Результаты моделирования" />
-                            </children>
-                        </HBox>
-                        <GridPane hgap="0.0" vgap="0.0" styleClass="results-header-table">
-                            <columnConstraints>
-                                <ColumnConstraints percentWidth="55.0" />
-                                <ColumnConstraints percentWidth="45.0" />
-                            </columnConstraints>
-                            <children>
-                                <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица BER / BLER / Throughput / Spectral Efficiency" />
-                                <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Каждая строка показывает состояние канала для отдельной точки SNR." wrapText="true" />
-                            </children>
-                        </GridPane>
-                        <TableView fx:id="resultsTable" prefHeight="340.0" styleClass="results-data-table results-data-table-elevated">
-                            <columns>
-                                <TableColumn fx:id="snrColumn" prefWidth="70.0" text="SNR" />
-                                <TableColumn fx:id="berUncodedColumn" prefWidth="90.0" text="BER без кода" />
-                                <TableColumn fx:id="berLdpcColumn" prefWidth="90.0" text="BER LDPC" />
-                                <TableColumn fx:id="blerUncodedColumn" prefWidth="90.0" text="BLER без кода" />
-                                <TableColumn fx:id="blerLdpcColumn" prefWidth="90.0" text="BLER LDPC" />
-                                <TableColumn fx:id="iterationsColumn" prefWidth="90.0" text="Итерации" />
-                                <TableColumn fx:id="successColumn" prefWidth="90.0" text="Сходимость" />
-                                <TableColumn fx:id="throughputColumn" prefWidth="110.0" text="Throughput" />
-                                <TableColumn fx:id="spectralEfficiencyColumn" prefWidth="110.0" text="Spec. eff." />
-                            </columns>
-                        </TableView>
-                    </children>
-                </VBox>
-
-                <TitledPane expanded="true" styleClass="results-titled-pane" text="Автоматический аналитический вывод">
-                    <content>
-                        <VBox spacing="12.0" styleClass="panel-card compact-card pastel-card-blue results-collapsible-content">
-                            <children>
-                                <TextArea fx:id="narrativeArea" editable="false" focusTraversable="false" prefRowCount="14" styleClass="mono-text-area" wrapText="true" />
+                                <Label styleClass="defense-kpi-label" text="Главный итог BER" />
+                                <Label fx:id="defenseBerLabel" styleClass="defense-kpi-value" text="-" />
+                                <Label styleClass="defense-kpi-meta" text="Максимальный энергетический выигрыш кодирования" />
                             </children>
                         </VBox>
-                    </content>
-                </TitledPane>
-            </children>
-        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-blue">
+                            <children>
+                                <Label styleClass="defense-kpi-label" text="Главный итог BLER" />
+                                <Label fx:id="defenseBlerLabel" styleClass="defense-kpi-value" text="-" />
+                                <Label styleClass="defense-kpi-meta" text="Снижение вероятности ошибочного блока" />
+                            </children>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-mint">
+                            <children>
+                                <Label styleClass="defense-kpi-label" text="Peak throughput" />
+                                <Label fx:id="defenseThroughputLabel" styleClass="defense-kpi-value" text="-" />
+                                <Label styleClass="defense-kpi-meta" text="Максимальная полезная скорость передачи" />
+                            </children>
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-sun">
+                            <children>
+                                <Label styleClass="defense-kpi-label" text="Требуемый SNR" />
+                                <Label fx:id="defenseSnrLabel" styleClass="defense-kpi-value" text="-" />
+                                <Label styleClass="defense-kpi-meta" text="Порог достижения целевого качества" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+                <VBox spacing="12.0">
+                    <children>
+                        <VBox spacing="10.0" styleClass="panel-card results-chart-panel results-chart-panel-prominent">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <children>
+                                        <Label styleClass="panel-title" text="Графики BER(SNR), BLER(SNR), Throughput(SNR), Spectral Efficiency(SNR)" />
+                                    </children>
+                                </HBox>
+                                <Label styleClass="dashboard-bullet" wrapText="true" text="Интерактивный визуальный блок анализа: BER/BLER, throughput и спектральная эффективность по SNR." />
+                                <GridPane hgap="18.0" vgap="18.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="50.0" />
+                                        <ColumnConstraints percentWidth="50.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" spacing="12.0" styleClass="chart-card-large pastel-card-violet">
+                                            <children>
+                                                <Label styleClass="panel-title" text="График BER(SNR)" />
+                                                <LineChart fx:id="berChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="360.0">
+                                                    <xAxis>
+                                                        <NumberAxis label="SNR, дБ" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="log10(BER)" autoRanging="false" lowerBound="-6.0" upperBound="0.0" tickUnit="1.0" />
+                                                    </yAxis>
+                                                </LineChart>
+                                            </children>
+                                        </VBox>
+
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="12.0" styleClass="chart-card-large pastel-card-blue">
+                                            <children>
+                                                <Label styleClass="panel-title" text="График BLER(SNR)" />
+                                                <LineChart fx:id="blerChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="360.0">
+                                                    <xAxis>
+                                                        <NumberAxis label="SNR, дБ" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="log10(BLER)" autoRanging="false" lowerBound="-6.0" upperBound="0.0" tickUnit="1.0" />
+                                                    </yAxis>
+                                                </LineChart>
+                                            </children>
+                                        </VBox>
+
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" spacing="12.0" styleClass="chart-card-large pastel-card-mint">
+                                            <children>
+                                                <Label styleClass="panel-title" text="График Throughput(SNR)" />
+                                                <LineChart fx:id="throughputChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="360.0">
+                                                    <xAxis>
+                                                        <NumberAxis label="SNR, дБ" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="Throughput, Мбит/с" autoRanging="true" />
+                                                    </yAxis>
+                                                </LineChart>
+                                            </children>
+                                        </VBox>
+
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="12.0" styleClass="chart-card-large pastel-card-sun">
+                                            <children>
+                                                <Label styleClass="panel-title" text="График Spectral Efficiency(SNR)" />
+                                                <LineChart fx:id="spectralChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="360.0">
+                                                    <xAxis>
+                                                        <NumberAxis label="SNR, дБ" />
+                                                    </xAxis>
+                                                    <yAxis>
+                                                        <NumberAxis label="бит/с/Гц" autoRanging="true" />
+                                                    </yAxis>
+                                                </LineChart>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </GridPane>
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="10.0" styleClass="panel-card compact-card results-modeling-table-card results-modeling-table-shell">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <children>
+                                        <Label styleClass="panel-title" text="Результаты моделирования" />
+                                    </children>
+                                </HBox>
+                                <GridPane hgap="0.0" vgap="0.0" styleClass="results-header-table">
+                                    <columnConstraints>
+                                        <ColumnConstraints percentWidth="55.0" />
+                                        <ColumnConstraints percentWidth="45.0" />
+                                    </columnConstraints>
+                                    <children>
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица BER / BLER / Throughput / Spectral Efficiency" />
+                                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Каждая строка показывает состояние канала для отдельной точки SNR." wrapText="true" />
+                                    </children>
+                                </GridPane>
+                                <TableView fx:id="resultsTable" prefHeight="340.0" styleClass="results-data-table results-data-table-elevated">
+                                    <columns>
+                                        <TableColumn fx:id="snrColumn" prefWidth="70.0" text="SNR" />
+                                        <TableColumn fx:id="berUncodedColumn" prefWidth="90.0" text="BER без кода" />
+                                        <TableColumn fx:id="berLdpcColumn" prefWidth="90.0" text="BER LDPC" />
+                                        <TableColumn fx:id="blerUncodedColumn" prefWidth="90.0" text="BLER без кода" />
+                                        <TableColumn fx:id="blerLdpcColumn" prefWidth="90.0" text="BLER LDPC" />
+                                        <TableColumn fx:id="iterationsColumn" prefWidth="90.0" text="Итерации" />
+                                        <TableColumn fx:id="successColumn" prefWidth="90.0" text="Сходимость" />
+                                        <TableColumn fx:id="throughputColumn" prefWidth="110.0" text="Throughput" />
+                                        <TableColumn fx:id="spectralEfficiencyColumn" prefWidth="110.0" text="Spec. eff." />
+                                    </columns>
+                                </TableView>
+                            </children>
+                        </VBox>
+
+                        <TitledPane expanded="true" styleClass="results-titled-pane" text="Автоматический аналитический вывод">
+                            <content>
+                                <VBox spacing="12.0" styleClass="panel-card compact-card pastel-card-blue results-collapsible-content">
+                                    <children>
+                                        <TextArea fx:id="narrativeArea" editable="false" focusTraversable="false" prefRowCount="14" styleClass="mono-text-area" wrapText="true" />
+                                    </children>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+                    </children>
+                </VBox>
             </children>
             <padding>
                 <Insets top="4.0" right="8.0" bottom="12.0" left="4.0" />
