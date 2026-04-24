@@ -9,6 +9,8 @@ public class SimulationConfig {
     public static final String MOD_BPSK = "BPSK";
     public static final String MOD_QPSK = "QPSK";
     public static final String MOD_16QAM = "16-QAM";
+    public static final String MOD_64QAM = "64-QAM";
+    public static final String MOD_256QAM = "256-QAM";
 
     public static final String CHANNEL_AWGN = "AWGN";
     public static final String CHANNEL_RAYLEIGH = "Rayleigh";
@@ -379,7 +381,7 @@ public class SimulationConfig {
     }
 
     public static List<String> supportedModulations() {
-        return List.of(MOD_BPSK, MOD_QPSK, MOD_16QAM);
+        return List.of(MOD_BPSK, MOD_QPSK, MOD_16QAM, MOD_64QAM, MOD_256QAM);
     }
 
     public static List<String> supportedChannels() {
@@ -487,6 +489,31 @@ public class SimulationConfig {
         return PROFILE_QC.equals(profile)
                 ? "Более длинный квазициркулянтный LDPC-профиль, ближе по духу к 5G NR, чем учебный компактный код."
                 : "Компактный учебный LDPC-код, удобный для быстрой калибровки и базового сравнения.";
+    }
+
+    public static String getWaveformDisplayName(String waveform) {
+        return switch (waveform) {
+            case WAVEFORM_SC -> "Однонесущая";
+            case WAVEFORM_OFDM64 -> "OFDM-64";
+            case WAVEFORM_OFDM128 -> "OFDM-128";
+            default -> waveform;
+        };
+    }
+
+    public static String getSpatialModeDisplayName(String spatialMode) {
+        return switch (spatialMode) {
+            case SPATIAL_SISO -> "SISO (1x1)";
+            case SPATIAL_2X2 -> "Разнесение 2x2";
+            default -> spatialMode;
+        };
+    }
+
+    public static String getEqualizerDisplayName(String equalizerMode) {
+        return switch (equalizerMode) {
+            case EQUALIZER_NONE -> "Без эквализации";
+            case EQUALIZER_ZF -> "Однотактный ZF";
+            default -> equalizerMode;
+        };
     }
 
     public void validate() {

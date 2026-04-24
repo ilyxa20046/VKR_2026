@@ -134,7 +134,7 @@
                                 <VBox spacing="2.0">
                                     <children>
                                         <Label styleClass="field-label simulation-section-title" text="Канал, OFDM и пространственный режим" />
-                                        <Label styleClass="helper-text simulation-section-subtitle" text="Настройте радиоканал, waveform, cyclic prefix, equalizer и diversity-режим." />
+                                        <Label styleClass="helper-text simulation-section-subtitle" text="Настройте радиоканал, Форму сигнала, cyclic prefix, Эквалайзер и diversity-режим." />
                                     </children>
                                 </VBox>
                                 <GridPane hgap="14.0" vgap="14.0">
@@ -151,13 +151,13 @@
                                         </VBox>
                                         <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                             <children>
-                                                <Label styleClass="field-label" text="Waveform" />
+                                                <Label styleClass="field-label" text="Форма сигнала" />
                                                 <ComboBox fx:id="waveformComboBox" maxWidth="Infinity" />
                                             </children>
                                         </VBox>
                                         <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                                             <children>
-                                                <Label styleClass="field-label" text="Spatial mode" />
+                                                <Label styleClass="field-label" text="Пространственный режим" />
                                                 <ComboBox fx:id="spatialModeComboBox" maxWidth="Infinity" />
                                             </children>
                                         </VBox>
@@ -169,7 +169,7 @@
                                         </VBox>
                                         <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
                                             <children>
-                                                <Label styleClass="field-label" text="Equalizer" />
+                                                <Label styleClass="field-label" text="Эквалайзер" />
                                                 <ComboBox fx:id="equalizerComboBox" maxWidth="Infinity" />
                                             </children>
                                         </VBox>

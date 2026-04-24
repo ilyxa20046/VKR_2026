@@ -595,6 +595,7 @@ public class SimulationService {
                     )
             );
         }
+
         if (SimulationConfig.MOD_QPSK.equals(modulation)) {
             return new Constellation(
                     2,
@@ -607,22 +608,72 @@ public class SimulationService {
             );
         }
 
+        if (SimulationConfig.MOD_16QAM.equals(modulation)) {
+            return buildSquareQamConstellation(2); // 2 бита на I и 2 на Q => 16-QAM
+        }
+        if (SimulationConfig.MOD_64QAM.equals(modulation)) {
+            return buildSquareQamConstellation(3); // 3 + 3 => 64-QAM
+        }
+        if (SimulationConfig.MOD_256QAM.equals(modulation)) {
+            return buildSquareQamConstellation(4); // 4 + 4 => 256-QAM
+        }
+
+        throw new IllegalArgumentException("Неподдерживаемая модуляция: " + modulation);
+    }
+
+    private Constellation buildSquareQamConstellation(int bitsPerAxis) {
+        int levels = 1 << bitsPerAxis;
+        int bitsPerSymbol = bitsPerAxis * 2;
+        double norm = Math.sqrt((2.0 / 3.0) * (levels * levels - 1.0)); // sqrt(10), sqrt(42), sqrt(170)
+
         List<ConstellationEntry> entries = new ArrayList<>();
-        int[][] pairs = {
-                {0, 0},
-                {0, 1},
-                {1, 1},
-                {1, 0}
-        };
-        for (int[] iBits : pairs) {
-            for (int[] qBits : pairs) {
+        int combinationsPerAxis = 1 << bitsPerAxis;
+
+        for (int iIndex = 0; iIndex < combinationsPerAxis; iIndex++) {
+            int[] iBits = toBits(iIndex, bitsPerAxis);
+            int iLevel = grayPamLevel(iBits);
+
+            for (int qIndex = 0; qIndex < combinationsPerAxis; qIndex++) {
+                int[] qBits = toBits(qIndex, bitsPerAxis);
+                int qLevel = grayPamLevel(qBits);
+
+                int[] bits = new int[bitsPerSymbol];
+                System.arraycopy(iBits, 0, bits, 0, bitsPerAxis);
+                System.arraycopy(qBits, 0, bits, bitsPerAxis, bitsPerAxis);
+
                 entries.add(new ConstellationEntry(
-                        new int[]{iBits[0], iBits[1], qBits[0], qBits[1]},
-                        new Complex(gray16Level(iBits[0], iBits[1]) * INV_SQRT10, gray16Level(qBits[0], qBits[1]) * INV_SQRT10)
+                        bits,
+                        new Complex(iLevel / norm, qLevel / norm)
                 ));
             }
         }
-        return new Constellation(4, entries);
+
+        return new Constellation(bitsPerSymbol, entries);
+    }
+
+    private int[] toBits(int value, int width) {
+        int[] bits = new int[width];
+        for (int i = width - 1; i >= 0; i--) {
+            bits[i] = value & 1;
+            value >>= 1;
+        }
+        return bits;
+    }
+
+    private int grayPamLevel(int[] grayBits) {
+        int gray = 0;
+        for (int bit : grayBits) {
+            gray = (gray << 1) | (bit & 1);
+        }
+
+        // Gray -> Binary
+        int binary = 0;
+        for (int g = gray; g > 0; g >>= 1) {
+            binary ^= g;
+        }
+
+        int levels = 1 << grayBits.length;
+        return 2 * binary - (levels - 1); // odd levels: ... -3,-1,+1,+3 ...
     }
 
     private int gray16Level(int b0, int b1) {

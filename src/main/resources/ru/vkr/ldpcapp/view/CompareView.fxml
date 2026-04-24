@@ -26,7 +26,6 @@
             <children>
                 <VBox spacing="3.0">
                     <children>
-                        <Label styleClass="screen-eyebrow" text="Сравнение сценариев" />
                         <Label styleClass="screen-title" text="Сравнительный анализ сценариев" />
                     </children>
                 </VBox>
@@ -36,11 +35,6 @@
 
         <VBox spacing="8.0" styleClass="panel-card compact-card action-panel-card results-actions-panel results-actions-panel-top results-actions-panel-minimal">
             <children>
-                <HBox alignment="CENTER_LEFT" spacing="8.0">
-                    <children>
-                        <Label styleClass="panel-title results-toolbar-title" text="Панель действий" />
-                    </children>
-                </HBox>
                 <HBox spacing="8.0" styleClass="compact-action-flow results-toolbar-flow">
                     <children>
                         <MenuButton mnemonicParsing="false" styleClass="secondary-button compact-action-button" text="Сводка и отчёты">
@@ -67,7 +61,7 @@
                     <children>
                         <Label styleClass="defense-kpi-label" text="Победитель" />
                         <Label fx:id="defenseWinnerLabel" styleClass="defense-kpi-value" text="—" />
-                        <Label styleClass="defense-kpi-meta" text="Автоматический выбор по BER/BLER, throughput и required SNR" wrapText="true" />
+                        <Label styleClass="defense-kpi-meta" text="Автоматический выбор по BER/BLER, полезная скорость и требуемый SNR" wrapText="true" />
                     </children>
                 </VBox>
                 <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-blue">
@@ -86,7 +80,7 @@
                 </VBox>
                 <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-sun">
                     <children>
-                        <Label styleClass="defense-kpi-label" text="Required SNR" />
+                        <Label styleClass="defense-kpi-label" text="Требуемый SNR" />
                         <Label fx:id="defenseSnrLabel" styleClass="defense-kpi-value" text="—" />
                         <Label styleClass="defense-kpi-meta" text="Целевой SNR для BER=10⁻³ / BLER=10⁻¹" wrapText="true" />
                     </children>
@@ -115,18 +109,18 @@
                     </columnConstraints>
                     <children>
                         <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Сценарий A" />
-                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Waveform A" />
-                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Spatial A" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Форма сигнала A" />
+                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Пространственный режим A" />
                         <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Сценарий B" />
-                        <Label GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Waveform B" />
-                        <Label GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Spatial B" />
+                        <Label GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Форма сигнала B" />
+                        <Label GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="results-selected-header-cell" text="Пространственный режим B" />
 
                         <Label fx:id="leftScenarioLabel" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="results-selected-value-cell summary-table-multiline" text="-" wrapText="true" />
-                        <Label fx:id="leftWaveformChip" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Waveform" />
-                        <Label fx:id="leftSpatialChip" GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Spatial" />
+                        <Label fx:id="leftWaveformChip" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Форма сигнала" />
+                        <Label fx:id="leftSpatialChip" GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Пространственный режим" />
                         <Label fx:id="rightScenarioLabel" GridPane.columnIndex="3" GridPane.rowIndex="1" styleClass="results-selected-value-cell summary-table-multiline" text="-" wrapText="true" />
-                        <Label fx:id="rightWaveformChip" GridPane.columnIndex="4" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Waveform" />
-                        <Label fx:id="rightSpatialChip" GridPane.columnIndex="5" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Spatial" />
+                        <Label fx:id="rightWaveformChip" GridPane.columnIndex="4" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Форма сигнала" />
+                        <Label fx:id="rightSpatialChip" GridPane.columnIndex="5" GridPane.rowIndex="1" styleClass="results-selected-value-cell" text="Пространственный режим" />
                     </children>
                 </GridPane>
                 <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid">

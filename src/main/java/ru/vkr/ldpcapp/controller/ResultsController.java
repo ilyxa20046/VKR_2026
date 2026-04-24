@@ -370,7 +370,7 @@ public class ResultsController {
             resultsWaveformChip.setText(currentConfig.getWaveform());
             resultsSpatialChip.setText(currentConfig.getSpatialMode());
             resultsLdpcChip.setText(SimulationConfig.getProfileName(currentConfig.getLdpcProfile()));
-            resultsScenarioModeChip.setText(currentConfig.getChannelModel() + " / " + currentConfig.getEqualizerMode());
+            resultsScenarioModeChip.setText("Канал: " + currentConfig.getChannelModel() + " / Эквалайзер: " + currentConfig.getEqualizerMode());
         }
 
         defenseBerLabel.setText(formatGain(summary.getBestBerGain()));

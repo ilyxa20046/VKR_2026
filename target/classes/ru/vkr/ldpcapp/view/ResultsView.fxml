@@ -83,18 +83,18 @@
                                 <Label styleClass="summary-table-value-cell summary-value-success" text="Параметры текущего сценария" />
                                 <GridPane hgap="0.0" vgap="0.0" styleClass="summary-table-grid results-selected-params-table">
                                     <columnConstraints>
-                                        <ColumnConstraints percentWidth="16.5" />
-                                        <ColumnConstraints percentWidth="16.5" />
-                                        <ColumnConstraints percentWidth="16.5" />
-                                        <ColumnConstraints percentWidth="16.5" />
-                                        <ColumnConstraints percentWidth="17.0" />
-                                        <ColumnConstraints percentWidth="17.0" />
+                                        <ColumnConstraints percentWidth="10.0" />
+                                        <ColumnConstraints percentWidth="10.0" />
+                                        <ColumnConstraints percentWidth="15.0" />
+                                        <ColumnConstraints percentWidth="20" />
+                                        <ColumnConstraints percentWidth="17.5" />
+                                        <ColumnConstraints percentWidth="30.0" />
                                     </columnConstraints>
                                     <children>
                                         <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Модуляция" />
                                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Канал" />
-                                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Waveform" />
-                                        <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Spatial mode" />
+                                        <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Форма сигнала" />
+                                        <Label GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Пространственный режим" />
                                         <Label GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="LDPC" />
                                         <Label GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="dashboard-bullet" text="Режим канала" />
 
@@ -136,14 +136,14 @@
                                 <Label GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Лучший выигрыш BLER" />
                                 <Label fx:id="bestBlerGainLabel" GridPane.columnIndex="3" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-value-success" text="-" />
 
-                                <Label GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="summary-table-key-cell" text="Peak throughput" />
+                                <Label GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="summary-table-key-cell" text="Пиковая полезная скорость" />
                                 <Label fx:id="peakThroughputLabel" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="summary-table-value-cell summary-value-accent" text="-" />
-                                <Label GridPane.columnIndex="2" GridPane.rowIndex="2" styleClass="summary-table-key-cell" text="Peak spectral efficiency" />
+                                <Label GridPane.columnIndex="2" GridPane.rowIndex="2" styleClass="summary-table-key-cell" text="Пиковая спектральная эффективность" />
                                 <Label fx:id="peakSpectralEfficiencyLabel" GridPane.columnIndex="3" GridPane.rowIndex="2" styleClass="summary-table-value-cell summary-value-accent" text="-" />
 
-                                <Label GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="summary-table-key-cell" text="Req. SNR @ BER" />
+                                <Label GridPane.columnIndex="0" GridPane.rowIndex="3" styleClass="summary-table-key-cell" text="Требуемый SNR при BER" />
                                 <Label fx:id="requiredSnrBerLabel" GridPane.columnIndex="1" GridPane.rowIndex="3" styleClass="summary-table-value-cell summary-value-warning" text="-" />
-                                <Label GridPane.columnIndex="2" GridPane.rowIndex="3" styleClass="summary-table-key-cell" text="Req. SNR @ BLER" />
+                                <Label GridPane.columnIndex="2" GridPane.rowIndex="3" styleClass="summary-table-key-cell" text="Требуемый SNR при BLER" />
                                 <Label fx:id="requiredSnrBlerLabel" GridPane.columnIndex="3" GridPane.rowIndex="3" styleClass="summary-table-value-cell summary-value-warning" text="-" />
 
                                 <Label GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="summary-table-key-cell" text="Средние итерации" />
@@ -151,9 +151,9 @@
                                 <Label GridPane.columnIndex="2" GridPane.rowIndex="4" styleClass="summary-table-key-cell" text="Сходимость" />
                                 <Label fx:id="successRatioLabel" GridPane.columnIndex="3" GridPane.rowIndex="4" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
 
-                                <Label GridPane.columnIndex="0" GridPane.rowIndex="5" styleClass="summary-table-key-cell" text="Average throughput" />
+                                <Label GridPane.columnIndex="0" GridPane.rowIndex="5" styleClass="summary-table-key-cell" text="Средняя полезная скорость" />
                                 <Label fx:id="averageThroughputLabel" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
-                                <Label GridPane.columnIndex="2" GridPane.rowIndex="5" styleClass="summary-table-key-cell" text="Average spectral efficiency" />
+                                <Label GridPane.columnIndex="2" GridPane.rowIndex="5" styleClass="summary-table-key-cell" text="Средняя спектральная эффективность" />
                                 <Label fx:id="averageSpectralEfficiencyLabel" GridPane.columnIndex="3" GridPane.rowIndex="5" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
                             </children>
                         </GridPane>
@@ -239,7 +239,7 @@
 
                                         <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" spacing="12.0" styleClass="chart-card-large pastel-card-mint">
                                             <children>
-                                                <Label styleClass="panel-title" text="График Throughput(SNR)" />
+                                                <Label styleClass="panel-title" text="График полезной скорости (SNR)" />
                                                 <LineChart fx:id="throughputChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="360.0">
                                                     <xAxis>
                                                         <NumberAxis label="SNR, дБ" />
@@ -253,7 +253,7 @@
 
                                         <VBox GridPane.columnIndex="1" GridPane.rowIndex="1" spacing="12.0" styleClass="chart-card-large pastel-card-sun">
                                             <children>
-                                                <Label styleClass="panel-title" text="График Spectral Efficiency(SNR)" />
+                                                <Label styleClass="panel-title" text="График спектральной эффективности (SNR)" />
                                                 <LineChart fx:id="spectralChart" animated="false" createSymbols="true" legendVisible="true" prefHeight="360.0">
                                                     <xAxis>
                                                         <NumberAxis label="SNR, дБ" />
@@ -282,7 +282,7 @@
                                         <ColumnConstraints percentWidth="45.0" />
                                     </columnConstraints>
                                     <children>
-                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица BER / BLER / Throughput / Spectral Efficiency" />
+                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица BER / BLER / Полезная скорость / Спектр. эффективность" />
                                         <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Каждая строка показывает состояние канала для отдельной точки SNR." wrapText="true" />
                                     </children>
                                 </GridPane>

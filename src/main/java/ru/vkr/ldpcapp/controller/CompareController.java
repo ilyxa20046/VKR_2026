@@ -301,10 +301,10 @@ public class CompareController {
                         "• лучший BLER gain: %s%n" +
                         "• BER gain @ 1e-3: %s%n" +
                         "• BLER gain @ 1e-1: %s%n" +
-                        "• peak throughput: %s%n" +
-                        "• peak spectral efficiency: %s%n" +
-                        "• required SNR @ BER=1e-3: %s%n" +
-                        "• required SNR @ BLER=1e-1: %s%n%n" +
+                        "• пиковая полезная скорость: %s%n" +
+                        "• пиковая спектральная эффективность: %s%n" +
+                        "• требуемый SNR @ BER=1e-3: %s%n" +
+                        "• требуемый SNR @ BLER=1e-1: %s%n%n" +
                         "2) Сценарий из истории:%n" +
                         "• модуляция: %s%n" +
                         "• канал: %s%n" +
@@ -313,10 +313,10 @@ public class CompareController {
                         "• лучший BLER gain: %s%n" +
                         "• BER gain @ 1e-3: %s%n" +
                         "• BLER gain @ 1e-1: %s%n" +
-                        "• peak throughput: %s%n" +
-                        "• peak spectral efficiency: %s%n" +
-                        "• required SNR @ BER=1e-3: %s%n" +
-                        "• required SNR @ BLER=1e-1: %s%n%n" +
+                        "• пиковая полезная скорость: %s%n" +
+                        "• пиковая спектральная эффективность: %s%n" +
+                        "• требуемый SNR @ BER=1e-3: %s%n" +
+                        "• требуемый SNR @ BLER=1e-1: %s%n%n" +
                         "Итог:%n%s",
                 leftConfig.getModulation(),
                 leftConfig.getChannelModel(),
@@ -386,7 +386,7 @@ public class CompareController {
     }
 
     private String formatThroughput(double value) {
-        return String.format(Locale.US, "%.2f Mbps", value);
+        return String.format(Locale.US, "%.2f Мбит/с", value);
     }
 
     @FXML
