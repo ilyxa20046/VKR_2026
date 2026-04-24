@@ -56,6 +56,122 @@ public class SimulationService {
         };
     }
 
+    // ====================== CRC ======================
+
+    // CRC-16-CCITT (poly 0x1021), init 0xFFFF
+    private int[] appendCrc16(int[] bits) {
+        int crc = 0xFFFF;
+        for (int bit : bits) {
+            int msb = ((crc >>> 15) & 1) ^ (bit & 1);
+            crc = ((crc << 1) & 0xFFFF);
+            if (msb == 1) {
+                crc ^= 0x1021;
+            }
+        }
+
+        int[] out = new int[bits.length + 16];
+        System.arraycopy(bits, 0, out, 0, bits.length);
+
+        // CRC bits MSB->LSB
+        for (int i = 0; i < 16; i++) {
+            out[bits.length + i] = (crc >>> (15 - i)) & 1;
+        }
+        return out;
+    }
+
+    private boolean checkCrc16(int[] bitsWithCrc) {
+        if (bitsWithCrc == null || bitsWithCrc.length < 16) {
+            return false;
+        }
+
+        int crc = 0xFFFF;
+        for (int bit : bitsWithCrc) {
+            int msb = ((crc >>> 15) & 1) ^ (bit & 1);
+            crc = ((crc << 1) & 0xFFFF);
+            if (msb == 1) {
+                crc ^= 0x1021;
+            }
+        }
+
+        // Если CRC корректен, остаток должен быть 0
+        return crc == 0;
+    }
+
+    // Универсальная обертка под конфиг
+    private int[] appendCrc(int[] bits, int crcBits) {
+        if (crcBits == 0) {
+            return bits;
+        }
+        if (crcBits == 16) {
+            return appendCrc16(bits);
+        }
+        throw new IllegalArgumentException("Пока поддерживается только CRC-16, запрошено: " + crcBits);
+    }
+
+    private boolean checkCrc(int[] bitsWithCrc, int crcBits) {
+        if (crcBits == 0) {
+            return true;
+        }
+        if (crcBits == 16) {
+            return checkCrc16(bitsWithCrc);
+        }
+        throw new IllegalArgumentException("Пока поддерживается только CRC-16, запрошено: " + crcBits);
+    }
+
+
+// ====================== Segmentation ======================
+
+    private List<int[]> segmentBits(int[] bits, int segmentSize) {
+        if (bits == null || bits.length == 0) {
+            return List.of();
+        }
+        if (segmentSize <= 0) {
+            throw new IllegalArgumentException("segmentSize должен быть > 0");
+        }
+
+        List<int[]> segments = new ArrayList<>();
+        for (int start = 0; start < bits.length; start += segmentSize) {
+            int end = Math.min(bits.length, start + segmentSize);
+            int[] seg = new int[end - start];
+            System.arraycopy(bits, start, seg, 0, seg.length);
+            segments.add(seg);
+        }
+        return segments;
+    }
+
+    private int[] padToLength(int[] bits, int targetLength) {
+        if (bits.length == targetLength) {
+            return bits;
+        }
+        if (bits.length > targetLength) {
+            int[] trimmed = new int[targetLength];
+            System.arraycopy(bits, 0, trimmed, 0, targetLength);
+            return trimmed;
+        }
+        int[] padded = new int[targetLength];
+        System.arraycopy(bits, 0, padded, 0, bits.length);
+        return padded;
+    }
+
+    private int[] rateMatchBits(int[] codedBits, int targetLength) {
+        if (targetLength <= 0) {
+            throw new IllegalArgumentException("targetLength должен быть > 0");
+        }
+        int[] out = new int[targetLength];
+        for (int i = 0; i < targetLength; i++) {
+            out[i] = codedBits[i % codedBits.length];
+        }
+        return out;
+    }
+
+    private double[] rateDematchLlr(double[] rmLlr, int originalLength) {
+        double[] out = new double[originalLength];
+        for (int i = 0; i < rmLlr.length; i++) {
+            out[i % originalLength] += rmLlr[i];
+        }
+        return out;
+    }
+
     public List<ResultPoint> runBlocking(SimulationConfig config) {
         List<ResultPoint> results = new ArrayList<>();
         List<Double> snrPoints = config.buildSnrPoints();
@@ -93,11 +209,36 @@ public class SimulationService {
             }
 
             boolean blockHasError = false;
-            for (int word = 0; word < codewordsPerBlock; word++) {
-                int[] info = randomBits(code.k, codedRandom);
+
+// 1) Генерируем исходный блок
+            int[] sourceInfoBlock = randomBits(config.getInfoBlockLength(), codedRandom);
+
+// 2) CRC (опционально)
+            int crcBits = config.getCrcBits();
+            boolean crcEnabled = config.isCrcEnabled();
+            int[] transportBlock = crcEnabled ? appendCrc(sourceInfoBlock, crcBits) : sourceInfoBlock;
+
+// 3) Segmentation (опционально)
+            boolean segmentationEnabled = config.isSegmentationEnabled();
+            List<int[]> segments = segmentationEnabled ? segmentBits(transportBlock, code.k) : List.of(transportBlock);
+
+// 4) Обработка сегментов
+            for (int[] rawSegment : segments) {
+                int[] info = padToLength(rawSegment, code.k);
+
                 int[] encoded = encodeLdpc(info, code);
-                Transmission transmission = transmitBits(encoded, config, sigmaCoded, codedRandom);
-                double[] llr = demapToLlr(transmission.received, transmission.gains, sigmaCoded, config);
+
+                // 5) Rate matching (опционально)
+                boolean rateMatchingEnabled = config.isRateMatchingEnabled();
+                int targetE = config.getTargetCodewordLength() > 0 ? config.getTargetCodewordLength() : encoded.length;
+                int[] txBits = rateMatchingEnabled ? rateMatchBits(encoded, targetE) : encoded;
+
+                Transmission transmission = transmitBits(txBits, config, sigmaCoded, codedRandom);
+                double[] llrTx = demapToLlr(transmission.received, transmission.gains, sigmaCoded, config);
+
+                // 6) Rate dematching
+                double[] llr = rateMatchingEnabled ? rateDematchLlr(llrTx, code.n) : llrTx;
+
                 DecodeResult decoded = decodeLdpcFromLlr(llr, code, config.getMaxIterations(), config.getNormalization());
 
                 iterationsSum += decoded.iterationsUsed;
@@ -105,20 +246,21 @@ public class SimulationService {
                     successfulCodewords++;
                 }
 
-                for (int i = 0; i < code.k; i++) {
-                    if (decoded.decodedInfo[i] != info[i]) {
+                // Считаем ошибки по исходной длине сегмента (до padding)
+                int compareLength = rawSegment.length;
+                for (int i = 0; i < compareLength; i++) {
+                    if (decoded.decodedInfo[i] != rawSegment[i]) {
                         codedBitErrors++;
                         blockHasError = true;
                     }
                 }
+
+                // 7) CRC check (если включен) можно вынести на уровень transportBlock
+                // Для минимальной интеграции сейчас оставляем битовую проверку как критерий ошибки сегмента.
             }
 
             if (blockHasError) {
                 codedBlockErrors++;
-            }
-
-            if (shouldStopAdaptive(config, codedBitErrors, codedBlockErrors, processedBlocks)) {
-                break;
             }
         }
 
@@ -839,6 +981,161 @@ public class SimulationService {
         private Constellation(int bitsPerSymbol, List<ConstellationEntry> entries) {
             this.bitsPerSymbol = bitsPerSymbol;
             this.entries = entries;
+        }
+
+        // ====================== CRC ======================
+
+        // CRC-16-CCITT (poly 0x1021), init 0xFFFF
+        private int[] appendCrc16(int[] bits) {
+            int crc = 0xFFFF;
+            for (int bit : bits) {
+                int msb = ((crc >>> 15) & 1) ^ (bit & 1);
+                crc = ((crc << 1) & 0xFFFF);
+                if (msb == 1) {
+                    crc ^= 0x1021;
+                }
+            }
+
+            int[] out = new int[bits.length + 16];
+            System.arraycopy(bits, 0, out, 0, bits.length);
+
+            // CRC bits MSB->LSB
+            for (int i = 0; i < 16; i++) {
+                out[bits.length + i] = (crc >>> (15 - i)) & 1;
+            }
+            return out;
+        }
+
+        private boolean checkCrc16(int[] bitsWithCrc) {
+            if (bitsWithCrc == null || bitsWithCrc.length < 16) {
+                return false;
+            }
+
+            int crc = 0xFFFF;
+            for (int bit : bitsWithCrc) {
+                int msb = ((crc >>> 15) & 1) ^ (bit & 1);
+                crc = ((crc << 1) & 0xFFFF);
+                if (msb == 1) {
+                    crc ^= 0x1021;
+                }
+            }
+
+            // Если CRC корректен, остаток должен быть 0
+            return crc == 0;
+        }
+
+        // Универсальная обертка под конфиг
+        private int[] appendCrc(int[] bits, int crcBits) {
+            if (crcBits == 0) {
+                return bits;
+            }
+            if (crcBits == 16) {
+                return appendCrc16(bits);
+            }
+            throw new IllegalArgumentException("Пока поддерживается только CRC-16, запрошено: " + crcBits);
+        }
+
+        private boolean checkCrc(int[] bitsWithCrc, int crcBits) {
+            if (crcBits == 0) {
+                return true;
+            }
+            if (crcBits == 16) {
+                return checkCrc16(bitsWithCrc);
+            }
+            throw new IllegalArgumentException("Пока поддерживается только CRC-16, запрошено: " + crcBits);
+        }
+
+
+// ====================== Segmentation ======================
+
+        private List<int[]> segmentBits(int[] bits, int segmentSize) {
+            if (bits == null || bits.length == 0) {
+                return List.of();
+            }
+            if (segmentSize <= 0) {
+                throw new IllegalArgumentException("segmentSize должен быть > 0");
+            }
+
+            List<int[]> segments = new ArrayList<>();
+            for (int start = 0; start < bits.length; start += segmentSize) {
+                int end = Math.min(bits.length, start + segmentSize);
+                int[] seg = new int[end - start];
+                System.arraycopy(bits, start, seg, 0, seg.length);
+                segments.add(seg);
+            }
+            return segments;
+        }
+
+        private int[] concatenateSegments(List<int[]> segments) {
+            if (segments == null || segments.isEmpty()) {
+                return new int[0];
+            }
+            int total = 0;
+            for (int[] seg : segments) {
+                total += seg.length;
+            }
+
+            int[] out = new int[total];
+            int pos = 0;
+            for (int[] seg : segments) {
+                System.arraycopy(seg, 0, out, pos, seg.length);
+                pos += seg.length;
+            }
+            return out;
+        }
+
+        private int[] padToLength(int[] bits, int targetLength) {
+            if (bits.length == targetLength) {
+                return bits;
+            }
+            if (bits.length > targetLength) {
+                int[] trimmed = new int[targetLength];
+                System.arraycopy(bits, 0, trimmed, 0, targetLength);
+                return trimmed;
+            }
+            int[] padded = new int[targetLength];
+            System.arraycopy(bits, 0, padded, 0, bits.length);
+            return padded;
+        }
+
+
+// ====================== Rate Matching ======================
+
+        // Circular-buffer style RM: puncture/repetition to targetLength
+        private int[] rateMatchBits(int[] codedBits, int targetLength) {
+            if (codedBits == null || codedBits.length == 0) {
+                return new int[0];
+            }
+            if (targetLength <= 0) {
+                throw new IllegalArgumentException("targetLength должен быть > 0");
+            }
+
+            int n = codedBits.length;
+            int[] out = new int[targetLength];
+
+            // Берем из circular buffer последовательно
+            for (int i = 0; i < targetLength; i++) {
+                out[i] = codedBits[i % n];
+            }
+            return out;
+        }
+
+        // LLR dematching: обратное накопление в исходную длину n
+        private double[] rateDematchLlr(double[] rmLlr, int originalLength) {
+            if (rmLlr == null || rmLlr.length == 0) {
+                return new double[Math.max(0, originalLength)];
+            }
+            if (originalLength <= 0) {
+                throw new IllegalArgumentException("originalLength должен быть > 0");
+            }
+
+            double[] out = new double[originalLength];
+
+            // Repetition складывается, punctured позиции останутся ~0
+            for (int i = 0; i < rmLlr.length; i++) {
+                out[i % originalLength] += rmLlr[i];
+            }
+            return out;
         }
 
         private Complex lookup(int[] bits) {

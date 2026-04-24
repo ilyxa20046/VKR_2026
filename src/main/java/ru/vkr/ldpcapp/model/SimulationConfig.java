@@ -27,6 +27,12 @@ public class SimulationConfig {
     public static final String SPATIAL_SISO = "SISO";
     public static final String SPATIAL_2X2 = "2x2 Diversity";
 
+    public static final String NR_BG_AUTO = "AUTO";
+    public static final String NR_BG1 = "BG1";
+    public static final String NR_BG2 = "BG2";
+
+    public static final int CRC_NONE = 0;
+    public static final int CRC_16 = 16;
 
     public static final String EQUALIZER_NONE = "None";
     public static final String EQUALIZER_ZF = "One-tap ZF";
@@ -54,6 +60,14 @@ public class SimulationConfig {
     private int minErrorEventsPerSnr;
     private int maxBlocksPerSnr;
     private double confidenceLevel;
+
+    private String nrBaseGraph = NR_BG_AUTO;
+    private int liftingSize = 8;
+    private boolean crcEnabled = false;
+    private int crcBits = CRC_NONE;
+    private boolean segmentationEnabled = false;
+    private boolean rateMatchingEnabled = false;
+    private int targetCodewordLength = 0; // 0 => использовать n кодового слова
 
     public SimulationConfig() {
     }
@@ -608,6 +622,24 @@ public class SimulationConfig {
         if (adaptiveStopEnabled && maxBlocksPerSnr < 20) {
             throw new IllegalArgumentException("Для адаптивного режима max blocks per SNR должен быть не меньше 20.");
         }
+        if (!List.of(NR_BG_AUTO, NR_BG1, NR_BG2).contains(nrBaseGraph)) {
+            throw new IllegalArgumentException("Неверный выбор base graph: " + nrBaseGraph);
+        }
+        if (liftingSize != 8 && liftingSize != 16 && liftingSize != 32) {
+            throw new IllegalArgumentException("Lifting size должен быть 8, 16 или 32.");
+        }
+        if (crcEnabled && crcBits != CRC_16) {
+            throw new IllegalArgumentException("Сейчас поддерживается только CRC-16.");
+        }
+        if (!crcEnabled && crcBits != CRC_NONE) {
+            throw new IllegalArgumentException("Если CRC выключен, crcBits должен быть 0.");
+        }
+        if (targetCodewordLength < 0) {
+            throw new IllegalArgumentException("targetCodewordLength не может быть отрицательным.");
+        }
+        if (rateMatchingEnabled && targetCodewordLength == 0) {
+            throw new IllegalArgumentException("Для rate matching задайте targetCodewordLength > 0.");
+        }
     }
 
     public List<Double> buildSnrPoints() {
@@ -669,7 +701,13 @@ public class SimulationConfig {
                         "• адаптивная остановка: %s%n" +
                         "• min error events per SNR: %d%n" +
                         "• max blocks per SNR: %d%n" +
-                        "• confidence level: %.2f%n",
+                        "• confidence level: %.2f%n" +
+                        "• base graph (NR): %s%n" +
+                        "• lifting size Z: %d%n" +
+                        "• CRC: %s%n" +
+                        "• segmentation: %s%n" +
+                        "• rate matching: %s%n" +
+                        "• target codeword length (E): %d%n",
                 getProfileName(ldpcProfile),
                 getProfileFamily(ldpcProfile),
                 modulation,
@@ -695,7 +733,13 @@ public class SimulationConfig {
                 adaptiveStopEnabled ? "включена" : "выключена",
                 minErrorEventsPerSnr,
                 maxBlocksPerSnr,
-                confidenceLevel
+                confidenceLevel,
+                nrBaseGraph,
+                liftingSize,
+                crcEnabled ? ("ON (" + crcBits + " bits)") : "OFF",
+                segmentationEnabled ? "ON" : "OFF",
+                rateMatchingEnabled ? "ON" : "OFF",
+                targetCodewordLength
         );
     }
 
@@ -850,6 +894,61 @@ public class SimulationConfig {
         return confidenceLevel;
     }
 
+    public String getNrBaseGraph() {
+        return nrBaseGraph;
+    }
+
+    public void setNrBaseGraph(String nrBaseGraph) {
+        this.nrBaseGraph = nrBaseGraph;
+    }
+
+    public int getLiftingSize() {
+        return liftingSize;
+    }
+
+    public void setLiftingSize(int liftingSize) {
+        this.liftingSize = liftingSize;
+    }
+
+    public boolean isCrcEnabled() {
+        return crcEnabled;
+    }
+
+    public void setCrcEnabled(boolean crcEnabled) {
+        this.crcEnabled = crcEnabled;
+    }
+
+    public int getCrcBits() {
+        return crcBits;
+    }
+
+    public void setCrcBits(int crcBits) {
+        this.crcBits = crcBits;
+    }
+
+    public boolean isSegmentationEnabled() {
+        return segmentationEnabled;
+    }
+
+    public void setSegmentationEnabled(boolean segmentationEnabled) {
+        this.segmentationEnabled = segmentationEnabled;
+    }
+
+    public boolean isRateMatchingEnabled() {
+        return rateMatchingEnabled;
+    }
+
+    public void setRateMatchingEnabled(boolean rateMatchingEnabled) {
+        this.rateMatchingEnabled = rateMatchingEnabled;
+    }
+
+    public int getTargetCodewordLength() {
+        return targetCodewordLength;
+    }
+
+    public void setTargetCodewordLength(int targetCodewordLength) {
+        this.targetCodewordLength = targetCodewordLength;
+    }
     public void setConfidenceLevel(double confidenceLevel) {
         this.confidenceLevel = confidenceLevel;
     }

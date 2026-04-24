@@ -39,6 +39,30 @@ public class SimulationController {
     private CheckBox adaptiveStopCheckBox;
 
     @FXML
+    private VBox advancedNrChainBox;
+
+    @FXML
+    private ComboBox<String> nrBaseGraphComboBox;
+
+    @FXML
+    private ComboBox<Integer> liftingSizeComboBox;
+
+    @FXML
+    private CheckBox crcEnabledCheckBox;
+
+    @FXML
+    private ComboBox<Integer> crcBitsComboBox;
+
+    @FXML
+    private CheckBox segmentationEnabledCheckBox;
+
+    @FXML
+    private CheckBox rateMatchingEnabledCheckBox;
+
+    @FXML
+    private Spinner<Integer> targetCodewordLengthSpinner;
+
+    @FXML
     private Spinner<Integer> minErrorEventsSpinner;
 
     @FXML
@@ -168,8 +192,37 @@ public class SimulationController {
                     0.80, 0.999, SimulationConfig.DEFAULT_CONFIDENCE_LEVEL, 0.01
             ));
         }
+        if (nrBaseGraphComboBox != null) {
+            nrBaseGraphComboBox.setItems(FXCollections.observableArrayList(
+                    SimulationConfig.NR_BG_AUTO,
+                    SimulationConfig.NR_BG1,
+                    SimulationConfig.NR_BG2
+            ));
+            nrBaseGraphComboBox.setValue(SimulationConfig.NR_BG_AUTO);
+        }
+
+        if (liftingSizeComboBox != null) {
+            liftingSizeComboBox.setItems(FXCollections.observableArrayList(8, 16, 32));
+            liftingSizeComboBox.setValue(8);
+        }
+
+        if (crcBitsComboBox != null) {
+            crcBitsComboBox.setItems(FXCollections.observableArrayList(
+                    SimulationConfig.CRC_NONE,
+                    SimulationConfig.CRC_16
+            ));
+            crcBitsComboBox.setValue(SimulationConfig.CRC_NONE);
+        }
+
+        if (targetCodewordLengthSpinner != null) {
+            targetCodewordLengthSpinner.setValueFactory(
+                    new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 50000, 0, 8)
+            );
+            targetCodewordLengthSpinner.setEditable(true);
+        }
 
         configureEditableSpinners();
+        setupNrChainUiRules();
         attachPreviewListeners();
         attachScientificListeners();
         if (advancedModeCheckBox != null) {
@@ -439,6 +492,47 @@ public class SimulationController {
         config.setConfidenceLevel(confidenceLevelSpinner == null
                 ? SimulationConfig.DEFAULT_CONFIDENCE_LEVEL
                 : confidenceLevelSpinner.getValue());
+        config.setNrBaseGraph(SimulationConfig.NR_BG_AUTO);
+        config.setLiftingSize(8);
+
+        config.setCrcEnabled(true);
+        config.setCrcBits(SimulationConfig.CRC_16);
+        config.setSegmentationEnabled(true);
+        config.setRateMatchingEnabled(true);
+        config.setTargetCodewordLength(192); // пример
+
+        if (nrBaseGraphComboBox != null) {
+            config.setNrBaseGraph(nrBaseGraphComboBox.getValue());
+        }
+        if (liftingSizeComboBox != null) {
+            config.setLiftingSize(liftingSizeComboBox.getValue());
+        }
+        if (crcEnabledCheckBox != null) {
+            config.setCrcEnabled(crcEnabledCheckBox.isSelected());
+        }
+        if (crcBitsComboBox != null) {
+            config.setCrcBits(crcBitsComboBox.getValue());
+        }
+        if (segmentationEnabledCheckBox != null) {
+            config.setSegmentationEnabled(segmentationEnabledCheckBox.isSelected());
+        }
+        if (rateMatchingEnabledCheckBox != null) {
+            config.setRateMatchingEnabled(rateMatchingEnabledCheckBox.isSelected());
+        }
+        if (targetCodewordLengthSpinner != null) {
+            config.setTargetCodewordLength(targetCodewordLengthSpinner.getValue());
+        }
+        if (!config.isCrcEnabled()) {
+            config.setCrcBits(SimulationConfig.CRC_NONE);
+        } else if (config.getCrcBits() == SimulationConfig.CRC_NONE) {
+            config.setCrcBits(SimulationConfig.CRC_16);
+        }
+
+        if (!config.isRateMatchingEnabled()) {
+            config.setTargetCodewordLength(0);
+        } else if (config.getTargetCodewordLength() > 0 && config.getTargetCodewordLength() < config.getInfoBlockLength()) {
+            config.setTargetCodewordLength(config.getInfoBlockLength());
+        }
 
         return config;
     }
@@ -587,6 +681,27 @@ public class SimulationController {
         if (confidenceLevelSpinner != null && confidenceLevelSpinner.getValueFactory() != null) {
             confidenceLevelSpinner.getValueFactory().setValue(config.getConfidenceLevel());
         }
+        if (nrBaseGraphComboBox != null) {
+            nrBaseGraphComboBox.setValue(config.getNrBaseGraph());
+        }
+        if (liftingSizeComboBox != null) {
+            liftingSizeComboBox.setValue(config.getLiftingSize());
+        }
+        if (crcEnabledCheckBox != null) {
+            crcEnabledCheckBox.setSelected(config.isCrcEnabled());
+        }
+        if (crcBitsComboBox != null) {
+            crcBitsComboBox.setValue(config.getCrcBits());
+        }
+        if (segmentationEnabledCheckBox != null) {
+            segmentationEnabledCheckBox.setSelected(config.isSegmentationEnabled());
+        }
+        if (rateMatchingEnabledCheckBox != null) {
+            rateMatchingEnabledCheckBox.setSelected(config.isRateMatchingEnabled());
+        }
+        if (targetCodewordLengthSpinner != null && targetCodewordLengthSpinner.getValueFactory() != null) {
+            targetCodewordLengthSpinner.getValueFactory().setValue(config.getTargetCodewordLength());
+        }
     }
 
     private void updatePreview() {
@@ -632,6 +747,85 @@ public class SimulationController {
         updatePreview();
     }
 
+    private void setupNrChainUiRules() {
+        if (crcEnabledCheckBox != null && crcBitsComboBox != null) {
+            crcEnabledCheckBox.selectedProperty().addListener((obs, oldValue, enabled) -> {
+                if (enabled) {
+                    if (crcBitsComboBox.getValue() == null || crcBitsComboBox.getValue() == SimulationConfig.CRC_NONE) {
+                        crcBitsComboBox.setValue(SimulationConfig.CRC_16);
+                    }
+                } else {
+                    crcBitsComboBox.setValue(SimulationConfig.CRC_NONE);
+                }
+                updatePreview();
+            });
+
+            crcBitsComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (newValue == null) {
+                    return;
+                }
+                if (newValue == SimulationConfig.CRC_NONE && crcEnabledCheckBox.isSelected()) {
+                    crcEnabledCheckBox.setSelected(false);
+                } else if (newValue > SimulationConfig.CRC_NONE && !crcEnabledCheckBox.isSelected()) {
+                    crcEnabledCheckBox.setSelected(true);
+                }
+                updatePreview();
+            });
+        }
+
+        if (rateMatchingEnabledCheckBox != null && targetCodewordLengthSpinner != null) {
+            rateMatchingEnabledCheckBox.selectedProperty().addListener((obs, oldValue, enabled) -> {
+                Integer currentE = targetCodewordLengthSpinner.getValue();
+                int infoLen = infoBlockSpinner != null ? infoBlockSpinner.getValue() : 0;
+
+                if (enabled) {
+                    if (currentE == null || currentE <= 0) {
+                        int suggested = Math.max(infoLen, 192);
+                        targetCodewordLengthSpinner.getValueFactory().setValue(suggested);
+                    }
+                } else {
+                    targetCodewordLengthSpinner.getValueFactory().setValue(0);
+                }
+                updatePreview();
+            });
+
+            targetCodewordLengthSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (newValue == null) {
+                    return;
+                }
+                int infoLen = infoBlockSpinner != null ? infoBlockSpinner.getValue() : 0;
+
+                if (rateMatchingEnabledCheckBox.isSelected() && newValue > 0 && newValue < infoLen) {
+                    targetCodewordLengthSpinner.getValueFactory().setValue(infoLen);
+                    return;
+                }
+
+                if (newValue > 0 && !rateMatchingEnabledCheckBox.isSelected()) {
+                    rateMatchingEnabledCheckBox.setSelected(true);
+                } else if (newValue == 0 && rateMatchingEnabledCheckBox.isSelected()) {
+                    rateMatchingEnabledCheckBox.setSelected(false);
+                }
+
+                updatePreview();
+            });
+        }
+
+        if (infoBlockSpinner != null && targetCodewordLengthSpinner != null && rateMatchingEnabledCheckBox != null) {
+            infoBlockSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (newValue == null) {
+                    return;
+                }
+                if (rateMatchingEnabledCheckBox.isSelected()) {
+                    int e = targetCodewordLengthSpinner.getValue() == null ? 0 : targetCodewordLengthSpinner.getValue();
+                    if (e > 0 && e < newValue) {
+                        targetCodewordLengthSpinner.getValueFactory().setValue(newValue);
+                    }
+                }
+                updatePreview();
+            });
+        }
+    }
+
     private void updateAdvancedModeVisibility() {
         boolean advanced = advancedModeCheckBox != null && advancedModeCheckBox.isSelected();
         setManagedVisible(advancedChannelSection, advanced);
@@ -639,6 +833,7 @@ public class SimulationController {
         setManagedVisible(advancedNormalizationBox, advanced);
         setManagedVisible(advancedSeedBox, advanced);
         setManagedVisible(advancedStatisticsBox, advanced);
+        setManagedVisible(advancedNrChainBox, advanced);
     }
 
     private void setManagedVisible(VBox node, boolean visible) {

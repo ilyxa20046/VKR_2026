@@ -17,6 +17,13 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
 
 <ScrollPane fitToWidth="true"
             pannable="true"
@@ -175,6 +182,54 @@
                                         </VBox>
                                     </children>
                                 </GridPane>
+                            </children>
+                        </VBox>
+
+                        <VBox fx:id="advancedNrChainBox" spacing="8.0" styleClass="panel-card compact-card">
+                            <children>
+                                <Label text="NR chain (TS 38.212-like)" styleClass="panel-title" />
+
+                                <HBox spacing="10.0">
+                                    <children>
+                                        <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Base graph" styleClass="dashboard-bullet" />
+                                                <ComboBox fx:id="nrBaseGraphComboBox" prefWidth="220.0" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Lifting size Z" styleClass="dashboard-bullet" />
+                                                <ComboBox fx:id="liftingSizeComboBox" prefWidth="220.0" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+
+                                <HBox spacing="14.0">
+                                    <children>
+                                        <CheckBox fx:id="crcEnabledCheckBox" text="CRC" />
+                                        <CheckBox fx:id="segmentationEnabledCheckBox" text="Segmentation" />
+                                        <CheckBox fx:id="rateMatchingEnabledCheckBox" text="Rate matching" />
+                                    </children>
+                                </HBox>
+
+                                <HBox spacing="10.0">
+                                    <children>
+                                        <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="CRC bits" styleClass="dashboard-bullet" />
+                                                <ComboBox fx:id="crcBitsComboBox" prefWidth="220.0" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="Target codeword length (E)" styleClass="dashboard-bullet" />
+                                                <Spinner fx:id="targetCodewordLengthSpinner" prefWidth="220.0" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
                             </children>
                         </VBox>
 
