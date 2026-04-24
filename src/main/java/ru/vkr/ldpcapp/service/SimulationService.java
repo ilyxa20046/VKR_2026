@@ -13,7 +13,7 @@ public class SimulationService {
     private static final double INV_SQRT2 = 1.0 / Math.sqrt(2.0);
     private static final double INV_SQRT10 = 1.0 / Math.sqrt(10.0);
     private static final double BASE_SYMBOL_RATE_MBAUD = 20.0;
-
+    private static final LdpcCode NR_BG1_Z8_CODE = build5gNrBg1Z8Code();
     private static final LdpcCode EDUCATIONAL_CODE = buildEducationalCode();
     private static final LdpcCode QC_LIKE_CODE = buildQcInspiredCode();
 
@@ -501,8 +501,60 @@ public class SimulationService {
         return Math.abs(denominator) < 1e-12 ? 0.0 : numerator / denominator;
     }
 
+    private static int[][] loadBg1InfoPartShifts() {
+        // ВАЖНО: подставь реальные значения из твоего подготовленного CSV/таблицы.
+        // Размер: 46 x 22, значения: -1 или shift [0..Z-1].
+        // Временная заглушка ниже не является стандартной!
+        int[][] shifts = new int[46][22];
+        for (int r = 0; r < 46; r++) {
+            for (int c = 0; c < 22; c++) {
+                shifts[r][c] = (c % 5 == 0) ? -1 : (r + c) % 8;
+            }
+        }
+        return shifts;
+    }
+
     private LdpcCode getCode(String profile) {
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
+            return NR_BG1_Z8_CODE;
+        }
         return SimulationConfig.PROFILE_QC.equals(profile) ? QC_LIKE_CODE : EDUCATIONAL_CODE;
+    }
+
+    private static LdpcCode build5gNrBg1Z8Code() {
+        // BG1: rows=46, infoCols=22, Z=8
+        // Используем фиксированный Z и матрицу сдвигов только для информационной части (22 колонки).
+        int z = 8;
+        int infoCols = 22;
+        int rowGroups = 46;
+
+        int k = infoCols * z;   // 176
+        int m = rowGroups * z;  // 368
+
+        // Здесь должна быть таблица сдвигов BG1 (46x22): -1 если нет связи, >=0 сдвиг.
+        // Рекомендация: хранить в resources как CSV и загружать.
+        int[][] shifts = loadBg1InfoPartShifts();
+
+        int[][] taps = new int[m][];
+        int rowIndex = 0;
+
+        for (int rg = 0; rg < rowGroups; rg++) {
+            for (int localRow = 0; localRow < z; localRow++) {
+                List<Integer> vars = new ArrayList<>();
+                for (int col = 0; col < infoCols; col++) {
+                    int shift = shifts[rg][col];
+                    if (shift < 0) {
+                        continue;
+                    }
+                    int varIndex = col * z + ((localRow + shift) % z);
+                    vars.add(varIndex);
+                }
+                taps[rowIndex] = vars.stream().mapToInt(Integer::intValue).toArray();
+                rowIndex++;
+            }
+        }
+
+        return createSystematicCode(k, m, taps);
     }
 
     private static LdpcCode buildEducationalCode() {

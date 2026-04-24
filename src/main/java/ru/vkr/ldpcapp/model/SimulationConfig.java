@@ -18,12 +18,15 @@ public class SimulationConfig {
     public static final String PROFILE_EDU = "edu-24-12";
     public static final String PROFILE_QC = "qcldpc-96-48";
 
+    public static final String PROFILE_5GNR_BG1 = "5gnr-bg1-z8";
+
     public static final String WAVEFORM_SC = "Single-carrier";
     public static final String WAVEFORM_OFDM64 = "OFDM-64";
     public static final String WAVEFORM_OFDM128 = "OFDM-128";
 
     public static final String SPATIAL_SISO = "SISO";
     public static final String SPATIAL_2X2 = "2x2 Diversity";
+
 
     public static final String EQUALIZER_NONE = "None";
     public static final String EQUALIZER_ZF = "One-tap ZF";
@@ -137,8 +140,10 @@ public class SimulationConfig {
     }
 
     public static SimulationConfig recommendedProfile() {
-        return profileResearchReference();
+        return profile5gNrBg1Reference();
     }
+
+
 
     public static SimulationConfig profileResearchReference() {
         return new SimulationConfig(
@@ -389,7 +394,7 @@ public class SimulationConfig {
     }
 
     public static List<String> supportedLdpcProfiles() {
-        return List.of(PROFILE_EDU, PROFILE_QC);
+        return List.of(PROFILE_EDU, PROFILE_QC, PROFILE_5GNR_BG1);
     }
 
     public static List<String> supportedWaveforms() {
@@ -407,6 +412,7 @@ public class SimulationConfig {
     public static List<String> researchProfileNames() {
         return List.of(
                 "Опорный 5G-like сценарий",
+                "5G NR BG1 (Z=8) — опорный",
                 "AWGN baseline / SISO",
                 "Rayleigh + OFDM baseline",
                 "Diversity-устойчивый профиль",
@@ -431,6 +437,7 @@ public class SimulationConfig {
             return recommendedProfile();
         }
         return switch (name) {
+            case "5G NR BG1 (Z=8) — опорный" -> profile5gNrBg1Reference();
             case "AWGN baseline / SISO" -> profileAwgnBaseline();
             case "Rayleigh + OFDM baseline" -> profileRayleighOfdmBaseline();
             case "Diversity-устойчивый профиль" -> profileDiversityRobust();
@@ -454,6 +461,7 @@ public class SimulationConfig {
         };
     }
 
+
     public static int normalizeCyclicPrefix(int cp, String waveform) {
         if (WAVEFORM_OFDM128.equals(waveform)) {
             return Math.max(8, Math.min(32, cp));
@@ -465,6 +473,9 @@ public class SimulationConfig {
     }
 
     public static int getProfileInfoWordLength(String profile) {
+        if (PROFILE_5GNR_BG1.equals(profile)) {
+            return 176; // BG1, 22 info cols * Z=8
+        }
         return PROFILE_QC.equals(profile) ? 48 : 12;
     }
 
@@ -476,19 +487,46 @@ public class SimulationConfig {
     }
 
     public static String getProfileName(String profile) {
+        if (PROFILE_5GNR_BG1.equals(profile)) {
+            return "5G NR BG1 (fixed Z=8, 68x46)";
+        }
         return PROFILE_QC.equals(profile)
                 ? "QC-inspired LDPC (96,48)"
                 : "Учебный LDPC (24,12)";
     }
 
     public static String getProfileFamily(String profile) {
+        if (PROFILE_5GNR_BG1.equals(profile)) {
+            return "3GPP NR / Base Graph 1";
+        }
         return PROFILE_QC.equals(profile) ? "QC-Inspired / 5G-like" : "Educational";
     }
 
     public static String getProfileDescription(String profile) {
+        if (PROFILE_5GNR_BG1.equals(profile)) {
+            return "Фиксированный BG1 (Z=8) для 5G NR-ориентированного исследования.";
+        }
         return PROFILE_QC.equals(profile)
                 ? "Более длинный квазициркулянтный LDPC-профиль, ближе по духу к 5G NR, чем учебный компактный код."
                 : "Компактный учебный LDPC-код, удобный для быстрой калибровки и базового сравнения.";
+    }
+
+    public static SimulationConfig profile5gNrBg1Reference() {
+        return new SimulationConfig(
+                176,   // кратно 176
+                0.0, 10.0, 1.0,
+                100,
+                18,
+                0.80,
+                2025,
+                MOD_QPSK,
+                CHANNEL_AWGN,
+                PROFILE_5GNR_BG1,
+                WAVEFORM_OFDM64,
+                SPATIAL_SISO,
+                8,
+                EQUALIZER_ZF
+        );
     }
 
     public static String getWaveformDisplayName(String waveform) {
@@ -627,7 +665,7 @@ public class SimulationConfig {
                         "• коэффициент нормализации: %.2f%n" +
                         "• скорость кода: %.2f%n" +
                         "• описание профиля: %s%n" +
-                        "• seed генератора: %d" +
+                        "• seed генератора: %d%n" +
                         "• адаптивная остановка: %s%n" +
                         "• min error events per SNR: %d%n" +
                         "• max blocks per SNR: %d%n" +

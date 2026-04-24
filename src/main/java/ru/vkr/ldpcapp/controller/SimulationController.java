@@ -626,6 +626,7 @@ public class SimulationController {
             advancedModeCheckBox.setSelected(true);
         }
         updateAdvancedModeVisibility();
+        updateModeStatusChip();
         validationLabel.setText("Применён сценарий для защиты: " + profileName);
         progressLabel.setText("Сценарий для демонстрации подготовлен");
         updatePreview();
