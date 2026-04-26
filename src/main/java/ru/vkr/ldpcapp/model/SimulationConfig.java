@@ -17,7 +17,7 @@ public class SimulationConfig {
 
     public static final String PROFILE_EDU = "edu-24-12";
     public static final String PROFILE_QC = "qcldpc-96-48";
-
+    public static final String PROFILE_POLAR = "polar-128-64";
     public static final String PROFILE_5GNR_BG1 = "5gnr-bg1-z8";
 
     public static final String WAVEFORM_SC = "Single-carrier";
@@ -33,6 +33,8 @@ public class SimulationConfig {
 
     public static final int CRC_NONE = 0;
     public static final int CRC_16 = 16;
+    public static final String BLER_BY_BIT_MISMATCH = "Bit mismatch";
+    public static final String BLER_BY_CRC_FAIL = "CRC fail";
 
     public static final String EQUALIZER_NONE = "None";
     public static final String EQUALIZER_ZF = "One-tap ZF";
@@ -68,6 +70,7 @@ public class SimulationConfig {
     private boolean segmentationEnabled = false;
     private boolean rateMatchingEnabled = false;
     private int targetCodewordLength = 0; // 0 => использовать n кодового слова
+    private String blerCriterion = BLER_BY_BIT_MISMATCH;
 
     public SimulationConfig() {
     }
@@ -399,6 +402,40 @@ public class SimulationConfig {
         );
     }
 
+    public static SimulationConfig profileDefenseLdpcVsPolarLdpcRef() {
+        SimulationConfig config = new SimulationConfig(
+                256,
+                0.0,
+                8.0,
+                1.0,
+                120,
+                14,
+                0.85,
+                2025,
+                MOD_QPSK,
+                CHANNEL_AWGN,
+                PROFILE_QC,
+                WAVEFORM_SC,
+                SPATIAL_SISO,
+                0,
+                EQUALIZER_NONE
+        );
+        config.setCrcEnabled(true);
+        config.setCrcBits(CRC_16);
+        config.setSegmentationEnabled(true);
+        config.setRateMatchingEnabled(true);
+        config.setTargetCodewordLength(192);
+        config.setBlerCriterion(BLER_BY_CRC_FAIL);
+        return config;
+    }
+
+    public static SimulationConfig profileDefenseLdpcVsPolarPolarRef() {
+        SimulationConfig config = profileDefenseLdpcVsPolarLdpcRef();
+        config.setLdpcProfile(PROFILE_POLAR);
+        config.setInfoBlockLength(normalizeInfoBlockLength(config.getInfoBlockLength(), PROFILE_POLAR, config.getLiftingSize()));
+        return config;
+    }
+
     public static List<String> supportedModulations() {
         return List.of(MOD_BPSK, MOD_QPSK, MOD_16QAM, MOD_64QAM, MOD_256QAM);
     }
@@ -408,7 +445,7 @@ public class SimulationConfig {
     }
 
     public static List<String> supportedLdpcProfiles() {
-        return List.of(PROFILE_EDU, PROFILE_QC, PROFILE_5GNR_BG1);
+        return List.of(PROFILE_EDU, PROFILE_QC, PROFILE_5GNR_BG1, PROFILE_POLAR);
     }
 
     public static List<String> supportedWaveforms() {
@@ -421,6 +458,10 @@ public class SimulationConfig {
 
     public static List<String> supportedEqualizerModes() {
         return List.of(EQUALIZER_NONE, EQUALIZER_ZF);
+    }
+
+    public static List<String> supportedBlerCriteria() {
+        return List.of(BLER_BY_BIT_MISMATCH, BLER_BY_CRC_FAIL);
     }
 
     public static List<String> researchProfileNames() {
@@ -442,7 +483,9 @@ public class SimulationConfig {
                 "Защита · Rayleigh vs OFDM",
                 "Защита · Diversity gain",
                 "Защита · 16-QAM trade-off",
-                "Защита · OFDM showcase"
+                "Защита · OFDM showcase",
+                "Защита · LDPC vs Polar · LDPC ref",
+                "Защита · LDPC vs Polar · Polar ref"
         );
     }
 
@@ -471,6 +514,8 @@ public class SimulationConfig {
             case "Защита · Diversity gain" -> profileDefenseDiversityGain();
             case "Защита · 16-QAM trade-off" -> profileDefenseHighRateTradeoff();
             case "Защита · OFDM showcase" -> profileDefenseOfdmShowcase();
+            case "Защита · LDPC vs Polar · LDPC ref" -> profileDefenseLdpcVsPolarLdpcRef();
+            case "Защита · LDPC vs Polar · Polar ref" -> profileDefenseLdpcVsPolarPolarRef();
             default -> profileDefenseAwgnReference();
         };
     }
@@ -488,9 +533,23 @@ public class SimulationConfig {
 
     public static int getProfileInfoWordLength(String profile) {
         if (PROFILE_5GNR_BG1.equals(profile)) {
-            return 176; // BG1, 22 info cols * Z=8
+            return 176; // legacy default: BG1, 22 info cols * Z=8
+        }
+        if (PROFILE_POLAR.equals(profile)) {
+            return 64;
         }
         return PROFILE_QC.equals(profile) ? 48 : 12;
+    }
+
+    public static int getProfileInfoWordLength(String profile, int liftingSize) {
+        if (PROFILE_5GNR_BG1.equals(profile)) {
+            int z = liftingSize;
+            if (z != 8 && z != 16 && z != 32) {
+                z = 8;
+            }
+            return 22 * z;
+        }
+        return getProfileInfoWordLength(profile);
     }
 
     public static int normalizeInfoBlockLength(int value, String profile) {
@@ -500,25 +559,53 @@ public class SimulationConfig {
         return Math.max(k, blocks * k);
     }
 
+    public static int normalizeInfoBlockLength(int value, String profile, int liftingSize) {
+        int k = getProfileInfoWordLength(profile, liftingSize);
+        int safeValue = Math.max(k, value);
+        int blocks = (int) Math.ceil((double) safeValue / k);
+        return Math.max(k, blocks * k);
+    }
+
     public static String getProfileName(String profile) {
         if (PROFILE_5GNR_BG1.equals(profile)) {
-            return "5G NR BG1 (fixed Z=8, 68x46)";
+            return "5G NR BG1 (68x46)";
+        }
+        if (PROFILE_POLAR.equals(profile)) {
+            return "Polar-like (128,64)";
         }
         return PROFILE_QC.equals(profile)
                 ? "QC-inspired LDPC (96,48)"
                 : "Учебный LDPC (24,12)";
     }
 
+    public static String getProfileDisplayName(String profile, int liftingSize) {
+        if (!PROFILE_5GNR_BG1.equals(profile)) {
+            return getProfileName(profile);
+        }
+        int z = liftingSize;
+        if (z != 8 && z != 16 && z != 32) {
+            z = 8;
+        }
+        int k = 22 * z;
+        return "5G NR BG1 (68x46), Z=" + z + ", k=" + k;
+    }
+
     public static String getProfileFamily(String profile) {
         if (PROFILE_5GNR_BG1.equals(profile)) {
             return "3GPP NR / Base Graph 1";
+        }
+        if (PROFILE_POLAR.equals(profile)) {
+            return "Polar-like / SC";
         }
         return PROFILE_QC.equals(profile) ? "QC-Inspired / 5G-like" : "Educational";
     }
 
     public static String getProfileDescription(String profile) {
         if (PROFILE_5GNR_BG1.equals(profile)) {
-            return "Фиксированный BG1 (Z=8) для 5G NR-ориентированного исследования.";
+            return "Base Graph 1 (BG1) для 5G NR-ориентированного исследования (lifting size задаётся параметром Z).";
+        }
+        if (PROFILE_POLAR.equals(profile)) {
+            return "Упрощённый Polar-like профиль (N=128, K=64) со SC-декодированием для сравнения с LDPC-подходом.";
         }
         return PROFILE_QC.equals(profile)
                 ? "Более длинный квазициркулянтный LDPC-профиль, ближе по духу к 5G NR, чем учебный компактный код."
@@ -591,7 +678,7 @@ public class SimulationConfig {
         if (cyclicPrefix != normalizedCp) {
             throw new IllegalArgumentException("Длина cyclic prefix не соответствует выбранному waveform/OFDM-режиму.");
         }
-        int infoWordLength = getProfileInfoWordLength(ldpcProfile);
+        int infoWordLength = getProfileInfoWordLength(ldpcProfile, liftingSize);
         if (infoBlockLength < infoWordLength || infoBlockLength % infoWordLength != 0) {
             throw new IllegalArgumentException("Длина информационного блока должна быть кратна " + infoWordLength + " для выбранного LDPC-профиля.");
         }
@@ -640,6 +727,18 @@ public class SimulationConfig {
         if (rateMatchingEnabled && targetCodewordLength == 0) {
             throw new IllegalArgumentException("Для rate matching задайте targetCodewordLength > 0.");
         }
+        if (!supportedBlerCriteria().contains(blerCriterion)) {
+            throw new IllegalArgumentException("Неподдерживаемый критерий BLER: " + blerCriterion);
+        }
+        if (BLER_BY_CRC_FAIL.equals(blerCriterion) && !crcEnabled) {
+            throw new IllegalArgumentException("Критерий BLER по CRC доступен только при включенном CRC.");
+        }
+        if (!segmentationEnabled && (infoBlockLength + crcBits) > getCodeInfoLength()) {
+            throw new IllegalArgumentException(
+                    "При выключенной segmentation транспортный блок должен помещаться в одно кодовое слово (K="
+                            + getCodeInfoLength() + "). Уменьшите infoBlockLength или включите segmentation."
+            );
+        }
     }
 
     public List<Double> buildSnrPoints() {
@@ -671,7 +770,7 @@ public class SimulationConfig {
     }
 
     public int getCodeInfoLength() {
-        return getProfileInfoWordLength(ldpcProfile);
+        return getProfileInfoWordLength(ldpcProfile, liftingSize);
     }
 
     public String toSummaryText() {
@@ -707,8 +806,9 @@ public class SimulationConfig {
                         "• CRC: %s%n" +
                         "• segmentation: %s%n" +
                         "• rate matching: %s%n" +
+                        "• BLER criterion: %s%n" +
                         "• target codeword length (E): %d%n",
-                getProfileName(ldpcProfile),
+                getProfileDisplayName(ldpcProfile, liftingSize),
                 getProfileFamily(ldpcProfile),
                 modulation,
                 channelModel,
@@ -739,6 +839,7 @@ public class SimulationConfig {
                 crcEnabled ? ("ON (" + crcBits + " bits)") : "OFF",
                 segmentationEnabled ? "ON" : "OFF",
                 rateMatchingEnabled ? "ON" : "OFF",
+                blerCriterion,
                 targetCodewordLength
         );
     }
@@ -948,6 +1049,13 @@ public class SimulationConfig {
 
     public void setTargetCodewordLength(int targetCodewordLength) {
         this.targetCodewordLength = targetCodewordLength;
+    }
+    public String getBlerCriterion() {
+        return blerCriterion;
+    }
+
+    public void setBlerCriterion(String blerCriterion) {
+        this.blerCriterion = blerCriterion;
     }
     public void setConfidenceLevel(double confidenceLevel) {
         this.confidenceLevel = confidenceLevel;

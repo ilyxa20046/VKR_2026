@@ -63,6 +63,8 @@
                                         <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseDiversityProfile" text="Защита · Diversity gain — выигрыш 2x2" />
                                         <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseHighRateProfile" text="Защита · 16-QAM trade-off — скорость vs BER" />
                                         <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseOfdmProfile" text="Защита · OFDM showcase — waveform-эффект" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseLdpcVsPolarLdpcProfile" text="Защита · LDPC vs Polar — LDPC ref" />
+                                        <MenuItem mnemonicParsing="false" onAction="#onApplyDefenseLdpcVsPolarPolarProfile" text="Защита · LDPC vs Polar — Polar ref" />
                                     </items>
                                 </MenuButton>
                                 <MenuButton styleClass="secondary-button secondary-button-strong compact-action-button" text="Файлы конфигурации">
@@ -222,6 +224,17 @@
                                                 <ComboBox fx:id="crcBitsComboBox" prefWidth="220.0" />
                                             </children>
                                         </VBox>
+                                        <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                            <children>
+                                                <Label text="BLER criterion" styleClass="dashboard-bullet" />
+                                                <ComboBox fx:id="blerCriterionComboBox" prefWidth="220.0" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+
+                                <HBox spacing="10.0">
+                                    <children>
                                         <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                             <children>
                                                 <Label text="Target codeword length (E)" styleClass="dashboard-bullet" />

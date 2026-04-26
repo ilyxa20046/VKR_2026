@@ -60,6 +60,9 @@ public class SimulationController {
     private CheckBox rateMatchingEnabledCheckBox;
 
     @FXML
+    private ComboBox<String> blerCriterionComboBox;
+
+    @FXML
     private Spinner<Integer> targetCodewordLengthSpinner;
 
     @FXML
@@ -213,6 +216,10 @@ public class SimulationController {
             ));
             crcBitsComboBox.setValue(SimulationConfig.CRC_NONE);
         }
+        if (blerCriterionComboBox != null) {
+            blerCriterionComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedBlerCriteria()));
+            blerCriterionComboBox.setValue(SimulationConfig.BLER_BY_BIT_MISMATCH);
+        }
 
         if (targetCodewordLengthSpinner != null) {
             targetCodewordLengthSpinner.setValueFactory(
@@ -302,6 +309,16 @@ public class SimulationController {
     @FXML
     private void onApplyDefenseOfdmProfile() {
         applyNamedDefenseProfile("Защита · OFDM showcase");
+    }
+
+    @FXML
+    private void onApplyDefenseLdpcVsPolarLdpcProfile() {
+        applyNamedDefenseProfile("Защита · LDPC vs Polar · LDPC ref");
+    }
+
+    @FXML
+    private void onApplyDefenseLdpcVsPolarPolarProfile() {
+        applyNamedDefenseProfile("Защита · LDPC vs Polar · Polar ref");
     }
 
     @FXML
@@ -465,7 +482,11 @@ public class SimulationController {
         String waveform = waveformComboBox.getValue();
 
         SimulationConfig config = new SimulationConfig(
-                SimulationConfig.normalizeInfoBlockLength(infoBlockSpinner.getValue(), profile),
+                SimulationConfig.normalizeInfoBlockLength(
+                        infoBlockSpinner.getValue(),
+                        profile,
+                        liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null ? 8 : liftingSizeComboBox.getValue()
+                ),
                 snrStartSpinner.getValue(),
                 snrEndSpinner.getValue(),
                 snrStepSpinner.getValue(),
@@ -500,6 +521,7 @@ public class SimulationController {
         config.setSegmentationEnabled(true);
         config.setRateMatchingEnabled(true);
         config.setTargetCodewordLength(192); // пример
+        config.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
 
         if (nrBaseGraphComboBox != null) {
             config.setNrBaseGraph(nrBaseGraphComboBox.getValue());
@@ -522,10 +544,16 @@ public class SimulationController {
         if (targetCodewordLengthSpinner != null) {
             config.setTargetCodewordLength(targetCodewordLengthSpinner.getValue());
         }
+        if (blerCriterionComboBox != null) {
+            config.setBlerCriterion(blerCriterionComboBox.getValue());
+        }
         if (!config.isCrcEnabled()) {
             config.setCrcBits(SimulationConfig.CRC_NONE);
         } else if (config.getCrcBits() == SimulationConfig.CRC_NONE) {
             config.setCrcBits(SimulationConfig.CRC_16);
+        }
+        if (!config.isCrcEnabled() && SimulationConfig.BLER_BY_CRC_FAIL.equals(config.getBlerCriterion())) {
+            config.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
         }
 
         if (!config.isRateMatchingEnabled()) {
@@ -619,6 +647,12 @@ public class SimulationController {
             adjustInfoBlockForProfile(newValue);
             updatePreview();
         });
+        if (liftingSizeComboBox != null) {
+            liftingSizeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+                adjustInfoBlockForProfile(ldpcProfileComboBox.getValue());
+                updatePreview();
+            });
+        }
         modulationComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         channelComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         waveformComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
@@ -702,6 +736,9 @@ public class SimulationController {
         if (targetCodewordLengthSpinner != null && targetCodewordLengthSpinner.getValueFactory() != null) {
             targetCodewordLengthSpinner.getValueFactory().setValue(config.getTargetCodewordLength());
         }
+        if (blerCriterionComboBox != null) {
+            blerCriterionComboBox.setValue(config.getBlerCriterion());
+        }
     }
 
     private void updatePreview() {
@@ -723,7 +760,8 @@ public class SimulationController {
             return;
         }
         int current = infoBlockSpinner.getValue();
-        int normalized = SimulationConfig.normalizeInfoBlockLength(current, profile);
+        int z = liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null ? 8 : liftingSizeComboBox.getValue();
+        int normalized = SimulationConfig.normalizeInfoBlockLength(current, profile, z);
         infoBlockSpinner.getValueFactory().setValue(normalized);
     }
 
@@ -756,6 +794,9 @@ public class SimulationController {
                     }
                 } else {
                     crcBitsComboBox.setValue(SimulationConfig.CRC_NONE);
+                    if (blerCriterionComboBox != null) {
+                        blerCriterionComboBox.setValue(SimulationConfig.BLER_BY_BIT_MISMATCH);
+                    }
                 }
                 updatePreview();
             });
@@ -806,6 +847,23 @@ public class SimulationController {
                     rateMatchingEnabledCheckBox.setSelected(false);
                 }
 
+                updatePreview();
+            });
+        }
+
+        if (blerCriterionComboBox != null) {
+            blerCriterionComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (newValue == null) {
+                    return;
+                }
+                if (SimulationConfig.BLER_BY_CRC_FAIL.equals(newValue)
+                        && crcEnabledCheckBox != null
+                        && !crcEnabledCheckBox.isSelected()) {
+                    crcEnabledCheckBox.setSelected(true);
+                    if (crcBitsComboBox != null) {
+                        crcBitsComboBox.setValue(SimulationConfig.CRC_16);
+                    }
+                }
                 updatePreview();
             });
         }
@@ -871,6 +929,9 @@ public class SimulationController {
         runButton.setTooltip(new Tooltip(parameterHelpService.getTooltip("run")));
         if (advancedModeCheckBox != null) {
             advancedModeCheckBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("advancedMode")));
+        }
+        if (blerCriterionComboBox != null) {
+            blerCriterionComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("blerCriterion")));
         }
         configPreviewArea.setTooltip(new Tooltip("Текстовое резюме текущего сценария: канал, модуляция, LDPC-профиль, диапазон SNR, OFDM/MIMO-like параметры и параметры декодера."));
     }

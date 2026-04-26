@@ -63,7 +63,11 @@ public class BatchService {
                 for (String modulation : modulations) {
                     SimulationConfig config = copyConfig(baseConfig);
                     config.setLdpcProfile(profile);
-                    config.setInfoBlockLength(SimulationConfig.normalizeInfoBlockLength(config.getInfoBlockLength(), profile));
+                    config.setInfoBlockLength(SimulationConfig.normalizeInfoBlockLength(
+                            config.getInfoBlockLength(),
+                            profile,
+                            config.getLiftingSize()
+                    ));
                     config.setChannelModel(channel);
                     config.setModulation(modulation);
                     config.setSeed(baseConfig.getSeed() + offset * 97);
@@ -71,7 +75,7 @@ public class BatchService {
 
                     String label = modulation
                             + " / " + channel
-                            + " / " + SimulationConfig.getProfileName(profile)
+                            + " / " + SimulationConfig.getProfileDisplayName(profile, config.getLiftingSize())
                             + " / " + config.getWaveform()
                             + " / " + config.getSpatialMode();
                     scenarios.add(new ScenarioDefinition(label, config));

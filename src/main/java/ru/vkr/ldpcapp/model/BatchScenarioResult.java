@@ -43,7 +43,7 @@ public class BatchScenarioResult {
     }
 
     public String getLdpcProfileName() {
-        return SimulationConfig.getProfileName(config.getLdpcProfile());
+        return SimulationConfig.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize());
     }
 
     private SimulationConfig copyConfig(SimulationConfig source) {

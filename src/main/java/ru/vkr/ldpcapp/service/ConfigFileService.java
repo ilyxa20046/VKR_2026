@@ -26,6 +26,7 @@ public class ConfigFileService {
     private static final String KEY_SPATIAL_MODE = "spatialMode";
     private static final String KEY_CYCLIC_PREFIX = "cyclicPrefix";
     private static final String KEY_EQUALIZER_MODE = "equalizerMode";
+    private static final String KEY_BLER_CRITERION = "blerCriterion";
 
     public void save(Path path, SimulationConfig config) throws IOException {
         Properties properties = new Properties();
@@ -44,6 +45,7 @@ public class ConfigFileService {
         properties.setProperty(KEY_SPATIAL_MODE, config.getSpatialMode());
         properties.setProperty(KEY_CYCLIC_PREFIX, Integer.toString(config.getCyclicPrefix()));
         properties.setProperty(KEY_EQUALIZER_MODE, config.getEqualizerMode());
+        properties.setProperty(KEY_BLER_CRITERION, config.getBlerCriterion());
 
         if (path.getParent() != null) {
             Files.createDirectories(path.getParent());
@@ -76,6 +78,7 @@ public class ConfigFileService {
         config.setSpatialMode(require(properties, KEY_SPATIAL_MODE));
         config.setCyclicPrefix(readInt(properties, KEY_CYCLIC_PREFIX));
         config.setEqualizerMode(require(properties, KEY_EQUALIZER_MODE));
+        config.setBlerCriterion(properties.getProperty(KEY_BLER_CRITERION, SimulationConfig.BLER_BY_BIT_MISMATCH));
         config.validate();
         return config;
     }

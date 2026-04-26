@@ -74,6 +74,12 @@ public class ResultsController {
     private Label averageSpectralEfficiencyLabel;
 
     @FXML
+    private Label blerCriterionLabel;
+
+    @FXML
+    private Label nrChainStatusLabel;
+
+    @FXML
     private Label exportStatusLabel;
 
     @FXML
@@ -369,8 +375,19 @@ public class ResultsController {
             resultsChannelChip.setText(currentConfig.getChannelModel());
             resultsWaveformChip.setText(currentConfig.getWaveform());
             resultsSpatialChip.setText(currentConfig.getSpatialMode());
-            resultsLdpcChip.setText(SimulationConfig.getProfileName(currentConfig.getLdpcProfile()));
+            resultsLdpcChip.setText(SimulationConfig.getProfileDisplayName(currentConfig.getLdpcProfile(), currentConfig.getLiftingSize()));
             resultsScenarioModeChip.setText("Канал: " + currentConfig.getChannelModel() + " / Эквалайзер: " + currentConfig.getEqualizerMode());
+            if (blerCriterionLabel != null) {
+                blerCriterionLabel.setText(currentConfig.getBlerCriterion());
+            }
+            if (nrChainStatusLabel != null) {
+                nrChainStatusLabel.setText("CRC "
+                        + (currentConfig.isCrcEnabled() ? "ON" : "OFF")
+                        + " / Segm "
+                        + (currentConfig.isSegmentationEnabled() ? "ON" : "OFF")
+                        + " / RM "
+                        + (currentConfig.isRateMatchingEnabled() ? "ON" : "OFF"));
+            }
         }
 
         defenseBerLabel.setText(formatGain(summary.getBestBerGain()));

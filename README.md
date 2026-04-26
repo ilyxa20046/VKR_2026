@@ -125,6 +125,7 @@ mvn javafx:run
   - 2x2 Diversity;
   - учебный LDPC (24,12);
   - QC-inspired / 5G-like LDPC (96,48);
+  - 5G NR BG1 (Z=8) — base graph shifts из таблицы 3GPP (через ресурс `NR_1_0_8.txt`);
   - normalized min-sum;
   - BER, BLER, средние итерации и сходимость;
   - effective throughput;

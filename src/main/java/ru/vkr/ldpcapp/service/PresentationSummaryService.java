@@ -25,7 +25,7 @@ public class PresentationSummaryService {
                 "Сценарий:",
                 "• modulation: " + safeConfig.getModulation(),
                 "• channel: " + safeConfig.getChannelModel(),
-                "• LDPC: " + SimulationConfig.getProfileName(safeConfig.getLdpcProfile()),
+                "• LDPC: " + SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()),
                 "• waveform: " + safeConfig.getWaveform(),
                 "• spatial mode: " + safeConfig.getSpatialMode(),
                 "",

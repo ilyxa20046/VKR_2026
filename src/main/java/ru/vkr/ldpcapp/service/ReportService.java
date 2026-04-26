@@ -33,7 +33,7 @@ public class ReportService {
                 + " / "
                 + safeConfig.getSpatialMode()
                 + " / "
-                + SimulationConfig.getProfileName(safeConfig.getLdpcProfile())
+                + SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize())
                 + " применение LDPC-кодирования обеспечивает заметное снижение вероятности блочной ошибки по сравнению с передачей без кодирования. "
                 + "Наибольший выигрыш по BLER наблюдается вблизи SNR = "
                 + formatFixed(bestBlerPoint.getSnr())
@@ -72,7 +72,7 @@ public class ReportService {
                 "Аналитический отчёт по результатам исследовательского моделирования LDPC-кодирования",
                 "",
                 "1. Параметры эксперимента",
-                buildParameterLine("Профиль LDPC", SimulationConfig.getProfileName(safeConfig.getLdpcProfile())),
+                buildParameterLine("Профиль LDPC", SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize())),
                 buildParameterLine("Семейство кода", SimulationConfig.getProfileFamily(safeConfig.getLdpcProfile())),
                 buildParameterLine("Модуляция", safeConfig.getModulation()),
                 buildParameterLine("Канал", safeConfig.getChannelModel()),

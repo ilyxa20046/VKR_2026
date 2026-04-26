@@ -4,6 +4,10 @@ import javafx.concurrent.Task;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -13,7 +17,10 @@ public class SimulationService {
     private static final double INV_SQRT2 = 1.0 / Math.sqrt(2.0);
     private static final double INV_SQRT10 = 1.0 / Math.sqrt(10.0);
     private static final double BASE_SYMBOL_RATE_MBAUD = 20.0;
-    private static final LdpcCode NR_BG1_Z8_CODE = build5gNrBg1Z8Code();
+    private static final LdpcCode NR_BG1_Z8_CODE = build5gNrBg1Code(8);
+    private static final LdpcCode NR_BG1_Z16_CODE = build5gNrBg1Code(16);
+    private static final LdpcCode NR_BG1_Z32_CODE = build5gNrBg1Code(32);
+    private static final PolarCode POLAR_128_64 = buildPolarCode128_64();
     private static final LdpcCode EDUCATIONAL_CODE = buildEducationalCode();
     private static final LdpcCode QC_LIKE_CODE = buildQcInspiredCode();
 
@@ -41,7 +48,7 @@ public class SimulationService {
                             config.getChannelModel(),
                             config.getWaveform(),
                             config.getSpatialMode(),
-                            SimulationConfig.getProfileName(config.getLdpcProfile()),
+                            SimulationConfig.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize()),
                             snr,
                             i + 1,
                             totalPoints
@@ -139,6 +146,23 @@ public class SimulationService {
         return segments;
     }
 
+    private int[] concatenateSegments(List<int[]> segments) {
+        if (segments == null || segments.isEmpty()) {
+            return new int[0];
+        }
+        int total = 0;
+        for (int[] segment : segments) {
+            total += segment.length;
+        }
+        int[] out = new int[total];
+        int position = 0;
+        for (int[] segment : segments) {
+            System.arraycopy(segment, 0, out, position, segment.length);
+            position += segment.length;
+        }
+        return out;
+    }
+
     private int[] padToLength(int[] bits, int targetLength) {
         if (bits.length == targetLength) {
             return bits;
@@ -182,13 +206,23 @@ public class SimulationService {
     }
 
     private ResultPoint simulatePoint(double snrDb, SimulationConfig config, int index) {
-        LdpcCode code = getCode(config.getLdpcProfile());
+        boolean usePolar = SimulationConfig.PROFILE_POLAR.equals(config.getLdpcProfile());
+        PolarCode polarCode = usePolar ? POLAR_128_64 : null;
+        LdpcCode code = usePolar ? null : getCode(config.getLdpcProfile(), config);
+        int codeK = usePolar ? polarCode.k : code.k;
+        int codeN = usePolar ? polarCode.n : code.n;
+        double codeRate = usePolar ? polarCode.rate : code.rate;
         Random uncodedRandom = new Random(config.getSeed() + 1009L * (index + 1));
         Random codedRandom = new Random(config.getSeed() + 5003L * (index + 1));
         double sigmaUncoded = sigmaFromEbN0(snrDb, config.getModulation(), 1.0);
-        double sigmaCoded = sigmaFromEbN0(snrDb, config.getModulation(), code.rate);
-        int codewordsPerBlock = config.getInfoBlockLength() / code.k;
+        double sigmaCoded = sigmaFromEbN0(snrDb, config.getModulation(), codeRate);
+        int codewordsPerBlock = config.getInfoBlockLength() / codeK;
         int targetBlocks = config.isAdaptiveStopEnabled() ? config.getMaxBlocksPerSnr() : config.getBlocks();
+        boolean crcEnabled = config.isCrcEnabled();
+        int crcBits = config.getCrcBits();
+        boolean segmentationEnabled = config.isSegmentationEnabled();
+        boolean rateMatchingEnabled = config.isRateMatchingEnabled();
+        boolean blerByCrc = SimulationConfig.BLER_BY_CRC_FAIL.equals(config.getBlerCriterion());
 
         int uncodedBitErrors = 0;
         int uncodedBlockErrors = 0;
@@ -208,28 +242,29 @@ public class SimulationService {
                 uncodedBlockErrors++;
             }
 
-            boolean blockHasError = false;
+            boolean blockHasBitMismatch = false;
 
 // 1) Генерируем исходный блок
             int[] sourceInfoBlock = randomBits(config.getInfoBlockLength(), codedRandom);
 
 // 2) CRC (опционально)
-            int crcBits = config.getCrcBits();
-            boolean crcEnabled = config.isCrcEnabled();
             int[] transportBlock = crcEnabled ? appendCrc(sourceInfoBlock, crcBits) : sourceInfoBlock;
 
 // 3) Segmentation (опционально)
-            boolean segmentationEnabled = config.isSegmentationEnabled();
-            List<int[]> segments = segmentBits(transportBlock, code.k);
+            List<int[]> segments = segmentationEnabled
+                    ? segmentBits(transportBlock, codeK)
+                    : List.of(transportBlock);
+            List<int[]> decodedSegments = new ArrayList<>(segments.size());
 
 // 4) Обработка сегментов
             for (int[] rawSegment : segments) {
-                int[] info = padToLength(rawSegment, code.k);
+                int[] info = padToLength(rawSegment, codeK);
 
-                int[] encoded = encodeLdpc(info, code);
+                int[] encoded = usePolar
+                        ? encodePolar(info, polarCode)
+                        : encodeLdpc(info, code);
 
                 // 5) Rate matching (опционально)
-                boolean rateMatchingEnabled = config.isRateMatchingEnabled();
                 int targetE = config.getTargetCodewordLength() > 0 ? config.getTargetCodewordLength() : encoded.length;
                 int[] txBits = rateMatchingEnabled ? rateMatchBits(encoded, targetE) : encoded;
 
@@ -237,9 +272,11 @@ public class SimulationService {
                 double[] llrTx = demapToLlr(transmission.received, transmission.gains, sigmaCoded, config);
 
                 // 6) Rate dematching
-                double[] llr = rateMatchingEnabled ? rateDematchLlr(llrTx, code.n) : llrTx;
+                double[] llr = rateMatchingEnabled ? rateDematchLlr(llrTx, codeN) : llrTx;
 
-                DecodeResult decoded = decodeLdpcFromLlr(llr, code, config.getMaxIterations(), config.getNormalization());
+                DecodeResult decoded = usePolar
+                        ? decodePolarFromLlr(llr, polarCode)
+                        : decodeLdpcFromLlr(llr, code, config.getMaxIterations(), config.getNormalization());
 
                 iterationsSum += decoded.iterationsUsed;
                 if (decoded.success) {
@@ -248,17 +285,24 @@ public class SimulationService {
 
                 // Считаем ошибки по исходной длине сегмента (до padding)
                 int compareLength = Math.min(rawSegment.length, decoded.decodedInfo.length);
+                int[] decodedSegment = new int[compareLength];
+                System.arraycopy(decoded.decodedInfo, 0, decodedSegment, 0, compareLength);
+                decodedSegments.add(decodedSegment);
                 for (int i = 0; i < compareLength; i++) {
-                    if (decoded.decodedInfo[i] != rawSegment[i]) {
+                    if (decodedSegment[i] != rawSegment[i]) {
                         codedBitErrors++;
-                        blockHasError = true;
+                        blockHasBitMismatch = true;
                     }
                 }
-
-                // 7) CRC check (если включен) можно вынести на уровень transportBlock
-                // Для минимальной интеграции сейчас оставляем битовую проверку как критерий ошибки сегмента.
             }
 
+            boolean blockHasCrcFail = false;
+            if (crcEnabled) {
+                int[] decodedTransportBlock = concatenateSegments(decodedSegments);
+                blockHasCrcFail = !checkCrc(decodedTransportBlock, crcBits);
+            }
+
+            boolean blockHasError = blerByCrc && crcEnabled ? blockHasCrcFail : blockHasBitMismatch;
             if (blockHasError) {
                 codedBlockErrors++;
             }
@@ -272,8 +316,8 @@ public class SimulationService {
         double blerLdpc = safeDivide(codedBlockErrors, totalBlocks);
         double averageIterations = safeDivide(iterationsSum, totalCodewords);
         double successRatio = safeDivide(successfulCodewords, totalCodewords);
-        double spectralEfficiency = estimateSpectralEfficiency(config, code.rate, blerLdpc);
-        double throughputMbps = estimateThroughputMbps(config, code.rate, blerLdpc);
+        double spectralEfficiency = estimateSpectralEfficiency(config, codeRate, blerLdpc);
+        double throughputMbps = estimateThroughputMbps(config, codeRate, blerLdpc);
 
         Interval berCi = wilsonInterval(codedBitErrors, totalBits, config.getConfidenceLevel());
         Interval blerCi = wilsonInterval(codedBlockErrors, totalBlocks, config.getConfidenceLevel());
@@ -496,6 +540,82 @@ public class SimulationService {
         return new DecodeResult(sliceInfo(hard, code.k), maxIterations, checkSyndrome(hard, code));
     }
 
+    private int[] encodePolar(int[] infoBits, PolarCode code) {
+        int[] u = new int[code.n];
+        int src = 0;
+        for (int i = 0; i < code.n; i++) {
+            if (code.infoMask[i]) {
+                u[i] = infoBits[src++];
+            } else {
+                u[i] = 0;
+            }
+        }
+        return polarTransform(u);
+    }
+
+    private DecodeResult decodePolarFromLlr(double[] llr, PolarCode code) {
+        int[] uHat = decodePolarRecursive(llr, code.infoMask, 0);
+        int[] info = new int[code.k];
+        int idx = 0;
+        for (int i = 0; i < code.n; i++) {
+            if (code.infoMask[i]) {
+                info[idx++] = uHat[i];
+            }
+        }
+        return new DecodeResult(info, 1, true);
+    }
+
+    private int[] polarTransform(int[] input) {
+        int[] out = input.clone();
+        for (int len = 1; len < out.length; len <<= 1) {
+            int step = len << 1;
+            for (int start = 0; start < out.length; start += step) {
+                for (int i = 0; i < len; i++) {
+                    out[start + i] ^= out[start + len + i];
+                }
+            }
+        }
+        return out;
+    }
+
+    private int[] decodePolarRecursive(double[] llr, boolean[] infoMask, int offset) {
+        int n = llr.length;
+        int[] u = new int[n];
+        if (n == 1) {
+            boolean info = infoMask[offset];
+            u[0] = info ? (llr[0] < 0.0 ? 1 : 0) : 0;
+            return u;
+        }
+
+        int half = n / 2;
+        double[] leftLlr = new double[half];
+        for (int i = 0; i < half; i++) {
+            leftLlr[i] = fFunction(llr[i], llr[i + half]);
+        }
+        int[] uLeft = decodePolarRecursive(leftLlr, infoMask, offset);
+
+        double[] rightLlr = new double[half];
+        for (int i = 0; i < half; i++) {
+            rightLlr[i] = gFunction(llr[i], llr[i + half], uLeft[i]);
+        }
+        int[] uRight = decodePolarRecursive(rightLlr, infoMask, offset + half);
+
+        for (int i = 0; i < half; i++) {
+            u[i] = uLeft[i] ^ uRight[i];
+            u[i + half] = uRight[i];
+        }
+        return u;
+    }
+
+    private double fFunction(double a, double b) {
+        double sign = Math.signum(a) * Math.signum(b);
+        return sign * Math.min(Math.abs(a), Math.abs(b));
+    }
+
+    private double gFunction(double a, double b, int u) {
+        return ((u & 1) == 0) ? (b + a) : (b - a);
+    }
+
     private boolean checkSyndrome(int[] bits, LdpcCode code) {
         for (int[] check : code.checkToVars) {
             int syndrome = 0;
@@ -644,38 +764,45 @@ public class SimulationService {
     }
 
     private static int[][] loadBg1InfoPartShifts() {
-        // ВАЖНО: подставь реальные значения из твоего подготовленного CSV/таблицы.
-        // Размер: 46 x 22, значения: -1 или shift [0..Z-1].
-        // Временная заглушка ниже не является стандартной!
-        int[][] shifts = new int[46][22];
-        for (int r = 0; r < 46; r++) {
-            for (int c = 0; c < 22; c++) {
-                shifts[r][c] = (c % 5 == 0) ? -1 : (r + c) % 8;
-            }
-        }
-        return shifts;
+        return loadBg1InfoPartShifts(8);
     }
 
-    private LdpcCode getCode(String profile) {
-        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
-            return NR_BG1_Z8_CODE;
+    private static int[][] loadBg1InfoPartShifts(int z) {
+        if (z != 8 && z != 16 && z != 32) {
+            throw new IllegalArgumentException("Поддерживаются только lifting size Z = 8, 16, 32; запрошено: " + z);
         }
-        return SimulationConfig.PROFILE_QC.equals(profile) ? QC_LIKE_CODE : EDUCATIONAL_CODE;
+        // Источник: public dump of 3GPP NR base graph tables (repo manuts/NR-LDPC-BG).
+        // Формат: 46 строк, в каждой 68 целых значений, разделённых пробелами; -1 означает нулевую подматрицу.
+        // Для исследовательской модели берем только информационную часть: первые 22 колонки.
+        return readNrBaseGraphInfoPartFromResource(
+                "/ru/vkr/ldpcapp/ldpc/NR_1_0_" + z + ".txt",
+                46,
+                68,
+                22
+        );
     }
 
-    private static LdpcCode build5gNrBg1Z8Code() {
-        // BG1: rows=46, infoCols=22, Z=8
-        // Используем фиксированный Z и матрицу сдвигов только для информационной части (22 колонки).
-        int z = 8;
+    private LdpcCode getCode(String profile, SimulationConfig config) {
+        if (!SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
+            return SimulationConfig.PROFILE_QC.equals(profile) ? QC_LIKE_CODE : EDUCATIONAL_CODE;
+        }
+        int z = config == null ? 8 : config.getLiftingSize();
+        return switch (z) {
+            case 16 -> NR_BG1_Z16_CODE;
+            case 32 -> NR_BG1_Z32_CODE;
+            default -> NR_BG1_Z8_CODE;
+        };
+    }
+
+    private static LdpcCode build5gNrBg1Code(int z) {
+        // BG1: rows=46, infoCols=22, Z = 8/16/32
         int infoCols = 22;
         int rowGroups = 46;
 
-        int k = infoCols * z;   // 176
-        int m = rowGroups * z;  // 368
+        int k = infoCols * z;
+        int m = rowGroups * z;
 
-        // Здесь должна быть таблица сдвигов BG1 (46x22): -1 если нет связи, >=0 сдвиг.
-        // Рекомендация: хранить в resources как CSV и загружать.
-        int[][] shifts = loadBg1InfoPartShifts();
+        int[][] shifts = loadBg1InfoPartShifts(z);
 
         int[][] taps = new int[m][];
         int rowIndex = 0;
@@ -697,6 +824,63 @@ public class SimulationService {
         }
 
         return createSystematicCode(k, m, taps);
+    }
+
+    private static int[][] readNrBaseGraphInfoPartFromResource(
+            String resourcePath,
+            int expectedRows,
+            int expectedCols,
+            int infoCols
+    ) {
+        if (infoCols <= 0 || infoCols > expectedCols) {
+            throw new IllegalArgumentException("infoCols должен быть в диапазоне 1.." + expectedCols + ", получено: " + infoCols);
+        }
+
+        InputStream stream = SimulationService.class.getResourceAsStream(resourcePath);
+        if (stream == null) {
+            throw new IllegalStateException("Не найден ресурс base graph: " + resourcePath);
+        }
+
+        int[][] out = new int[expectedRows][infoCols];
+        int rowIndex = 0;
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String trimmed = line.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                if (rowIndex >= expectedRows) {
+                    break;
+                }
+
+                String[] tokens = trimmed.split("\\s+");
+                if (tokens.length < expectedCols) {
+                    throw new IllegalStateException("Некорректная строка base graph (ожидалось >= "
+                            + expectedCols + " значений, получено " + tokens.length + ") в " + resourcePath
+                            + ", row=" + rowIndex);
+                }
+
+                for (int col = 0; col < infoCols; col++) {
+                    out[rowIndex][col] = Integer.parseInt(tokens[col]);
+                }
+
+                rowIndex++;
+            }
+        } catch (IOException exception) {
+            throw new IllegalStateException("Ошибка чтения ресурса base graph: " + resourcePath, exception);
+        } catch (NumberFormatException exception) {
+            throw new IllegalStateException("Ошибка парсинга base graph (не число) в " + resourcePath
+                    + ", row=" + rowIndex, exception);
+        }
+
+        if (rowIndex != expectedRows) {
+            throw new IllegalStateException("Некорректный размер base graph: ожидалось " + expectedRows
+                    + " строк, получено " + rowIndex + " в " + resourcePath);
+        }
+
+        return out;
     }
 
     private static LdpcCode buildEducationalCode() {
@@ -777,6 +961,49 @@ public class SimulationService {
         }
 
         return new LdpcCode(k, m, n, 0.5, messageTaps, checkToVars, varToChecks);
+    }
+
+    private static PolarCode buildPolarCode128_64() {
+        int n = 128;
+        int k = 64;
+        int[] reliabilityOrder = buildPolarReliabilityOrder(n);
+        boolean[] infoMask = new boolean[n];
+        for (int i = n - k; i < n; i++) {
+            infoMask[reliabilityOrder[i]] = true;
+        }
+        return new PolarCode(n, k, 0.5, infoMask);
+    }
+
+    private static int[] buildPolarReliabilityOrder(int n) {
+        // Простая PW-эвристика (polarization weight) для выбора информационных позиций.
+        // Используется как deterministic baseline для Polar-like режима.
+        class RankedIndex {
+            int index;
+            double score;
+        }
+        List<RankedIndex> ranked = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            RankedIndex item = new RankedIndex();
+            item.index = i;
+            item.score = polarizationWeight(i, 8);
+            ranked.add(item);
+        }
+        ranked.sort((a, b) -> Double.compare(a.score, b.score));
+        int[] out = new int[n];
+        for (int i = 0; i < n; i++) {
+            out[i] = ranked.get(i).index;
+        }
+        return out;
+    }
+
+    private static double polarizationWeight(int index, int bits) {
+        double beta = Math.pow(2.0, 0.25);
+        double value = 0.0;
+        for (int j = 0; j < bits; j++) {
+            int bit = (index >>> j) & 1;
+            value += bit * Math.pow(beta, j);
+        }
+        return value;
     }
 
     private Constellation buildConstellation(String modulation) {
@@ -938,6 +1165,8 @@ public class SimulationService {
     }
 
     private record LdpcCode(int k, int m, int n, double rate, int[][] messageTaps, int[][] checkToVars, List<EdgeRef>[] varToChecks) {
+    }
+    private record PolarCode(int n, int k, double rate, boolean[] infoMask) {
     }
     private record Interval(double low, double high) {
     }

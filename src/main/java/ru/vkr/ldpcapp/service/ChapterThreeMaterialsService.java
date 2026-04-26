@@ -57,7 +57,7 @@ public class ChapterThreeMaterialsService {
                         + ", spatial mode " + config.getSpatialMode()
                         + ", cyclic prefix " + config.getCyclicPrefix()
                         + ", equalizer " + config.getEqualizerMode()
-                        + ", профиль " + SimulationConfig.getProfileName(config.getLdpcProfile()) + ".",
+                        + ", профиль " + SimulationConfig.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize()) + ".",
                 "Параметры эксперимента имели следующие значения:",
                 "- длина информационного блока: " + config.getInfoBlockLength() + " бит;",
                 "- диапазон SNR: " + formatFixed(Math.min(config.getSnrStart(), config.getSnrEnd())) + " ... "

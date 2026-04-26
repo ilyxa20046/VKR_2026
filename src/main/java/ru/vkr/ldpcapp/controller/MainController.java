@@ -10,8 +10,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import ru.vkr.ldpcapp.service.view.ViewManagerService;
 
 import java.util.Arrays;
+import java.util.ResourceBundle;
 import java.util.List;
 import ru.vkr.ldpcapp.service.AppMetadata;
 import ru.vkr.ldpcapp.service.IconFactory;
@@ -27,6 +29,8 @@ public class MainController {
     private static final String RESULTS_VIEW = "/ru/vkr/ldpcapp/view/ResultsView.fxml";
     private static final String COMPARE_VIEW = "/ru/vkr/ldpcapp/view/CompareView.fxml";
     private static final String BATCH_VIEW = "/ru/vkr/ldpcapp/view/BatchView.fxml";
+    private ViewManagerService viewManagerService;
+    private ResourceBundle messages;
 
     @FXML
     private StackPane contentPane;
@@ -58,6 +62,8 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        this.viewManagerService = new ViewManagerService(contentPane);
+        this.messages = ResourceBundle.getBundle("ru.vkr.ldpcapp.messages");
         installIcons();
         showDashboard();
     }
@@ -69,7 +75,7 @@ public class MainController {
 
     @FXML
     private void onOpenSimulation() {
-        showView(SIMULATION_VIEW, "открыт экран настройки эксперимента", simulationNavButton);
+        showView(SIMULATION_VIEW, messages.getString("status.simulation_open"), simulationNavButton);
     }
 
     @FXML
@@ -144,12 +150,10 @@ public class MainController {
 
     private void showView(String resourcePath, String statusMessage, Button activeButton) {
         try {
-            FXMLLoader loader = new FXMLLoader(MainController.class.getResource(resourcePath));
-            Parent view = loader.load();
-            contentPane.getChildren().setAll(view);
+            viewManagerService.loadView(resourcePath);
             setActiveNavButton(activeButton);
             setStatus(statusMessage);
-        } catch (IOException | IllegalStateException exception) {
+        } catch (IOException exception) {
             showPlaceholder(
                     "Ошибка загрузки экрана",
                     "Не удалось загрузить представление " + resourcePath + ". Проверьте FXML-файл, контроллер и ресурсы приложения."

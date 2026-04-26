@@ -155,6 +155,11 @@
                                 <Label fx:id="averageThroughputLabel" GridPane.columnIndex="1" GridPane.rowIndex="5" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
                                 <Label GridPane.columnIndex="2" GridPane.rowIndex="5" styleClass="summary-table-key-cell" text="Средняя спектральная эффективность" />
                                 <Label fx:id="averageSpectralEfficiencyLabel" GridPane.columnIndex="3" GridPane.rowIndex="5" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
+
+                                <Label GridPane.columnIndex="0" GridPane.rowIndex="6" styleClass="summary-table-key-cell" text="Критерий BLER" />
+                                <Label fx:id="blerCriterionLabel" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
+                                <Label GridPane.columnIndex="2" GridPane.rowIndex="6" styleClass="summary-table-key-cell" text="NR chain" />
+                                <Label fx:id="nrChainStatusLabel" GridPane.columnIndex="3" GridPane.rowIndex="6" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
                             </children>
                         </GridPane>
                     </children>

@@ -40,7 +40,7 @@ public class CsvWriter {
         appendRow(builder, "Spatial_Mode", safeConfig.getSpatialMode());
         appendRow(builder, "Equalizer", safeConfig.getEqualizerMode());
         appendRow(builder, "LDPC_Profile", safeConfig.getLdpcProfile());
-        appendRow(builder, "Coding", SimulationConfig.getProfileName(safeConfig.getLdpcProfile()) + ", normalized min-sum");
+        appendRow(builder, "Coding", SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()) + ", normalized min-sum");
         appendRow(builder, "Adaptive_Stop_Enabled", Boolean.toString(safeConfig.isAdaptiveStopEnabled()));
         appendRow(builder, "Min_Error_Events_Per_SNR", Integer.toString(safeConfig.getMinErrorEventsPerSnr()));
         appendRow(builder, "Max_Blocks_Per_SNR", Integer.toString(safeConfig.getMaxBlocksPerSnr()));
