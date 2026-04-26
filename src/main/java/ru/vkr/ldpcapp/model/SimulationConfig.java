@@ -766,7 +766,13 @@ public class SimulationConfig {
     }
 
     public double getCodeRate() {
-        return 0.5;
+        return switch (ldpcProfile) {
+            case PROFILE_EDU -> 12.0 / 24.0;      // 0.5
+            case PROFILE_QC -> 48.0 / 96.0;       // 0.5
+            case PROFILE_POLAR -> 64.0 / 128.0;   // 0.5
+            case PROFILE_5GNR_BG1 -> 22.0 / 68.0; // ~0.3235
+            default -> 0.5;
+        };
     }
 
     public int getCodeInfoLength() {
