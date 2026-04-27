@@ -28,6 +28,7 @@ import ru.vkr.ldpcapp.service.ReportService;
 import ru.vkr.ldpcapp.service.ChartInteractionService;
 import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
 import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
+import ru.vkr.ldpcapp.service.BerTheoryService;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class ResultsController {
     private final ReportService reportService = new ReportService();
     private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
     private final ChapterThreeMaterialsService chapterThreeMaterialsService = new ChapterThreeMaterialsService();
-
+    private final BerTheoryService berTheoryService = new BerTheoryService();
     private SimulationConfig currentConfig;
     private List<ResultPoint> currentPoints = List.of();
     private String currentDetailedReport = "";
@@ -214,24 +215,20 @@ public class ResultsController {
     private void updateCharts(List<ResultPoint> points) {
         berChart.getData().clear();
         blerChart.getData().clear();
-        if (throughputChart != null) {
-            throughputChart.getData().clear();
-        }
-        if (spectralChart != null) {
-            spectralChart.getData().clear();
-        }
+        if (throughputChart != null) throughputChart.getData().clear();
+        if (spectralChart != null) spectralChart.getData().clear();
 
-        if (points == null || points.isEmpty()) {
-            return;
-        }
+        if (points == null || points.isEmpty()) return;
 
         XYChart.Series<Number, Number> berUncodedSeries = new XYChart.Series<>();
         berUncodedSeries.setName("BER без кодирования");
+
         XYChart.Series<Number, Number> berLdpcSeries = new XYChart.Series<>();
         berLdpcSeries.setName("BER LDPC");
 
         XYChart.Series<Number, Number> blerUncodedSeries = new XYChart.Series<>();
         blerUncodedSeries.setName("BLER без кодирования");
+
         XYChart.Series<Number, Number> blerLdpcSeries = new XYChart.Series<>();
         blerLdpcSeries.setName("BLER LDPC");
 
@@ -240,6 +237,12 @@ public class ResultsController {
 
         XYChart.Series<Number, Number> spectralSeries = new XYChart.Series<>();
         spectralSeries.setName("Spectral Efficiency LDPC");
+
+        XYChart.Series<Number, Number> berTheorySeries = new XYChart.Series<>();
+        berTheorySeries.setName("BER теория (AWGN, uncoded)");
+
+        boolean isAwgn = currentConfig != null
+                && SimulationConfig.CHANNEL_AWGN.equals(currentConfig.getChannelModel());
 
         double minSnr = Double.POSITIVE_INFINITY;
         double maxSnr = Double.NEGATIVE_INFINITY;
@@ -262,20 +265,27 @@ public class ResultsController {
 
             maxThroughput = Math.max(maxThroughput, point.getEffectiveThroughputMbps());
             maxSpectral = Math.max(maxSpectral, point.getSpectralEfficiency());
+
+            if (isAwgn) {
+                double berTheory = berTheoryService.theoreticalBerAwgnUncoded(
+                        currentConfig.getModulation(),
+                        currentConfig.getSnrDomain(),
+                        snr
+                );
+                berTheorySeries.getData().add(new XYChart.Data<>(snr, toLog10(berTheory)));
+            }
         }
 
-        berChart.getData().add(berUncodedSeries);
-        berChart.getData().add(berLdpcSeries);
-
-        blerChart.getData().add(blerUncodedSeries);
-        blerChart.getData().add(blerLdpcSeries);
-
-        if (throughputChart != null) {
-            throughputChart.getData().add(throughputSeries);
+        if (isAwgn) {
+            berChart.getData().setAll(berUncodedSeries, berLdpcSeries, berTheorySeries);
+        } else {
+            berChart.getData().setAll(berUncodedSeries, berLdpcSeries);
         }
-        if (spectralChart != null) {
-            spectralChart.getData().add(spectralSeries);
-        }
+
+        blerChart.getData().setAll(blerUncodedSeries, blerLdpcSeries);
+
+        if (throughputChart != null) throughputChart.getData().setAll(throughputSeries);
+        if (spectralChart != null) spectralChart.getData().setAll(spectralSeries);
 
         configureBerBlerAxes(minSnr, maxSnr);
         configureMetricAxes(minSnr, maxSnr, maxThroughput, maxSpectral);
@@ -292,13 +302,8 @@ public class ResultsController {
 
         chartInteractionService.enableZoomAndReset(berChart);
         chartInteractionService.enableZoomAndReset(blerChart);
-
-        if (throughputChart != null) {
-            chartInteractionService.enableZoomAndReset(throughputChart);
-        }
-        if (spectralChart != null) {
-            chartInteractionService.enableZoomAndReset(spectralChart);
-        }
+        if (throughputChart != null) chartInteractionService.enableZoomAndReset(throughputChart);
+        if (spectralChart != null) chartInteractionService.enableZoomAndReset(spectralChart);
     }
 
     private void configureBerBlerAxes(double minSnr, double maxSnr) {

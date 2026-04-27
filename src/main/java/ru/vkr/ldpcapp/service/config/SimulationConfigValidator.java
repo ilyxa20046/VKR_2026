@@ -77,5 +77,8 @@ public class SimulationConfigValidator {
         if (!c.isSegmentationEnabled() && (c.getInfoBlockLength() + c.getCrcBits()) > SimulationConfigFactory.getCodeInfoLength(c)) {
             throw new IllegalArgumentException("При выключенной segmentation TB должен помещаться в одно кодовое слово.");
         }
+        if (!SimulationConfigFactory.supportedSnrDomains().contains(c.getSnrDomain())) {
+            throw new IllegalArgumentException("Неподдерживаемый домен SNR: " + c.getSnrDomain());
+        }
     }
 }

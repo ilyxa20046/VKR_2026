@@ -152,6 +152,19 @@
                                         <ColumnConstraints percentWidth="50.0" />
                                     </columnConstraints>
                                     <children>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                                            <children>
+                                                <Label styleClass="field-label" text="Домен SNR" />
+                                                <ComboBox fx:id="snrDomainComboBox" maxWidth="Infinity" />
+                                            </children>
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                            <children>
+                                                <Label styleClass="field-label" text="Интерпретация" />
+                                                <Label styleClass="helper-text" wrapText="true"
+                                                       text="Eb/N0 — на бит; Es/N0 — на символ. Используется для пересчёта шума и теоретических кривых." />
+                                            </children>
+                                        </VBox>
                                         <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                             <children>
                                                 <Label styleClass="field-label" text="Тип канала" />

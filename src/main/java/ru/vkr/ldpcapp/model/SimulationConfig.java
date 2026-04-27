@@ -26,11 +26,16 @@ public class SimulationConfig {
     public static final String NR_BG_AUTO = "AUTO";
     public static final String NR_BG1 = "BG1";
     public static final String NR_BG2 = "BG2";
+    public static final String SNR_DOMAIN_EB_N0 = "Eb/N0";
+    public static final String SNR_DOMAIN_ES_N0 = "Es/N0";
+
+    
 
     public static final int CRC_NONE = 0;
     public static final int CRC_16 = 16;
     public static final String BLER_BY_BIT_MISMATCH = "Bit mismatch";
     public static final String BLER_BY_CRC_FAIL = "CRC fail";
+    private String snrDomain = SNR_DOMAIN_EB_N0;
 
     public static final String EQUALIZER_NONE = "None";
     public static final String EQUALIZER_ZF = "One-tap ZF";
@@ -38,6 +43,7 @@ public class SimulationConfig {
     public static final int DEFAULT_MIN_ERROR_EVENTS_PER_SNR = 50;
     public static final int DEFAULT_MAX_BLOCKS_PER_SNR = 2000;
     public static final double DEFAULT_CONFIDENCE_LEVEL = 0.95;
+
 
     private int infoBlockLength;
     private double snrStart;
@@ -363,5 +369,13 @@ public class SimulationConfig {
     }
     public void setConfidenceLevel(double confidenceLevel) {
         this.confidenceLevel = confidenceLevel;
+    }
+
+    public String getSnrDomain() {
+        return snrDomain;
+    }
+
+    public void setSnrDomain(String snrDomain) {
+        this.snrDomain = snrDomain;
     }
 }

@@ -47,6 +47,8 @@ public class SimulationController {
 
     @FXML
     private CheckBox adaptiveStopCheckBox;
+    @FXML
+    private ComboBox<String> snrDomainComboBox;
 
     @FXML
     private VBox advancedNrChainBox;
@@ -237,6 +239,10 @@ public class SimulationController {
                     new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 50000, 0, 8)
             );
             targetCodewordLengthSpinner.setEditable(true);
+        }
+        if (snrDomainComboBox != null) {
+            snrDomainComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedSnrDomains()));
+            snrDomainComboBox.setValue(SimulationConfig.SNR_DOMAIN_EB_N0);
         }
 
         configureEditableSpinners();
@@ -614,6 +620,11 @@ public class SimulationController {
         } else if (config.getTargetCodewordLength() > 0 && config.getTargetCodewordLength() < config.getInfoBlockLength()) {
             config.setTargetCodewordLength(config.getInfoBlockLength());
         }
+        if (snrDomainComboBox != null && snrDomainComboBox.getValue() != null) {
+            config.setSnrDomain(snrDomainComboBox.getValue());
+        } else {
+            config.setSnrDomain(SimulationConfig.SNR_DOMAIN_EB_N0);
+        }
 
         return config;
     }
@@ -791,6 +802,9 @@ public class SimulationController {
         }
         if (blerCriterionComboBox != null) {
             blerCriterionComboBox.setValue(config.getBlerCriterion());
+        }
+        if (snrDomainComboBox != null) {
+            snrDomainComboBox.setValue(config.getSnrDomain());
         }
     }
 

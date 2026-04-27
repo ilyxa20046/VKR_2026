@@ -8,6 +8,7 @@ import ru.vkr.ldpcapp.service.phy.crc.CrcEngine;
 import ru.vkr.ldpcapp.service.phy.metrics.PhyMetricsEngine;
 import ru.vkr.ldpcapp.service.phy.stats.StatsMath;
 import ru.vkr.ldpcapp.service.phy.transport.BitTransport;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +47,15 @@ public class ExperimentRunner {
         Random uncodedRandom = new Random(config.getSeed() + 1009L * (index + 1));
         Random codedRandom = new Random(config.getSeed() + 5003L * (index + 1));
 
-        double sigmaUncoded = phyMetricsEngine.sigmaFromEbN0(snrDb, config.getModulation(), 1.0);
-        double sigmaCoded = phyMetricsEngine.sigmaFromEbN0(snrDb, config.getModulation(), codeRate);
+        double ebN0Db = SimulationConfigFactory.toEbN0Db(
+                snrDb,
+                config.getSnrDomain(),
+                config.getModulation(),
+                config.getLdpcProfile()
+        );
+
+        double sigmaUncoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), 1.0);
+        double sigmaCoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), codeRate);
 
         int codewordsPerBlock = config.getInfoBlockLength() / codeK;
         int targetBlocks = config.isAdaptiveStopEnabled() ? config.getMaxBlocksPerSnr() : config.getBlocks();

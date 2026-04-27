@@ -146,4 +146,57 @@ public final class SimulationConfigFactory {
             default -> equalizerMode;
         };
     }
+
+    public static List<String> supportedSnrDomains() {
+        return List.of(SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.SNR_DOMAIN_ES_N0);
+    }
+
+    public static int bitsPerSymbol(String modulation) {
+        return switch (modulation) {
+            case SimulationConfig.MOD_BPSK -> 1;
+            case SimulationConfig.MOD_QPSK -> 2;
+            case SimulationConfig.MOD_16QAM -> 4;
+            case SimulationConfig.MOD_64QAM -> 6;
+            case SimulationConfig.MOD_256QAM -> 8;
+            default -> 1;
+        };
+    }
+
+    public static double codeRateByProfile(String profile) {
+        return switch (profile) {
+            case SimulationConfig.PROFILE_EDU -> 12.0 / 24.0;
+            case SimulationConfig.PROFILE_QC -> 48.0 / 96.0;
+            case SimulationConfig.PROFILE_POLAR -> 64.0 / 128.0;
+            case SimulationConfig.PROFILE_5GNR_BG1 -> 22.0 / 68.0;
+            default -> 0.5;
+        };
+    }
+
+    public static double toEbN0Db(
+            double snrDb,
+            String snrDomain,
+            String modulation,
+            String ldpcProfile
+    ) {
+        if (SimulationConfig.SNR_DOMAIN_EB_N0.equals(snrDomain)) {
+            return snrDb;
+        }
+        double r = codeRateByProfile(ldpcProfile);
+        double m = bitsPerSymbol(modulation);
+        return snrDb - 10.0 * Math.log10(Math.max(1e-12, r * m));
+    }
+
+    public static double toEsN0Db(
+            double snrDb,
+            String snrDomain,
+            String modulation,
+            String ldpcProfile
+    ) {
+        if (SimulationConfig.SNR_DOMAIN_ES_N0.equals(snrDomain)) {
+            return snrDb;
+        }
+        double r = codeRateByProfile(ldpcProfile);
+        double m = bitsPerSymbol(modulation);
+        return snrDb + 10.0 * Math.log10(Math.max(1e-12, r * m));
+    }
 }
