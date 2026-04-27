@@ -122,6 +122,8 @@ public final class SimulationConfigFactory {
         return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-LDPC (96,48) · Базовый" : "Учебный LDPC (24,12)";
     }
 
+    
+
     public static String getWaveformDisplayName(String waveform) {
         return switch (waveform) {
             case SimulationConfig.WAVEFORM_SC -> "Однонесущая";
@@ -149,6 +151,14 @@ public final class SimulationConfigFactory {
 
     public static List<String> supportedSnrDomains() {
         return List.of(SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.SNR_DOMAIN_ES_N0);
+    }
+
+    public static List<String> supportedDecoderTypes() {
+        return List.of(
+                SimulationConfig.DECODER_SUM_PRODUCT,
+                SimulationConfig.DECODER_MIN_SUM,
+                SimulationConfig.DECODER_NMS
+        );
     }
 
     public static int bitsPerSymbol(String modulation) {

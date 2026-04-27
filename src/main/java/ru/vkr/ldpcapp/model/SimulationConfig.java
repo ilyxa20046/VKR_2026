@@ -26,24 +26,26 @@ public class SimulationConfig {
     public static final String NR_BG_AUTO = "AUTO";
     public static final String NR_BG1 = "BG1";
     public static final String NR_BG2 = "BG2";
+
     public static final String SNR_DOMAIN_EB_N0 = "Eb/N0";
     public static final String SNR_DOMAIN_ES_N0 = "Es/N0";
 
-    
+    public static final String DECODER_SUM_PRODUCT = "Sum-Product";
+    public static final String DECODER_MIN_SUM = "Min-Sum";
+    public static final String DECODER_NMS = "Normalized Min-Sum";
 
     public static final int CRC_NONE = 0;
     public static final int CRC_16 = 16;
     public static final String BLER_BY_BIT_MISMATCH = "Bit mismatch";
     public static final String BLER_BY_CRC_FAIL = "CRC fail";
-    private String snrDomain = SNR_DOMAIN_EB_N0;
 
     public static final String EQUALIZER_NONE = "None";
     public static final String EQUALIZER_ZF = "One-tap ZF";
+
     public static final boolean DEFAULT_ADAPTIVE_STOP_ENABLED = true;
     public static final int DEFAULT_MIN_ERROR_EVENTS_PER_SNR = 50;
     public static final int DEFAULT_MAX_BLOCKS_PER_SNR = 2000;
     public static final double DEFAULT_CONFIDENCE_LEVEL = 0.95;
-
 
     private int infoBlockLength;
     private double snrStart;
@@ -65,13 +67,16 @@ public class SimulationConfig {
     private int maxBlocksPerSnr;
     private double confidenceLevel;
 
+    private String snrDomain = SNR_DOMAIN_EB_N0;
+    private String decoderType = DECODER_NMS;
+
     private String nrBaseGraph = NR_BG_AUTO;
     private int liftingSize = 8;
     private boolean crcEnabled = false;
     private int crcBits = CRC_NONE;
     private boolean segmentationEnabled = false;
     private boolean rateMatchingEnabled = false;
-    private int targetCodewordLength = 0; // 0 => использовать n кодового слова
+    private int targetCodewordLength = 0;
     private String blerCriterion = BLER_BY_BIT_MISMATCH;
 
     public SimulationConfig() {
@@ -114,6 +119,7 @@ public class SimulationConfig {
         this.maxBlocksPerSnr = DEFAULT_MAX_BLOCKS_PER_SNR;
         this.confidenceLevel = DEFAULT_CONFIDENCE_LEVEL;
     }
+
     public SimulationConfig(
             int infoBlockLength,
             double snrStart,
@@ -277,6 +283,7 @@ public class SimulationConfig {
     public void setEqualizerMode(String equalizerMode) {
         this.equalizerMode = equalizerMode;
     }
+
     public boolean isAdaptiveStopEnabled() {
         return adaptiveStopEnabled;
     }
@@ -303,6 +310,36 @@ public class SimulationConfig {
 
     public double getConfidenceLevel() {
         return confidenceLevel;
+    }
+
+    public void setConfidenceLevel(double confidenceLevel) {
+        this.confidenceLevel = confidenceLevel;
+    }
+
+    public String getSnrDomain() {
+        return snrDomain;
+    }
+
+    public void setSnrDomain(String snrDomain) {
+        if (SNR_DOMAIN_ES_N0.equals(snrDomain) || SNR_DOMAIN_EB_N0.equals(snrDomain)) {
+            this.snrDomain = snrDomain;
+        } else {
+            this.snrDomain = SNR_DOMAIN_EB_N0;
+        }
+    }
+
+    public String getDecoderType() {
+        return decoderType;
+    }
+
+    public void setDecoderType(String decoderType) {
+        if (DECODER_SUM_PRODUCT.equals(decoderType)
+                || DECODER_MIN_SUM.equals(decoderType)
+                || DECODER_NMS.equals(decoderType)) {
+            this.decoderType = decoderType;
+        } else {
+            this.decoderType = DECODER_NMS;
+        }
     }
 
     public String getNrBaseGraph() {
@@ -360,22 +397,12 @@ public class SimulationConfig {
     public void setTargetCodewordLength(int targetCodewordLength) {
         this.targetCodewordLength = targetCodewordLength;
     }
+
     public String getBlerCriterion() {
         return blerCriterion;
     }
 
     public void setBlerCriterion(String blerCriterion) {
         this.blerCriterion = blerCriterion;
-    }
-    public void setConfidenceLevel(double confidenceLevel) {
-        this.confidenceLevel = confidenceLevel;
-    }
-
-    public String getSnrDomain() {
-        return snrDomain;
-    }
-
-    public void setSnrDomain(String snrDomain) {
-        this.snrDomain = snrDomain;
     }
 }

@@ -171,6 +171,7 @@ public class SimulationController {
 
     @FXML
     private VBox advancedSeedBox;
+    @FXML private ComboBox<String> decoderTypeComboBox;
 
     @FXML
     public void initialize() {
@@ -243,6 +244,12 @@ public class SimulationController {
         if (snrDomainComboBox != null) {
             snrDomainComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedSnrDomains()));
             snrDomainComboBox.setValue(SimulationConfig.SNR_DOMAIN_EB_N0);
+        }
+        if (decoderTypeComboBox != null) {
+            decoderTypeComboBox.setItems(FXCollections.observableArrayList(
+                    SimulationConfigFactory.supportedDecoderTypes()
+            ));
+            decoderTypeComboBox.setValue(SimulationConfig.DECODER_NMS);
         }
 
         configureEditableSpinners();
@@ -614,6 +621,9 @@ public class SimulationController {
         if (!config.isCrcEnabled() && SimulationConfig.BLER_BY_CRC_FAIL.equals(config.getBlerCriterion())) {
             config.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
         }
+        if (decoderTypeComboBox != null) {
+            config.setDecoderType(decoderTypeComboBox.getValue());
+        }
 
         if (!config.isRateMatchingEnabled()) {
             config.setTargetCodewordLength(0);
@@ -717,6 +727,12 @@ public class SimulationController {
                 updatePreview();
             });
         }
+        if (snrDomainComboBox != null) {
+            snrDomainComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
+        if (decoderTypeComboBox != null) {
+            decoderTypeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
         modulationComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         channelComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         waveformComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
@@ -805,6 +821,19 @@ public class SimulationController {
         }
         if (snrDomainComboBox != null) {
             snrDomainComboBox.setValue(config.getSnrDomain());
+        }
+        if (decoderTypeComboBox != null) {
+            decoderTypeComboBox.setValue(config.getDecoderType());
+        }
+        if (snrDomainComboBox != null) {
+            snrDomainComboBox.setValue(
+                    config.getSnrDomain() == null ? SimulationConfig.SNR_DOMAIN_EB_N0 : config.getSnrDomain()
+            );
+        }
+        if (decoderTypeComboBox != null) {
+            decoderTypeComboBox.setValue(
+                    config.getDecoderType() == null ? SimulationConfig.DECODER_NMS : config.getDecoderType()
+            );
         }
     }
 
@@ -999,6 +1028,12 @@ public class SimulationController {
         }
         if (blerCriterionComboBox != null) {
             blerCriterionComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("blerCriterion")));
+        }
+        if (snrDomainComboBox != null) {
+            snrDomainComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("snrDomain")));
+        }
+        if (decoderTypeComboBox != null) {
+            decoderTypeComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("decoderType")));
         }
         configPreviewArea.setTooltip(new Tooltip("Текстовое резюме текущего сценария: канал, модуляция, LDPC-профиль, диапазон SNR, OFDM/MIMO-like параметры и параметры декодера."));
     }

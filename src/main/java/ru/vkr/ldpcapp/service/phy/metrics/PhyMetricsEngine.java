@@ -7,6 +7,8 @@ import java.util.Random;
 
 public class PhyMetricsEngine {
     private static final double BASE_SYMBOL_RATE_MBAUD = 20.0;
+    private static final double EPS = 1e-12;
+
     private final ModulationEngine modulationEngine = new ModulationEngine();
 
     public int[] randomBits(int length, Random random) {
@@ -17,10 +19,38 @@ public class PhyMetricsEngine {
         return bits;
     }
 
+    // Старый метод оставлен для совместимости (предполагает, что snrDb уже Eb/N0)
     public double sigmaFromEbN0(double snrDb, String modulation, double codeRate) {
-        double ebN0 = Math.pow(10.0, snrDb / 10.0);
         int bitsPerSymbol = modulationEngine.buildConstellation(modulation).bitsPerSymbol();
-        return Math.sqrt(1.0 / (2.0 * bitsPerSymbol * codeRate * ebN0));
+        double safeRate = Math.max(EPS, codeRate);
+        double ebN0Linear = Math.pow(10.0, snrDb / 10.0);
+        return Math.sqrt(1.0 / (2.0 * bitsPerSymbol * safeRate * ebN0Linear));
+    }
+
+    // Новый единый вход: учитывает домен SNR из config (Eb/N0 или Es/N0)
+    public double sigmaFromSnrDomain(double snrDb, SimulationConfig config, double codeRate) {
+        double ebN0Db = toEbN0Db(
+                snrDb,
+                config.getSnrDomain(),
+                config.getModulation(),
+                codeRate
+        );
+        return sigmaFromEbN0(ebN0Db, config.getModulation(), codeRate);
+    }
+
+    public double toEbN0Db(double snrDb, String snrDomain, String modulation, double codeRate) {
+        if (SimulationConfig.SNR_DOMAIN_EB_N0.equals(snrDomain)) {
+            return snrDb;
+        }
+
+        if (SimulationConfig.SNR_DOMAIN_ES_N0.equals(snrDomain)) {
+            int bitsPerSymbol = modulationEngine.buildConstellation(modulation).bitsPerSymbol();
+            double safeRate = Math.max(EPS, codeRate);
+            return snrDb - 10.0 * Math.log10(Math.max(EPS, bitsPerSymbol * safeRate));
+        }
+
+        // fallback: считаем как Eb/N0
+        return snrDb;
     }
 
     public double estimateThroughputMbps(SimulationConfig config, double codeRate, double blerLdpc) {

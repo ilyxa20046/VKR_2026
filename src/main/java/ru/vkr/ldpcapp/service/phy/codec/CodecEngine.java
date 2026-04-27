@@ -4,10 +4,16 @@ import ru.vkr.ldpcapp.model.SimulationConfig;
 import ru.vkr.ldpcapp.service.phy.NrBaseGraphLoader;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CodecEngine {
     private static final NrBaseGraphLoader BG_LOADER = new NrBaseGraphLoader();
+
+    private static final String DECODER_SUM_PRODUCT = "Sum-Product";
+    private static final String DECODER_MIN_SUM = "Min-Sum";
+    private static final String DECODER_NMS = "Normalized Min-Sum";
+    private static final double TANH_CLAMP = 1.0 - 1e-12;
 
     private static final LdpcCode NR_BG1_Z8_CODE = build5gNrBg1Code(8);
     private static final LdpcCode NR_BG1_Z16_CODE = build5gNrBg1Code(16);
@@ -31,9 +37,19 @@ public class CodecEngine {
     }
 
     public DecodeResult decodeFromLlr(double[] llr, ActiveCode code, int maxIterations, double normalization) {
+        return decodeFromLlr(llr, code, maxIterations, normalization, DECODER_NMS);
+    }
+
+    public DecodeResult decodeFromLlr(
+            double[] llr,
+            ActiveCode code,
+            int maxIterations,
+            double normalization,
+            String decoderType
+    ) {
         return code.polarMode
                 ? decodePolarFromLlr(llr, code.polar)
-                : decodeLdpcFromLlr(llr, code.ldpc, maxIterations, normalization);
+                : decodeLdpcFromLlr(llr, code.ldpc, maxIterations, normalization, decoderType);
     }
 
     private LdpcCode getLdpcCode(String profile, SimulationConfig config) {
@@ -64,78 +80,162 @@ public class CodecEngine {
         return encoded;
     }
 
-    private DecodeResult decodeLdpcFromLlr(double[] inputLlr, LdpcCode code, int maxIterations, double normalization) {
-        double[] channelLlr = new double[code.n];
-        System.arraycopy(inputLlr, 0, channelLlr, 0, code.n);
+    private DecodeResult decodeLdpcFromLlr(
+            double[] inputLlr,
+            LdpcCode code,
+            int maxIterations,
+            double normalization,
+            String decoderType
+    ) {
+        int n = code.n();
+        int k = code.k();
+        int[][] checkToVars = code.checkToVars();
+        List<EdgeRef>[] varToChecks = code.varToChecks();
 
-        double[][] q = new double[code.checkToVars.length][];
-        double[][] r = new double[code.checkToVars.length][];
+        double[] channelLlr = new double[n];
+        System.arraycopy(inputLlr, 0, channelLlr, 0, Math.min(inputLlr.length, n));
 
-        for (int check = 0; check < code.checkToVars.length; check++) {
-            int degree = code.checkToVars[check].length;
+        double[][] q = new double[checkToVars.length][];
+        double[][] r = new double[checkToVars.length][];
+
+        for (int check = 0; check < checkToVars.length; check++) {
+            int degree = checkToVars[check].length;
             q[check] = new double[degree];
             r[check] = new double[degree];
             for (int edge = 0; edge < degree; edge++) {
-                int variable = code.checkToVars[check][edge];
+                int variable = checkToVars[check][edge];
                 q[check][edge] = channelLlr[variable];
                 r[check][edge] = 0.0;
             }
         }
 
         int[] hard = hardDecision(channelLlr);
+        int iterationsUsed = 0;
+        boolean success = false;
 
         for (int iteration = 1; iteration <= maxIterations; iteration++) {
-            for (int check = 0; check < code.checkToVars.length; check++) {
-                double[] messages = q[check];
-                int signProduct = 1;
-                double min1 = Double.POSITIVE_INFINITY;
-                double min2 = Double.POSITIVE_INFINITY;
-                int minIndex = -1;
+            iterationsUsed = iteration;
 
-                for (int edge = 0; edge < messages.length; edge++) {
-                    double value = messages[edge];
-                    int sign = value < 0.0 ? -1 : 1;
-                    double absolute = Math.abs(value);
-                    signProduct *= sign;
-
-                    if (absolute < min1) {
-                        min2 = min1;
-                        min1 = absolute;
-                        minIndex = edge;
-                    } else if (absolute < min2) {
-                        min2 = absolute;
-                    }
-                }
-
-                for (int edge = 0; edge < messages.length; edge++) {
-                    double value = messages[edge];
-                    int sign = value < 0.0 ? -1 : 1;
-                    int extrinsicSign = signProduct * sign;
-                    double minimum = edge == minIndex ? min2 : min1;
-                    r[check][edge] = normalization * extrinsicSign * minimum;
+            for (int check = 0; check < q.length; check++) {
+                for (int edge = 0; edge < q[check].length; edge++) {
+                    r[check][edge] = computeCheckToVarMessage(q[check], edge, decoderType, normalization);
                 }
             }
 
-            double[] posterior = channelLlr.clone();
-            for (int variable = 0; variable < code.n; variable++) {
-                for (EdgeRef edgeRef : code.varToChecks[variable]) {
-                    posterior[variable] += r[edgeRef.check][edgeRef.edge];
-                }
-            }
+            updateVariableToCheckMessages(channelLlr, q, r, checkToVars, varToChecks);
 
+            double[] posterior = buildPosteriorLlr(channelLlr, r, varToChecks);
             hard = hardDecision(posterior);
-            if (checkSyndrome(hard, code)) {
-                return new DecodeResult(sliceInfo(hard, code.k), iteration, true);
-            }
 
-            for (int variable = 0; variable < code.n; variable++) {
-                for (EdgeRef edgeRef : code.varToChecks[variable]) {
-                    q[edgeRef.check][edgeRef.edge] = posterior[variable] - r[edgeRef.check][edgeRef.edge];
-                }
+            if (isSyndromeZero(hard, checkToVars)) {
+                success = true;
+                break;
             }
         }
 
-        return new DecodeResult(sliceInfo(hard, code.k), maxIterations, checkSyndrome(hard, code));
+        return new DecodeResult(Arrays.copyOf(hard, k), iterationsUsed == 0 ? maxIterations : iterationsUsed, success);
+    }
+
+    private void updateVariableToCheckMessages(
+            double[] channelLlr,
+            double[][] q,
+            double[][] r,
+            int[][] checkToVars,
+            List<EdgeRef>[] varToChecks
+    ) {
+        for (int variable = 0; variable < channelLlr.length; variable++) {
+            double sumR = 0.0;
+            for (EdgeRef ref : varToChecks[variable]) {
+                sumR += r[ref.check][ref.edge];
+            }
+
+            for (EdgeRef ref : varToChecks[variable]) {
+                q[ref.check][ref.edge] = channelLlr[variable] + (sumR - r[ref.check][ref.edge]);
+            }
+        }
+    }
+
+    private double[] buildPosteriorLlr(
+            double[] channelLlr,
+            double[][] r,
+            List<EdgeRef>[] varToChecks
+    ) {
+        double[] posterior = new double[channelLlr.length];
+        for (int variable = 0; variable < channelLlr.length; variable++) {
+            double sum = channelLlr[variable];
+            for (EdgeRef ref : varToChecks[variable]) {
+                sum += r[ref.check][ref.edge];
+            }
+            posterior[variable] = sum;
+        }
+        return posterior;
+    }
+
+    private boolean isSyndromeZero(int[] hardBits, int[][] checkToVars) {
+        for (int[] check : checkToVars) {
+            int parity = 0;
+            for (int variable : check) {
+                parity ^= hardBits[variable];
+            }
+            if (parity != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private double computeCheckToVarMessage(
+            double[] qRow,
+            int targetEdge,
+            String decoderType,
+            double normalization
+    ) {
+        String mode = decoderType == null ? DECODER_NMS : decoderType;
+
+        if (DECODER_SUM_PRODUCT.equals(mode)) {
+            double product = 1.0;
+            for (int e = 0; e < qRow.length; e++) {
+                if (e == targetEdge) {
+                    continue;
+                }
+                product *= Math.tanh(0.5 * qRow[e]);
+            }
+            return 2.0 * atanh(clamp(product, -TANH_CLAMP, TANH_CLAMP));
+        }
+
+        double sign = 1.0;
+        double minAbs = Double.POSITIVE_INFINITY;
+
+        for (int e = 0; e < qRow.length; e++) {
+            if (e == targetEdge) {
+                continue;
+            }
+            double value = qRow[e];
+            if (value < 0.0) {
+                sign = -sign;
+            }
+            minAbs = Math.min(minAbs, Math.abs(value));
+        }
+
+        if (Double.isInfinite(minAbs)) {
+            return 0.0;
+        }
+
+        if (DECODER_NMS.equals(mode) || (!DECODER_MIN_SUM.equals(mode) && !DECODER_SUM_PRODUCT.equals(mode))) {
+            double alpha = clamp(normalization, 0.5, 1.0);
+            minAbs *= alpha;
+        }
+
+        return sign * minAbs;
+    }
+
+    private double atanh(double x) {
+        double c = clamp(x, -TANH_CLAMP, TANH_CLAMP);
+        return 0.5 * Math.log((1.0 + c) / (1.0 - c));
+    }
+
+    private double clamp(double x, double lo, double hi) {
+        return Math.max(lo, Math.min(hi, x));
     }
 
     private int[] encodePolar(int[] infoBits, PolarCode code) {
@@ -210,31 +310,12 @@ public class CodecEngine {
         return ((u & 1) == 0) ? (b + a) : (b - a);
     }
 
-    private boolean checkSyndrome(int[] bits, LdpcCode code) {
-        for (int[] check : code.checkToVars) {
-            int syndrome = 0;
-            for (int variable : check) {
-                syndrome ^= bits[variable];
-            }
-            if (syndrome != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private int[] hardDecision(double[] llr) {
         int[] bits = new int[llr.length];
         for (int i = 0; i < llr.length; i++) {
             bits[i] = llr[i] < 0.0 ? 1 : 0;
         }
         return bits;
-    }
-
-    private int[] sliceInfo(int[] bits, int k) {
-        int[] info = new int[k];
-        System.arraycopy(bits, 0, info, 0, k);
-        return info;
     }
 
     private static LdpcCode build5gNrBg1Code(int z) {

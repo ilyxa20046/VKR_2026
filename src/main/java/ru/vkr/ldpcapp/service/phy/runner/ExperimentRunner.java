@@ -47,15 +47,8 @@ public class ExperimentRunner {
         Random uncodedRandom = new Random(config.getSeed() + 1009L * (index + 1));
         Random codedRandom = new Random(config.getSeed() + 5003L * (index + 1));
 
-        double ebN0Db = SimulationConfigFactory.toEbN0Db(
-                snrDb,
-                config.getSnrDomain(),
-                config.getModulation(),
-                config.getLdpcProfile()
-        );
-
-        double sigmaUncoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), 1.0);
-        double sigmaCoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), codeRate);
+        double sigmaUncoded = phyMetricsEngine.sigmaFromSnrDomain(snrDb, config, 1.0);
+        double sigmaCoded = phyMetricsEngine.sigmaFromSnrDomain(snrDb, config, codeRate);
 
         int codewordsPerBlock = config.getInfoBlockLength() / codeK;
         int targetBlocks = config.isAdaptiveStopEnabled() ? config.getMaxBlocksPerSnr() : config.getBlocks();
@@ -105,7 +98,11 @@ public class ExperimentRunner {
                 double[] llr = rateMatchingEnabled ? bitTransport.rateDematchLlr(llrTx, codeN) : llrTx;
 
                 CodecEngine.DecodeResult decoded = codecEngine.decodeFromLlr(
-                        llr, activeCode, config.getMaxIterations(), config.getNormalization()
+                        llr,
+                        activeCode,
+                        config.getMaxIterations(),
+                        config.getNormalization(),
+                        config.getDecoderType()
                 );
 
                 iterationsSum += decoded.iterationsUsed();
