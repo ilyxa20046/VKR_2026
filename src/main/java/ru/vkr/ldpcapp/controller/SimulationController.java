@@ -260,6 +260,10 @@ public class SimulationController {
     private void onApplyRayleighOfdmProfile() {
         applyNamedResearchProfile("Rayleigh + OFDM baseline");
     }
+    @FXML
+    private void onApplyDefense256QamProfile() {
+        applyNamedDefenseProfile("Защита · 256-QAM stress");
+    }
 
     @FXML
     private void onApplyDiversityRobustProfile() {
@@ -518,12 +522,23 @@ public class SimulationController {
         String profile = ldpcProfileComboBox.getValue();
         String waveform = waveformComboBox.getValue();
 
+        int z = liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null
+                ? 8
+                : liftingSizeComboBox.getValue();
+
+        String nrBg = nrBaseGraphComboBox == null || nrBaseGraphComboBox.getValue() == null
+                ? SimulationConfig.NR_BG_AUTO
+                : nrBaseGraphComboBox.getValue();
+
+        int normalizedInfoLength = SimulationConfigFactory.normalizeInfoBlockLength(
+                infoBlockSpinner.getValue(),
+                profile,
+                z,
+                nrBg
+        );
+
         SimulationConfig config = new SimulationConfig(
-                SimulationConfigFactory.normalizeInfoBlockLength(
-                        infoBlockSpinner.getValue(),
-                        profile,
-                        liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null ? 8 : liftingSizeComboBox.getValue()
-                ),
+                normalizedInfoLength,
                 snrStartSpinner.getValue(),
                 snrEndSpinner.getValue(),
                 snrStepSpinner.getValue(),
@@ -600,6 +615,9 @@ public class SimulationController {
         }
         if (harqMaxRetxSpinner != null) {
             config.setHarqMaxRetx(harqMaxRetxSpinner.getValue());
+        }
+        if (nrBaseGraphComboBox != null) {
+            config.setNrBaseGraph(nrBaseGraphComboBox.getValue());
         }
 
         if (!config.isRateMatchingEnabled()) {
@@ -721,6 +739,12 @@ public class SimulationController {
         }
         if (decoderTypeComboBox != null) {
             decoderTypeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
+        if (nrBaseGraphComboBox != null) {
+            nrBaseGraphComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+                adjustInfoBlockForProfile(ldpcProfileComboBox.getValue());
+                updatePreview();
+            });
         }
         modulationComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         channelComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
@@ -847,9 +871,23 @@ public class SimulationController {
         if (profile == null) {
             return;
         }
+
         int current = infoBlockSpinner.getValue();
-        int z = liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null ? 8 : liftingSizeComboBox.getValue();
-        int normalized = SimulationConfigFactory.normalizeInfoBlockLength(current, profile, z);
+        int z = (liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null)
+                ? 8
+                : liftingSizeComboBox.getValue();
+
+        String nrBg = (nrBaseGraphComboBox == null || nrBaseGraphComboBox.getValue() == null)
+                ? SimulationConfig.NR_BG_AUTO
+                : nrBaseGraphComboBox.getValue();
+
+        int normalized = SimulationConfigFactory.normalizeInfoBlockLength(
+                current,
+                profile,
+                z,
+                nrBg
+        );
+
         infoBlockSpinner.getValueFactory().setValue(normalized);
     }
 

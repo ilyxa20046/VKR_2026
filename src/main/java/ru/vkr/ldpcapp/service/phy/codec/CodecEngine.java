@@ -18,6 +18,9 @@ public class CodecEngine {
     private static final LdpcCode NR_BG1_Z8_CODE = build5gNrBg1Code(8);
     private static final LdpcCode NR_BG1_Z16_CODE = build5gNrBg1Code(16);
     private static final LdpcCode NR_BG1_Z32_CODE = build5gNrBg1Code(32);
+    private static final LdpcCode NR_BG2_Z8_CODE = build5gNrBg2Code(8);
+    private static final LdpcCode NR_BG2_Z16_CODE = build5gNrBg2Code(16);
+    private static final LdpcCode NR_BG2_Z32_CODE = build5gNrBg2Code(32);
     private static final LdpcCode EDUCATIONAL_CODE = buildEducationalCode();
     private static final LdpcCode QC_LIKE_CODE = buildQcInspiredCode();
     private static final PolarCode POLAR_128_64 = buildPolarCode128_64();
@@ -56,7 +59,19 @@ public class CodecEngine {
         if (!SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
             return SimulationConfig.PROFILE_QC.equals(profile) ? QC_LIKE_CODE : EDUCATIONAL_CODE;
         }
+
         int z = config == null ? 8 : config.getLiftingSize();
+        String bg = config == null ? SimulationConfig.NR_BG_AUTO : config.getNrBaseGraph();
+
+        if (SimulationConfig.NR_BG2.equals(bg)) {
+            return switch (z) {
+                case 16 -> NR_BG2_Z16_CODE;
+                case 32 -> NR_BG2_Z32_CODE;
+                default -> NR_BG2_Z8_CODE;
+            };
+        }
+
+        // AUTO и BG1 -> BG1
         return switch (z) {
             case 16 -> NR_BG1_Z16_CODE;
             case 32 -> NR_BG1_Z32_CODE;
@@ -347,6 +362,33 @@ public class CodecEngine {
 
         return createSystematicCode(k, m, taps);
     }
+    private static LdpcCode build5gNrBg2Code(int z) {
+        int infoCols = 10;   // BG2 info part
+        int rowGroups = 42;  // BG2 rows
+        int k = infoCols * z;
+        int m = rowGroups * z;
+
+        int[][] shifts = BG_LOADER.loadBg2InfoPartShifts(z, rowGroups, infoCols);
+
+        int[][] taps = new int[m][];
+        int rowIndex = 0;
+
+        for (int rg = 0; rg < rowGroups; rg++) {
+            for (int localRow = 0; localRow < z; localRow++) {
+                List<Integer> vars = new ArrayList<>();
+                for (int col = 0; col < infoCols; col++) {
+                    int shift = shifts[rg][col];
+                    if (shift < 0) continue;
+                    int varIndex = col * z + ((localRow + shift) % z);
+                    vars.add(varIndex);
+                }
+                taps[rowIndex] = vars.stream().mapToInt(Integer::intValue).toArray();
+                rowIndex++;
+            }
+        }
+
+        return createSystematicCode(k, m, taps);
+    }
 
     private static LdpcCode buildEducationalCode() {
         int k = 12;
@@ -430,7 +472,8 @@ public class CodecEngine {
             }
         }
 
-        return new LdpcCode(k, m, n, 0.5, messageTaps, checkToVars, varToChecks);
+        double rate = (double) k / (double) n;
+        return new LdpcCode(k, m, n, rate, messageTaps, checkToVars, varToChecks);
     }
 
     private static PolarCode buildPolarCode128_64() {

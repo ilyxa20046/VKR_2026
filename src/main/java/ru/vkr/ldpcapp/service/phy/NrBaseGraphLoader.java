@@ -21,6 +21,19 @@ public final class NrBaseGraphLoader {
             default -> throw new IllegalArgumentException("Unsupported lifting size Z=" + z + ". Supported: 8,16,32");
         };
     }
+    public int[][] loadBg2InfoPartShifts(int z, int expectedRows, int infoCols) {
+        String resourcePath = resolveBg2ResourcePath(z);
+        return loadMatrix(resourcePath, expectedRows, infoCols);
+    }
+
+    private String resolveBg2ResourcePath(int z) {
+        return switch (z) {
+            case 8 -> "/ru/vkr/ldpcapp/ldpc/NR_2_0_8.txt";
+            case 16 -> "/ru/vkr/ldpcapp/ldpc/NR_2_0_16.txt";
+            case 32 -> "/ru/vkr/ldpcapp/ldpc/NR_2_0_32.txt";
+            default -> throw new IllegalArgumentException("Unsupported BG2 lifting size Z=" + z + ". Supported: 8,16,32");
+        };
+    }
 
     private int[][] loadMatrix(String resourcePath, int expectedRows, int expectedCols) {
         int[][] matrix = new int[expectedRows][expectedCols];

@@ -151,10 +151,19 @@ public class MainController {
             viewManagerService.loadView(resourcePath);
             setActiveNavButton(activeButton);
             setStatus(statusMessage);
-        } catch (IOException exception) {
+        } catch (Exception exception) {
+            exception.printStackTrace();
+
+            Throwable root = exception;
+            while (root.getCause() != null) {
+                root = root.getCause();
+            }
+
             showPlaceholder(
                     "Ошибка загрузки экрана",
-                    "Не удалось загрузить представление " + resourcePath + ". Проверьте FXML-файл, контроллер и ресурсы приложения."
+                    "Не удалось загрузить представление " + resourcePath
+                            + ".\nПричина: " + root.getClass().getSimpleName()
+                            + " - " + root.getMessage()
             );
             setStatus("не удалось загрузить выбранный экран приложения");
         }

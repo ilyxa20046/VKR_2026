@@ -32,7 +32,7 @@ public class CsvWriter {
         appendRow(builder, "SNR_Point_Count", Integer.toString(SimulationConfigFactory.getSnrPointCount(safeConfig)));
         appendRow(builder, "Blocks_Per_SNR", Integer.toString(safeConfig.getBlocks()));
         appendRow(builder, "Total_Blocks", Integer.toString(SimulationConfigFactory.getExperimentBlockCount(safeConfig)));
-        appendRow(builder, "Estimated_Information_Bits", Integer.toString(SimulationConfigFactory.getEstimatedInformationBits(safeConfig)));
+        appendRow(builder, "Estimated_Information_Bits", Long.toString(SimulationConfigFactory.getEstimatedInformationBits(safeConfig)));
         appendRow(builder, "Code_Rate", formatNumber(SimulationConfigFactory.getCodeRate(safeConfig)));
         appendRow(builder, "Max_Iterations", Integer.toString(safeConfig.getMaxIterations()));
         appendRow(builder, "Normalization_Factor", formatNumber(safeConfig.getNormalization()));
@@ -43,7 +43,20 @@ public class CsvWriter {
         appendRow(builder, "Spatial_Mode", safeConfig.getSpatialMode());
         appendRow(builder, "Equalizer", safeConfig.getEqualizerMode());
         appendRow(builder, "LDPC_Profile", safeConfig.getLdpcProfile());
-        appendRow(builder, "Coding", SimulationConfigFactory.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()) + ", normalized min-sum");
+        appendRow(builder, "SNR_Domain", safeConfig.getSnrDomain());
+        appendRow(builder, "Decoder_Type", safeConfig.getDecoderType());
+        appendRow(builder, "NR_Base_Graph", safeConfig.getNrBaseGraph());
+        appendRow(builder, "HARQ_Enabled", Boolean.toString(safeConfig.isHarqEnabled()));
+        appendRow(builder, "HARQ_Max_Retx", Integer.toString(safeConfig.getHarqMaxRetx()));
+        appendRow(
+                builder,
+                "Coding",
+                SimulationConfigFactory.getProfileDisplayName(
+                        safeConfig.getLdpcProfile(),
+                        safeConfig.getLiftingSize(),
+                        safeConfig.getNrBaseGraph()
+                ) + ", " + safeConfig.getDecoderType()
+        );
         appendRow(builder, "Adaptive_Stop_Enabled", Boolean.toString(safeConfig.isAdaptiveStopEnabled()));
         appendRow(builder, "Min_Error_Events_Per_SNR", Integer.toString(safeConfig.getMinErrorEventsPerSnr()));
         appendRow(builder, "Max_Blocks_Per_SNR", Integer.toString(safeConfig.getMaxBlocksPerSnr()));

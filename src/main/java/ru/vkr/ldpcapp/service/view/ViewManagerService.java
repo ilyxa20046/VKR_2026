@@ -22,6 +22,7 @@ public class ViewManagerService {
             throw new IllegalStateException("Resource not found: " + resourcePath);
         }
         FXMLLoader loader = new FXMLLoader(resource);
+        System.out.println("Loading FXML: " + resource);
         Parent view = loader.load();
         contentPane.getChildren().setAll(view);
     }
