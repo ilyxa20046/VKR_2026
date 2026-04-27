@@ -186,7 +186,7 @@ public class ExperimentRunner {
         double berLdpc = statsMath.safeDivide(codedBitErrors, totalBits);
         double blerLdpc = statsMath.safeDivide(codedBlockErrors, totalBlocks);
         double averageIterations = statsMath.safeDivide(iterationsSum, totalCodewords);
-        double successRatio = statsMath.safeDivide(successfulCodewords, totalCodewords);
+        double successRatio = 1.0 - blerLdpc;
 
         double spectralEfficiency = phyMetricsEngine.estimateSpectralEfficiency(config, codeRate, blerLdpc);
         double throughputMbps = phyMetricsEngine.estimateThroughputMbps(config, codeRate, blerLdpc);

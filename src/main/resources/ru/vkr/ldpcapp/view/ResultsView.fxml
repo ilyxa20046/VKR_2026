@@ -148,7 +148,7 @@
 
                                 <Label GridPane.columnIndex="0" GridPane.rowIndex="4" styleClass="summary-table-key-cell" text="Средние итерации" />
                                 <Label fx:id="averageIterationsLabel" GridPane.columnIndex="1" GridPane.rowIndex="4" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
-                                <Label GridPane.columnIndex="2" GridPane.rowIndex="4" styleClass="summary-table-key-cell" text="Сходимость" />
+                                <Label GridPane.columnIndex="2" GridPane.rowIndex="4" styleClass="summary-table-key-cell" text="Доля успешных блоков" />
                                 <Label fx:id="successRatioLabel" GridPane.columnIndex="3" GridPane.rowIndex="4" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
 
                                 <Label GridPane.columnIndex="0" GridPane.rowIndex="5" styleClass="summary-table-key-cell" text="Средняя полезная скорость" />
