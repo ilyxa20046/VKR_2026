@@ -775,6 +775,18 @@ public class SimulationConfig {
         };
     }
 
+    public static String getProfileUiName(String profile) {
+        if (PROFILE_5GNR_BG1.equals(profile)) {
+            return "5G NR LDPC BG1 (Z=8)";
+        }
+        if (PROFILE_POLAR.equals(profile)) {
+            return "Polar-like (128,64) · Сравнение";
+        }
+        return PROFILE_QC.equals(profile)
+                ? "QC-LDPC (96,48) · Базовый"
+                : "Учебный LDPC (24,12)";
+    }
+
     public int getCodeInfoLength() {
         return getProfileInfoWordLength(ldpcProfile, liftingSize);
     }

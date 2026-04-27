@@ -28,6 +28,8 @@ import ru.vkr.ldpcapp.service.SimulationService;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import javafx.scene.control.ListCell;
+import javafx.util.StringConverter;
 
 public class SimulationController {
 
@@ -164,6 +166,7 @@ public class SimulationController {
     public void initialize() {
         setupFastScroll();
         ldpcProfileComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedLdpcProfiles()));
+        setupLdpcProfileComboPresentation();
         modulationComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedModulations()));
         channelComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedChannels()));
         waveformComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedWaveforms()));
@@ -385,6 +388,48 @@ public class SimulationController {
             configFileStatusLabel.setText("Не удалось сохранить конфигурацию.");
             showError("Ошибка сохранения конфигурации", exception.getMessage());
         }
+    }
+
+    private void setupLdpcProfileComboPresentation() {
+        if (ldpcProfileComboBox == null) {
+            return;
+        }
+
+        ldpcProfileComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(String profileId) {
+                return profileId == null ? "" : SimulationConfig.getProfileUiName(profileId);
+            }
+
+            @Override
+            public String fromString(String string) {
+                if (string == null || string.isBlank()) {
+                    return null;
+                }
+                for (String id : ldpcProfileComboBox.getItems()) {
+                    if (SimulationConfig.getProfileUiName(id).equals(string)) {
+                        return id;
+                    }
+                }
+                return ldpcProfileComboBox.getValue();
+            }
+        });
+
+        ldpcProfileComboBox.setCellFactory(cb -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfig.getProfileUiName(item));
+            }
+        });
+
+        ldpcProfileComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfig.getProfileUiName(item));
+            }
+        });
     }
 
     @FXML
