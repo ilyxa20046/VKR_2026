@@ -2,13 +2,18 @@ package ru.vkr.ldpcapp.service.phy.codec;
 
 import ru.vkr.ldpcapp.model.SimulationConfig;
 import ru.vkr.ldpcapp.service.phy.NrBaseGraphLoader;
+import ru.vkr.ldpcapp.service.phy.codec.ldpc.LdpcCodec;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CodecEngine {
     private static final NrBaseGraphLoader BG_LOADER = new NrBaseGraphLoader();
+    private static final LdpcCodec REAL_LDPC = new LdpcCodec();
+    private static final Map<String, LdpcCodec.Spec> NR_SPEC_CACHE = new ConcurrentHashMap<>();
 
     private static final String DECODER_SUM_PRODUCT = "Sum-Product";
     private static final String DECODER_MIN_SUM = "Min-Sum";
@@ -29,18 +34,43 @@ public class CodecEngine {
 
     public ActiveCode resolveActiveCode(SimulationConfig config) {
         if (SimulationConfig.PROFILE_POLAR.equals(config.getLdpcProfile())) {
-            return new ActiveCode(true, false, null, POLAR_128_64, null, POLAR_128_64.k, POLAR_128_64.n, POLAR_128_64.rate);
+            return new ActiveCode(
+                    true, false, false,
+                    null, POLAR_128_64, null, null,
+                    POLAR_128_64.k, POLAR_128_64.n, POLAR_128_64.rate
+            );
         }
+
         if (SimulationConfig.PROFILE_TURBO_LTE.equals(config.getLdpcProfile())) {
-            return new ActiveCode(false, true, null, null, TURBO_LTE_CODE, TURBO_LTE_CODE.k, TURBO_LTE_CODE.n, TURBO_LTE_CODE.rate);
+            return new ActiveCode(
+                    false, true, false,
+                    null, null, TURBO_LTE_CODE, null,
+                    TURBO_LTE_CODE.k, TURBO_LTE_CODE.n, TURBO_LTE_CODE.rate
+            );
         }
+
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(config.getLdpcProfile())) {
+            LdpcCodec.Spec spec = resolveNrSpec(config);
+            double rate = (double) spec.k() / (double) spec.n();
+            return new ActiveCode(
+                    false, false, true,
+                    null, null, null, spec,
+                    spec.k(), spec.n(), rate
+            );
+        }
+
         LdpcCode ldpc = getLdpcCode(config.getLdpcProfile(), config);
-        return new ActiveCode(false, false, ldpc, null, null, ldpc.k, ldpc.n, ldpc.rate);
+        return new ActiveCode(
+                false, false, false,
+                ldpc, null, null, null,
+                ldpc.k, ldpc.n, ldpc.rate
+        );
     }
 
     public int[] encode(int[] infoBits, ActiveCode code) {
         if (code.polarMode) return encodePolar(infoBits, code.polar);
         if (code.turboMode) return encodeTurbo(infoBits, code.turbo);
+        if (code.realNrLdpcMode) return REAL_LDPC.encode(infoBits, code.realSpec);
         return encodeLdpc(infoBits, code.ldpc);
     }
 
@@ -62,8 +92,18 @@ public class CodecEngine {
             int iter = Math.max(2, Math.min(10, maxIterations));
             return decodeTurboFromLlr(llr, code.turbo, iter);
         }
+        if (code.realNrLdpcMode) {
+            LdpcCodec.DecodeStats stats = REAL_LDPC.decodeNmsWithStats(
+                    llr,
+                    code.realSpec,
+                    maxIterations,
+                    normalization
+            );
+            return new DecodeResult(stats.decodedInfo(), stats.iterationsUsed(), stats.success());
+        }
         return decodeLdpcFromLlr(llr, code.ldpc, maxIterations, normalization, decoderType);
     }
+
 
     private LdpcCode getLdpcCode(String profile, SimulationConfig config) {
         if (!SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
@@ -729,6 +769,23 @@ public class CodecEngine {
         }
         return value;
     }
+    private LdpcCodec.Spec resolveNrSpec(SimulationConfig config) {
+        int z = config == null ? 8 : config.getLiftingSize();
+        String bg = (config == null || config.getNrBaseGraph() == null)
+                ? SimulationConfig.NR_BG_AUTO
+                : config.getNrBaseGraph();
+        String resolvedBg = SimulationConfig.NR_BG2.equals(bg) ? SimulationConfig.NR_BG2 : SimulationConfig.NR_BG1;
+        String key = resolvedBg + "-Z" + z;
+
+        return NR_SPEC_CACHE.computeIfAbsent(key, k ->
+                REAL_LDPC.buildSpec(
+                        SimulationConfig.PROFILE_5GNR_BG1,
+                        resolvedBg,
+                        z,
+                        BG_LOADER
+                )
+        );
+    }
 
     private record EdgeRef(int check, int edge) {}
     private record LdpcCode(int k, int m, int n, double rate, int[][] messageTaps, int[][] checkToVars, List<EdgeRef>[] varToChecks) {}
@@ -749,9 +806,11 @@ public class CodecEngine {
     public record ActiveCode(
             boolean polarMode,
             boolean turboMode,
+            boolean realNrLdpcMode,
             LdpcCode ldpc,
             PolarCode polar,
             TurboCode turbo,
+            LdpcCodec.Spec realSpec,
             int k,
             int n,
             double rate

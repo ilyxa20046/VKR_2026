@@ -93,4 +93,23 @@ public final class NrBaseGraphLoader {
         }
         return line.split("\\s+");
     }
+    public int[][] loadBg1FullShifts(int z, int expectedRows, int totalCols) {
+        String resourcePath = switch (z) {
+            case 8 -> "/ru/vkr/ldpcapp/ldpc/NR_BG1_FULL_Z8.txt";
+            case 16 -> "/ru/vkr/ldpcapp/ldpc/NR_BG1_FULL_Z16.txt";
+            case 32 -> "/ru/vkr/ldpcapp/ldpc/NR_BG1_FULL_Z32.txt";
+            default -> throw new IllegalArgumentException("Unsupported Z=" + z);
+        };
+        return loadMatrix(resourcePath, expectedRows, totalCols);
+    }
+
+    public int[][] loadBg2FullShifts(int z, int expectedRows, int totalCols) {
+        String resourcePath = switch (z) {
+            case 8 -> "/ru/vkr/ldpcapp/ldpc/NR_BG2_FULL_Z8.txt";
+            case 16 -> "/ru/vkr/ldpcapp/ldpc/NR_BG2_FULL_Z16.txt";
+            case 32 -> "/ru/vkr/ldpcapp/ldpc/NR_BG2_FULL_Z32.txt";
+            default -> throw new IllegalArgumentException("Unsupported Z=" + z);
+        };
+        return loadMatrix(resourcePath, expectedRows, totalCols);
+    }
 }
