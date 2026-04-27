@@ -290,6 +290,38 @@ public final class SimulationConfigFactory {
                 ? "QC-LDPC (96,48) · Baseline"
                 : "Educational LDPC (24,12)";
     }
+    public static List<Double> supportedRateComparisons() {
+        return List.of(1.0 / 3.0, 1.0 / 2.0, 2.0 / 3.0, 5.0 / 6.0);
+    }
+
+    public static int computeTargetCodewordLengthForRate(SimulationConfig c, double targetRate) {
+        int k = getProfileInfoWordLength(c.getLdpcProfile(), c.getLiftingSize(), c.getNrBaseGraph());
+        double safeRate = Math.max(0.05, Math.min(0.99, targetRate));
+        int e = (int) Math.ceil(k / safeRate);
+
+        // Удобно выравнивать под byte boundary
+        if ((e & 7) != 0) {
+            e = ((e + 7) / 8) * 8;
+        }
+        return Math.max(k, e);
+    }
+
+    public static double getEffectiveCodeRate(SimulationConfig c) {
+        int k = getProfileInfoWordLength(c.getLdpcProfile(), c.getLiftingSize(), c.getNrBaseGraph());
+        if (c.isRateMatchingEnabled() && c.getTargetCodewordLength() > 0) {
+            double r = (double) k / c.getTargetCodewordLength();
+            return Math.max(0.05, Math.min(0.99, r));
+        }
+        return getProfileCodeRate(c.getLdpcProfile(), c.getNrBaseGraph());
+    }
+
+    public static String formatRate(double rate) {
+        return String.format(java.util.Locale.US, "%.3f", rate);
+    }
+
+    public static String getMcsLikeLabel(SimulationConfig c) {
+        return c.getModulation() + " @ R=" + formatRate(getEffectiveCodeRate(c));
+    }
 
     public static String getWaveformDisplayName(String waveform) {
         return switch (waveform) {

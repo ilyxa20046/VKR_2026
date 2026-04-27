@@ -45,6 +45,9 @@ public class SimulationController {
     private final SimulationConfigFormatter configFormatter = new SimulationConfigFormatter();
     private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
 
+    @FXML private ComboBox<Double> ratePresetComboBox;
+    @FXML private Label effectiveRateValueLabel;
+    @FXML private Label mcsLikeValueLabel;
     @FXML
     private CheckBox adaptiveStopCheckBox;
     @FXML
@@ -225,6 +228,7 @@ public class SimulationController {
 
         configureEditableSpinners();
         setupNrChainUiRules();
+        setupRateComparisonUi();
         attachPreviewListeners();
         attachScientificListeners();
         if (advancedModeCheckBox != null) {
@@ -240,7 +244,25 @@ public class SimulationController {
         installTooltips();
         updatePreview();
     }
+    @FXML
+    private void onApplyDefenseRateR13Profile() {
+        applyNamedDefenseProfile("Защита · Rate R=1/3");
+    }
 
+    @FXML
+    private void onApplyDefenseRateR12Profile() {
+        applyNamedDefenseProfile("Защита · Rate R=1/2");
+    }
+
+    @FXML
+    private void onApplyDefenseRateR23Profile() {
+        applyNamedDefenseProfile("Защита · Rate R=2/3");
+    }
+
+    @FXML
+    private void onApplyDefenseRateR56Profile() {
+        applyNamedDefenseProfile("Защита · Rate R=5/6");
+    }
     @FXML
     private void onApplyRecommendedProfile() {
         applyNamedResearchProfile("Опорный 5G-like сценарий");
@@ -428,6 +450,99 @@ public class SimulationController {
         });
     }
 
+    private void setupRateComparisonUi() {
+        if (ratePresetComboBox == null) {
+            return;
+        }
+
+        ratePresetComboBox.setItems(FXCollections.observableArrayList(
+                SimulationConfigFactory.supportedRateComparisons()
+        ));
+
+        ratePresetComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Double value) {
+                if (value == null) return "";
+                if (Math.abs(value - 1.0 / 3.0) < 1e-6) return "R=1/3";
+                if (Math.abs(value - 1.0 / 2.0) < 1e-6) return "R=1/2";
+                if (Math.abs(value - 2.0 / 3.0) < 1e-6) return "R=2/3";
+                if (Math.abs(value - 5.0 / 6.0) < 1e-6) return "R=5/6";
+                return "R=" + SimulationConfigFactory.formatRate(value);
+            }
+
+            @Override
+            public Double fromString(String s) {
+                return ratePresetComboBox.getValue();
+            }
+        });
+
+        ratePresetComboBox.setValue(1.0 / 2.0);
+
+        // Важно: при ручном изменении E тоже обновляем подписи
+        if (targetCodewordLengthSpinner != null) {
+            targetCodewordLengthSpinner.valueProperty().addListener((obs, o, n) -> updateRateComparisonLabels());
+        }
+        if (rateMatchingEnabledCheckBox != null) {
+            rateMatchingEnabledCheckBox.selectedProperty().addListener((obs, o, n) -> updateRateComparisonLabels());
+        }
+        if (modulationComboBox != null) {
+            modulationComboBox.valueProperty().addListener((obs, o, n) -> updateRateComparisonLabels());
+        }
+        if (ldpcProfileComboBox != null) {
+            ldpcProfileComboBox.valueProperty().addListener((obs, o, n) -> updateRateComparisonLabels());
+        }
+        if (nrBaseGraphComboBox != null) {
+            nrBaseGraphComboBox.valueProperty().addListener((obs, o, n) -> updateRateComparisonLabels());
+        }
+        if (liftingSizeComboBox != null) {
+            liftingSizeComboBox.valueProperty().addListener((obs, o, n) -> updateRateComparisonLabels());
+        }
+
+        updateRateComparisonLabels();
+    }
+
+    @FXML
+    private void onApplyRatePreset() {
+        if (ratePresetComboBox == null || ratePresetComboBox.getValue() == null) {
+            return;
+        }
+        try {
+            SimulationConfig cfg = readConfig();
+            double targetRate = ratePresetComboBox.getValue();
+
+            int targetE = SimulationConfigFactory.computeTargetCodewordLengthForRate(cfg, targetRate);
+
+            if (rateMatchingEnabledCheckBox != null) {
+                rateMatchingEnabledCheckBox.setSelected(true);
+            }
+            if (targetCodewordLengthSpinner != null && targetCodewordLengthSpinner.getValueFactory() != null) {
+                targetCodewordLengthSpinner.getValueFactory().setValue(targetE);
+            }
+
+            updateRateComparisonLabels();
+            updatePreview();
+        } catch (Exception ex) {
+            if (validationLabel != null) {
+                validationLabel.setText("Не удалось применить rate preset: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void updateRateComparisonLabels() {
+        if (effectiveRateValueLabel == null || mcsLikeValueLabel == null) {
+            return;
+        }
+        try {
+            SimulationConfig cfg = readConfig();
+            double rEff = SimulationConfigFactory.getEffectiveCodeRate(cfg);
+
+            effectiveRateValueLabel.setText("R=" + SimulationConfigFactory.formatRate(rEff));
+            mcsLikeValueLabel.setText(SimulationConfigFactory.getMcsLikeLabel(cfg));
+        } catch (Exception ex) {
+            effectiveRateValueLabel.setText("R=—");
+            mcsLikeValueLabel.setText("—");
+        }
+    }
     @FXML
     private void onLoadConfig() {
         try {
@@ -622,8 +737,17 @@ public class SimulationController {
 
         if (!config.isRateMatchingEnabled()) {
             config.setTargetCodewordLength(0);
-        } else if (config.getTargetCodewordLength() > 0 && config.getTargetCodewordLength() < config.getInfoBlockLength()) {
-            config.setTargetCodewordLength(config.getInfoBlockLength());
+        } else if (config.getTargetCodewordLength() > 0) {
+            int kWord = SimulationConfigFactory.getProfileInfoWordLength(
+                    config.getLdpcProfile(),
+                    config.getLiftingSize(),
+                    config.getNrBaseGraph()
+            );
+            int e = Math.max(kWord, config.getTargetCodewordLength());
+            if ((e & 7) != 0) {
+                e = ((e + 7) / 8) * 8;
+            }
+            config.setTargetCodewordLength(e);
         }
         if (snrDomainComboBox != null && snrDomainComboBox.getValue() != null) {
             config.setSnrDomain(snrDomainComboBox.getValue());
@@ -865,6 +989,7 @@ public class SimulationController {
             validationLabel.setText("Обнаружена ошибка во входных параметрах");
             runButton.setDisable(true);
         }
+        updateRateComparisonLabels();
     }
 
     private void adjustInfoBlockForProfile(String profile) {
@@ -943,16 +1068,19 @@ public class SimulationController {
         if (rateMatchingEnabledCheckBox != null && targetCodewordLengthSpinner != null) {
             rateMatchingEnabledCheckBox.selectedProperty().addListener((obs, oldValue, enabled) -> {
                 Integer currentE = targetCodewordLengthSpinner.getValue();
-                int infoLen = infoBlockSpinner != null ? infoBlockSpinner.getValue() : 0;
+                int kWord = currentCodeK();
 
                 if (enabled) {
                     if (currentE == null || currentE <= 0) {
-                        int suggested = Math.max(infoLen, 192);
-                        targetCodewordLengthSpinner.getValueFactory().setValue(suggested);
+                        targetCodewordLengthSpinner.getValueFactory().setValue(kWord);
+                    } else if (currentE < kWord) {
+                        targetCodewordLengthSpinner.getValueFactory().setValue(kWord);
                     }
                 } else {
                     targetCodewordLengthSpinner.getValueFactory().setValue(0);
                 }
+
+                updateRateComparisonLabels();
                 updatePreview();
             });
 
@@ -960,10 +1088,11 @@ public class SimulationController {
                 if (newValue == null) {
                     return;
                 }
-                int infoLen = infoBlockSpinner != null ? infoBlockSpinner.getValue() : 0;
 
-                if (rateMatchingEnabledCheckBox.isSelected() && newValue > 0 && newValue < infoLen) {
-                    targetCodewordLengthSpinner.getValueFactory().setValue(infoLen);
+                int kWord = currentCodeK();
+
+                if (rateMatchingEnabledCheckBox.isSelected() && newValue > 0 && newValue < kWord) {
+                    targetCodewordLengthSpinner.getValueFactory().setValue(kWord);
                     return;
                 }
 
@@ -973,6 +1102,7 @@ public class SimulationController {
                     rateMatchingEnabledCheckBox.setSelected(false);
                 }
 
+                updateRateComparisonLabels();
                 updatePreview();
             });
         }
@@ -982,9 +1112,7 @@ public class SimulationController {
                 if (newValue == null) {
                     return;
                 }
-                if (SimulationConfig.BLER_BY_CRC_FAIL.equals(newValue)
-                        && crcEnabledCheckBox != null
-                        && !crcEnabledCheckBox.isSelected()) {
+                if (SimulationConfig.BLER_BY_CRC_FAIL.equals(newValue) && crcEnabledCheckBox != null && !crcEnabledCheckBox.isSelected()) {
                     crcEnabledCheckBox.setSelected(true);
                     if (crcBitsComboBox != null) {
                         crcBitsComboBox.setValue(SimulationConfig.CRC_16);
@@ -994,18 +1122,29 @@ public class SimulationController {
             });
         }
 
-        if (infoBlockSpinner != null && targetCodewordLengthSpinner != null && rateMatchingEnabledCheckBox != null) {
+        // Не тянем E к infoBlockLength: для rate-comparison E должен зависеть от K кодового слова, а не TB.
+        if (infoBlockSpinner != null) {
             infoBlockSpinner.valueProperty().addListener((obs, oldValue, newValue) -> {
-                if (newValue == null) {
-                    return;
-                }
-                if (rateMatchingEnabledCheckBox.isSelected()) {
-                    int e = targetCodewordLengthSpinner.getValue() == null ? 0 : targetCodewordLengthSpinner.getValue();
-                    if (e > 0 && e < newValue) {
-                        targetCodewordLengthSpinner.getValueFactory().setValue(newValue);
-                    }
-                }
+                updateRateComparisonLabels();
                 updatePreview();
+            });
+        }
+
+        if (ldpcProfileComboBox != null) {
+            ldpcProfileComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+                updateRateComparisonLabels();
+            });
+        }
+
+        if (nrBaseGraphComboBox != null) {
+            nrBaseGraphComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+                updateRateComparisonLabels();
+            });
+        }
+
+        if (liftingSizeComboBox != null) {
+            liftingSizeComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+                updateRateComparisonLabels();
             });
         }
     }
@@ -1036,6 +1175,14 @@ public class SimulationController {
         modeStatusChip.setText(advanced ? "Расширенный режим" : "Базовый режим");
         modeStatusChip.getStyleClass().removeAll("simulation-mode-chip-basic", "simulation-mode-chip-advanced");
         modeStatusChip.getStyleClass().add(advanced ? "simulation-mode-chip-advanced" : "simulation-mode-chip-basic");
+    }
+    private int currentCodeK() {
+        String profile = ldpcProfileComboBox == null ? SimulationConfig.PROFILE_5GNR_BG1 : ldpcProfileComboBox.getValue();
+        int z = (liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null) ? 8 : liftingSizeComboBox.getValue();
+        String bg = (nrBaseGraphComboBox == null || nrBaseGraphComboBox.getValue() == null)
+                ? SimulationConfig.NR_BG_AUTO
+                : nrBaseGraphComboBox.getValue();
+        return SimulationConfigFactory.getProfileInfoWordLength(profile, z, bg);
     }
 
     private void installTooltips() {

@@ -28,7 +28,10 @@ public class SimulationConfigFormatter {
                         "• декодер: normalized min-sum, максимум %d итераций%n" +
                         "• коэффициент нормализации: %.2f%n" +
                         "• скорость кода: %.2f%n" +
-                        "• описание профиля: %s%n",
+                        "• описание профиля: %s%n" +
+                        "• базовая скорость профиля: %.3f%n" +
+                        "• эффективная скорость (с учетом rate matching): %.3f%n" +
+                        "• MCS-like комбинация: %s%n",
                 SimulationConfigFactory.getProfileDisplayName(c.getLdpcProfile(), c.getLiftingSize()),
                 SimulationConfigFactory.getProfileFamily(c.getLdpcProfile()),
                 c.getModulation(),
@@ -49,7 +52,10 @@ public class SimulationConfigFormatter {
                 c.getMaxIterations(),
                 c.getNormalization(),
                 SimulationConfigFactory.getCodeRate(c),
-                SimulationConfigFactory.getProfileDescription(c.getLdpcProfile())
+                SimulationConfigFactory.getProfileDescription(c.getLdpcProfile()),
+                SimulationConfigFactory.getProfileCodeRate(c.getLdpcProfile(), c.getNrBaseGraph()),
+                SimulationConfigFactory.getEffectiveCodeRate(c),
+                SimulationConfigFactory.getMcsLikeLabel(c)
         );
     }
 }

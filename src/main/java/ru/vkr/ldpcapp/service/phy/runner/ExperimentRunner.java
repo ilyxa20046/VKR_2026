@@ -42,20 +42,27 @@ public class ExperimentRunner {
         CodecEngine.ActiveCode activeCode = codecEngine.resolveActiveCode(config);
         int codeK = activeCode.k();
         int codeN = activeCode.n();
-        double codeRate = activeCode.rate();
+        double codeRate = SimulationConfigFactory.getEffectiveCodeRate(config);
 
         Random uncodedRandom = new Random(config.getSeed() + 1009L * (index + 1));
         Random codedRandom = new Random(config.getSeed() + 5003L * (index + 1));
 
-        double ebN0Db = SimulationConfigFactory.toEbN0Db(
+        double ebN0UncodedDb = phyMetricsEngine.toEbN0Db(
                 snrDb,
                 config.getSnrDomain(),
                 config.getModulation(),
-                config.getLdpcProfile()
+                1.0
         );
 
-        double sigmaUncoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), 1.0);
-        double sigmaCoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), codeRate);
+        double ebN0CodedDb = phyMetricsEngine.toEbN0Db(
+                snrDb,
+                config.getSnrDomain(),
+                config.getModulation(),
+                codeRate
+        );
+
+        double sigmaUncoded = phyMetricsEngine.sigmaFromEbN0(ebN0UncodedDb, config.getModulation(), 1.0);
+        double sigmaCoded = phyMetricsEngine.sigmaFromEbN0(ebN0CodedDb, config.getModulation(), codeRate);
 
         int codewordsPerBlock = config.getInfoBlockLength() / codeK;
         int targetBlocks = config.isAdaptiveStopEnabled() ? config.getMaxBlocksPerSnr() : config.getBlocks();

@@ -235,7 +235,11 @@ public class SimulationConfigProfiles {
                 "Защита · OFDM showcase",
                 "Защита · LDPC vs Polar · LDPC ref",
                 "Защита · LDPC vs Polar · Polar ref",
-                "Защита · LDPC vs Turbo · Turbo ref"
+                "Защита · LDPC vs Turbo · Turbo ref",
+                "Защита · Rate R=1/3",
+                "Защита · Rate R=1/2",
+                "Защита · Rate R=2/3",
+                "Защита · Rate R=5/6"
         );
     }
 
@@ -253,6 +257,50 @@ public class SimulationConfigProfiles {
             default -> profileResearchReference();
         };
     }
+    private void applyTargetRate(SimulationConfig c, double targetRate) {
+        c.setRateMatchingEnabled(true);
+        c.setTargetCodewordLength(SimulationConfigFactory.computeTargetCodewordLengthForRate(c, targetRate));
+    }
+
+    public SimulationConfig profileDefenseRateR13() {
+        SimulationConfig c = profileAwgnBaseline();
+        c.setLdpcProfile(SimulationConfig.PROFILE_5GNR_BG1);
+        c.setNrBaseGraph(SimulationConfig.NR_BG1);
+        c.setLiftingSize(8);
+        normalizeInfo(c);
+        applyTargetRate(c, 1.0 / 3.0);
+        return c;
+    }
+
+    public SimulationConfig profileDefenseRateR12() {
+        SimulationConfig c = profileAwgnBaseline();
+        c.setLdpcProfile(SimulationConfig.PROFILE_5GNR_BG1);
+        c.setNrBaseGraph(SimulationConfig.NR_BG1);
+        c.setLiftingSize(8);
+        normalizeInfo(c);
+        applyTargetRate(c, 1.0 / 2.0);
+        return c;
+    }
+
+    public SimulationConfig profileDefenseRateR23() {
+        SimulationConfig c = profileAwgnBaseline();
+        c.setLdpcProfile(SimulationConfig.PROFILE_5GNR_BG1);
+        c.setNrBaseGraph(SimulationConfig.NR_BG1);
+        c.setLiftingSize(8);
+        normalizeInfo(c);
+        applyTargetRate(c, 2.0 / 3.0);
+        return c;
+    }
+
+    public SimulationConfig profileDefenseRateR56() {
+        SimulationConfig c = profileAwgnBaseline();
+        c.setLdpcProfile(SimulationConfig.PROFILE_5GNR_BG1);
+        c.setNrBaseGraph(SimulationConfig.NR_BG1);
+        c.setLiftingSize(8);
+        normalizeInfo(c);
+        applyTargetRate(c, 5.0 / 6.0);
+        return c;
+    }
 
     public SimulationConfig byDefenseProfileName(String name) {
         if (name == null || name.isBlank()) {
@@ -267,6 +315,10 @@ public class SimulationConfigProfiles {
             case "Защита · LDPC vs Polar · LDPC ref" -> profileDefenseLdpcVsPolarLdpcRef();
             case "Защита · LDPC vs Polar · Polar ref" -> profileDefenseLdpcVsPolarPolarRef();
             case "Защита · LDPC vs Turbo · Turbo ref" -> profileDefenseLdpcVsTurboTurboRef();
+            case "Защита · Rate R=1/3" -> profileDefenseRateR13();
+            case "Защита · Rate R=1/2" -> profileDefenseRateR12();
+            case "Защита · Rate R=2/3" -> profileDefenseRateR23();
+            case "Защита · Rate R=5/6" -> profileDefenseRateR56();
             default -> profileDefenseAwgnReference();
         };
     }

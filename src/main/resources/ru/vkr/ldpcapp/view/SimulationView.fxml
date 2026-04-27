@@ -61,6 +61,10 @@
                                         <MenuItem onAction="#onApplyDefenseOfdmProfile" text="Защита · OFDM showcase — waveform-эффект" />
                                         <MenuItem onAction="#onApplyDefenseLdpcVsPolarLdpcProfile" text="Защита · LDPC vs Polar — LDPC ref" />
                                         <MenuItem onAction="#onApplyDefenseLdpcVsPolarPolarProfile" text="Защита · LDPC vs Polar — Polar ref" />
+                                        <MenuItem onAction="#onApplyDefenseRateR13Profile" text="Защита · Rate R=1/3" />
+                                        <MenuItem onAction="#onApplyDefenseRateR12Profile" text="Защита · Rate R=1/2" />
+                                        <MenuItem onAction="#onApplyDefenseRateR23Profile" text="Защита · Rate R=2/3" />
+                                        <MenuItem onAction="#onApplyDefenseRateR56Profile" text="Защита · Rate R=5/6" />
                                     </items>
                                 </MenuButton>
 
@@ -70,8 +74,6 @@
                                         <MenuItem onAction="#onLoadConfig" text="Открыть конфигурацию" />
                                     </items>
                                 </MenuButton>
-
-                                <Button onAction="#onOpenHelpDialog" styleClass="secondary-button compact-action-button" text="Справка" />
                             </children>
                         </FlowPane>
                     </children>
@@ -255,6 +257,31 @@
                                                     <children>
                                                         <Label text="Target codeword length (E)" styleClass="dashboard-bullet" />
                                                         <Spinner fx:id="targetCodewordLengthSpinner" prefWidth="220.0" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+
+                                        <HBox spacing="10.0">
+                                            <children>
+                                                <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label text="Rate preset (MCS-like)" styleClass="dashboard-bullet" />
+                                                        <ComboBox fx:id="ratePresetComboBox" onAction="#onApplyRatePreset" prefWidth="220.0" />
+                                                    </children>
+                                                </VBox>
+
+                                                <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label text="Effective code rate" styleClass="dashboard-bullet" />
+                                                        <Label fx:id="effectiveRateValueLabel" text="R=0.500" />
+                                                    </children>
+                                                </VBox>
+
+                                                <VBox spacing="6.0" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label text="MCS-like label" styleClass="dashboard-bullet" />
+                                                        <Label fx:id="mcsLikeValueLabel" text="QPSK @ R=0.500" wrapText="true" />
                                                     </children>
                                                 </VBox>
                                             </children>
