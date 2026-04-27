@@ -3,6 +3,8 @@ package ru.vkr.ldpcapp.service;
 import ru.vkr.ldpcapp.model.BatchScenarioResult;
 import ru.vkr.ldpcapp.model.ExperimentSummary;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFormatter;
+
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BatchReportService {
+    private final SimulationConfigFormatter configFormatter = new SimulationConfigFormatter();
 
     public String buildBatchNarrative(SimulationConfig baseConfig, List<BatchScenarioResult> scenarios) {
         if (scenarios == null || scenarios.isEmpty()) {
@@ -36,7 +39,7 @@ public class BatchReportService {
         builder.append("Количество рассчитанных сценариев: ").append(scenarios.size()).append("\n");
         if (baseConfig != null) {
             builder.append("Базовая численная конфигурация:\n");
-            builder.append(baseConfig.toSummaryText()).append("\n\n");
+            builder.append(configFormatter.toSummaryText(baseConfig)).append("\n\n");
         }
 
         builder.append("Наиболее сильный сценарий по интегральной оценке:\n");
@@ -95,7 +98,11 @@ public class BatchReportService {
         builder.append("Данный batch-эксперимент предназначен для сопоставления нескольких сценариев передачи данных в цифровом канале связи по показателям BER, BLER и энергетического выигрыша. Сравнение проводится между комбинациями модуляции, типа канала и профиля LDPC-кодирования при единой базовой численной конфигурации.\n\n");
 
         builder.append("2. Базовая конфигурация\n");
-        builder.append(baseConfig == null ? "Базовая конфигурация отсутствует.\n\n" : baseConfig.toSummaryText() + "\n\n");
+        builder.append(
+                baseConfig == null
+                        ? "Базовая конфигурация отсутствует.\n\n"
+                        : configFormatter.toSummaryText(baseConfig) + "\n\n"
+        );
 
         builder.append("3. Перечень сценариев\n");
         for (int i = 0; i < scenarios.size(); i++) {

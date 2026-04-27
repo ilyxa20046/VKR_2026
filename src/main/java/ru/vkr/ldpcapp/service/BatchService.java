@@ -4,6 +4,8 @@ import javafx.concurrent.Task;
 import ru.vkr.ldpcapp.model.BatchScenarioResult;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigValidator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.List;
 public class BatchService {
 
     private final SimulationService simulationService = new SimulationService();
+    private final SimulationConfigValidator configValidator = new SimulationConfigValidator();
 
     public Task<List<BatchScenarioResult>> createTask(
             SimulationConfig baseConfig,
@@ -63,7 +66,7 @@ public class BatchService {
                 for (String modulation : modulations) {
                     SimulationConfig config = copyConfig(baseConfig);
                     config.setLdpcProfile(profile);
-                    config.setInfoBlockLength(SimulationConfig.normalizeInfoBlockLength(
+                    config.setInfoBlockLength(SimulationConfigFactory.normalizeInfoBlockLength(
                             config.getInfoBlockLength(),
                             profile,
                             config.getLiftingSize()
@@ -71,11 +74,11 @@ public class BatchService {
                     config.setChannelModel(channel);
                     config.setModulation(modulation);
                     config.setSeed(baseConfig.getSeed() + offset * 97);
-                    config.validate();
+                    configValidator.validate(config);
 
                     String label = modulation
                             + " / " + channel
-                            + " / " + SimulationConfig.getProfileDisplayName(profile, config.getLiftingSize())
+                            + " / " + SimulationConfigFactory.getProfileDisplayName(profile, config.getLiftingSize())
                             + " / " + config.getWaveform()
                             + " / " + config.getSpatialMode();
                     scenarios.add(new ScenarioDefinition(label, config));
@@ -108,7 +111,7 @@ public class BatchService {
     }
 
     private SimulationConfig copyConfig(SimulationConfig source) {
-        return new SimulationConfig(
+        SimulationConfig copy = new SimulationConfig(
                 source.getInfoBlockLength(),
                 source.getSnrStart(),
                 source.getSnrEnd(),
@@ -123,8 +126,22 @@ public class BatchService {
                 source.getWaveform(),
                 source.getSpatialMode(),
                 source.getCyclicPrefix(),
-                source.getEqualizerMode()
+                source.getEqualizerMode(),
+                source.isAdaptiveStopEnabled(),
+                source.getMinErrorEventsPerSnr(),
+                source.getMaxBlocksPerSnr(),
+                source.getConfidenceLevel()
         );
+
+        copy.setNrBaseGraph(source.getNrBaseGraph());
+        copy.setLiftingSize(source.getLiftingSize());
+        copy.setCrcEnabled(source.isCrcEnabled());
+        copy.setCrcBits(source.getCrcBits());
+        copy.setSegmentationEnabled(source.isSegmentationEnabled());
+        copy.setRateMatchingEnabled(source.isRateMatchingEnabled());
+        copy.setTargetCodewordLength(source.getTargetCodewordLength());
+        copy.setBlerCriterion(source.getBlerCriterion());
+        return copy;
     }
 
     private record ScenarioDefinition(String label, SimulationConfig config) {

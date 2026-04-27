@@ -18,12 +18,17 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.ScrollEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
 import ru.vkr.ldpcapp.service.ConfigFileService;
 import ru.vkr.ldpcapp.service.ExperimentSession;
 import ru.vkr.ldpcapp.service.ParameterHelpService;
 import ru.vkr.ldpcapp.service.SimulationService;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFormatter;
+import ru.vkr.ldpcapp.service.config.SimulationConfigValidator;
+import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +41,9 @@ public class SimulationController {
     private final SimulationService simulationService = new SimulationService();
     private final ParameterHelpService parameterHelpService = new ParameterHelpService();
     private final ConfigFileService configFileService = new ConfigFileService();
+    private final SimulationConfigValidator configValidator = new SimulationConfigValidator();
+    private final SimulationConfigFormatter configFormatter = new SimulationConfigFormatter();
+    private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
 
     @FXML
     private CheckBox adaptiveStopCheckBox;
@@ -165,13 +173,13 @@ public class SimulationController {
     @FXML
     public void initialize() {
         setupFastScroll();
-        ldpcProfileComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedLdpcProfiles()));
+        ldpcProfileComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedLdpcProfiles()));
         setupLdpcProfileComboPresentation();
-        modulationComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedModulations()));
-        channelComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedChannels()));
-        waveformComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedWaveforms()));
-        spatialModeComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedSpatialModes()));
-        equalizerComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedEqualizerModes()));
+        modulationComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedModulations()));
+        channelComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedChannels()));
+        waveformComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedWaveforms()));
+        spatialModeComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedSpatialModes()));
+        equalizerComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedEqualizerModes()));
 
         cyclicPrefixSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 32, 8, 1));
         infoBlockSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(12, 4800, 240, 12));
@@ -220,7 +228,7 @@ public class SimulationController {
             crcBitsComboBox.setValue(SimulationConfig.CRC_NONE);
         }
         if (blerCriterionComboBox != null) {
-            blerCriterionComboBox.setItems(FXCollections.observableArrayList(SimulationConfig.supportedBlerCriteria()));
+            blerCriterionComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedBlerCriteria()));
             blerCriterionComboBox.setValue(SimulationConfig.BLER_BY_BIT_MISMATCH);
         }
 
@@ -240,7 +248,7 @@ public class SimulationController {
         }
         updateAdvancedModeVisibility();
         updateModeStatusChip();
-        applyConfig(SimulationConfig.recommendedProfile());
+        applyConfig(configProfiles.recommendedProfile());
         simulationProgressBar.setProgress(0.0);
         progressLabel.setText("Расчёт не запущен");
         validationLabel.setText("Параметры готовы к запуску");
@@ -336,7 +344,7 @@ public class SimulationController {
 
     @FXML
     private void onResetForm() {
-        applyConfig(SimulationConfig.recommendedProfile());
+        applyConfig(configProfiles.recommendedProfile());
         simulationProgressBar.setProgress(0.0);
         progressLabel.setText("Форма сброшена");
         validationLabel.setText("Используются значения по умолчанию");
@@ -367,7 +375,7 @@ public class SimulationController {
     private void onSaveConfig() {
         try {
             SimulationConfig config = readConfig();
-            config.validate();
+            configValidator.validate(config);
 
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Сохранить конфигурацию эксперимента");
@@ -398,7 +406,7 @@ public class SimulationController {
         ldpcProfileComboBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(String profileId) {
-                return profileId == null ? "" : SimulationConfig.getProfileUiName(profileId);
+                return profileId == null ? "" : SimulationConfigFactory.getProfileUiName(profileId);
             }
 
             @Override
@@ -407,7 +415,7 @@ public class SimulationController {
                     return null;
                 }
                 for (String id : ldpcProfileComboBox.getItems()) {
-                    if (SimulationConfig.getProfileUiName(id).equals(string)) {
+                    if (SimulationConfigFactory.getProfileUiName(id).equals(string)) {
                         return id;
                     }
                 }
@@ -419,7 +427,7 @@ public class SimulationController {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : SimulationConfig.getProfileUiName(item));
+                setText(empty || item == null ? null : SimulationConfigFactory.getProfileUiName(item));
             }
         });
 
@@ -427,7 +435,7 @@ public class SimulationController {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : SimulationConfig.getProfileUiName(item));
+                setText(empty || item == null ? null : SimulationConfigFactory.getProfileUiName(item));
             }
         });
     }
@@ -462,7 +470,7 @@ public class SimulationController {
     private void onRunSimulation() {
         try {
             SimulationConfig config = readConfig();
-            config.validate();
+            configValidator.validate(config);
             updatePreview();
 
             Task<List<ResultPoint>> task = simulationService.createTask(config);
@@ -527,7 +535,7 @@ public class SimulationController {
         String waveform = waveformComboBox.getValue();
 
         SimulationConfig config = new SimulationConfig(
-                SimulationConfig.normalizeInfoBlockLength(
+                SimulationConfigFactory.normalizeInfoBlockLength(
                         infoBlockSpinner.getValue(),
                         profile,
                         liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null ? 8 : liftingSizeComboBox.getValue()
@@ -544,7 +552,7 @@ public class SimulationController {
                 profile,
                 waveform,
                 spatialModeComboBox.getValue(),
-                SimulationConfig.normalizeCyclicPrefix(cyclicPrefixSpinner.getValue(), waveform),
+                SimulationConfigFactory.normalizeCyclicPrefix(cyclicPrefixSpinner.getValue(), waveform),
                 equalizerComboBox.getValue()
         );
 
@@ -789,8 +797,8 @@ public class SimulationController {
     private void updatePreview() {
         try {
             SimulationConfig config = readConfig();
-            config.validate();
-            configPreviewArea.setText(config.toSummaryText());
+            configValidator.validate(config);
+            configPreviewArea.setText(configFormatter.toSummaryText(config));
             validationLabel.setText("Параметры корректны");
             runButton.setDisable(false);
         } catch (Exception exception) {
@@ -806,19 +814,19 @@ public class SimulationController {
         }
         int current = infoBlockSpinner.getValue();
         int z = liftingSizeComboBox == null || liftingSizeComboBox.getValue() == null ? 8 : liftingSizeComboBox.getValue();
-        int normalized = SimulationConfig.normalizeInfoBlockLength(current, profile, z);
+        int normalized = SimulationConfigFactory.normalizeInfoBlockLength(current, profile, z);
         infoBlockSpinner.getValueFactory().setValue(normalized);
     }
 
     private void applyNamedResearchProfile(String profileName) {
-        SimulationConfig config = SimulationConfig.byResearchProfileName(profileName);
+        SimulationConfig config = configProfiles.byResearchProfileName(profileName);
         applyConfig(config);
         validationLabel.setText("Применён профиль: " + profileName);
         updatePreview();
     }
 
     private void applyNamedDefenseProfile(String profileName) {
-        SimulationConfig config = SimulationConfig.byDefenseProfileName(profileName);
+        SimulationConfig config = configProfiles.byDefenseProfileName(profileName);
         applyConfig(config);
         if (advancedModeCheckBox != null) {
             advancedModeCheckBox.setSelected(true);
@@ -1008,7 +1016,7 @@ public class SimulationController {
             return;
         }
         int current = cyclicPrefixSpinner.getValue();
-        int normalized = SimulationConfig.normalizeCyclicPrefix(current, waveform);
+        int normalized = SimulationConfigFactory.normalizeCyclicPrefix(current, waveform);
         cyclicPrefixSpinner.getValueFactory().setValue(normalized);
         if (SimulationConfig.WAVEFORM_SC.equals(waveform)) {
             equalizerComboBox.setValue(SimulationConfig.EQUALIZER_NONE);

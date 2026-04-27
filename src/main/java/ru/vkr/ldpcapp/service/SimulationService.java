@@ -10,6 +10,7 @@ import ru.vkr.ldpcapp.service.phy.transport.BitTransport;
 import ru.vkr.ldpcapp.service.phy.codec.CodecEngine;
 import ru.vkr.ldpcapp.service.phy.metrics.PhyMetricsEngine;
 import ru.vkr.ldpcapp.service.phy.runner.ExperimentRunner;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class SimulationService {
         return new Task<>() {
             @Override
             protected List<ResultPoint> call() {
-                List<Double> snrPoints = config.buildSnrPoints();
+                List<Double> snrPoints = SimulationConfigFactory.buildSnrPoints(config);
                 List<ResultPoint> results = new ArrayList<>();
                 int totalPoints = Math.max(1, snrPoints.size());
 
@@ -51,7 +52,7 @@ public class SimulationService {
                             config.getChannelModel(),
                             config.getWaveform(),
                             config.getSpatialMode(),
-                            SimulationConfig.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize()),
+                            SimulationConfigFactory.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize()),
                             snr,
                             i + 1,
                             totalPoints
@@ -68,7 +69,7 @@ public class SimulationService {
 
     public List<ResultPoint> runBlocking(SimulationConfig config) {
         List<ResultPoint> results = new ArrayList<>();
-        List<Double> snrPoints = config.buildSnrPoints();
+        List<Double> snrPoints = SimulationConfigFactory.buildSnrPoints(config);
         for (int i = 0; i < snrPoints.size(); i++) {
             results.add(experimentRunner.simulatePoint(snrPoints.get(i), config, i));
         }

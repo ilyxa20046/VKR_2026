@@ -1,6 +1,8 @@
 package ru.vkr.ldpcapp.service;
 
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigValidator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +29,7 @@ public class ConfigFileService {
     private static final String KEY_CYCLIC_PREFIX = "cyclicPrefix";
     private static final String KEY_EQUALIZER_MODE = "equalizerMode";
     private static final String KEY_BLER_CRITERION = "blerCriterion";
+    private final SimulationConfigValidator configValidator = new SimulationConfigValidator();
 
     public void save(Path path, SimulationConfig config) throws IOException {
         Properties properties = new Properties();
@@ -79,7 +82,7 @@ public class ConfigFileService {
         config.setCyclicPrefix(readInt(properties, KEY_CYCLIC_PREFIX));
         config.setEqualizerMode(require(properties, KEY_EQUALIZER_MODE));
         config.setBlerCriterion(properties.getProperty(KEY_BLER_CRITERION, SimulationConfig.BLER_BY_BIT_MISMATCH));
-        config.validate();
+        configValidator.validate(config);
         return config;
     }
 
