@@ -24,19 +24,24 @@ public class CodecEngine {
     private static final LdpcCode EDUCATIONAL_CODE = buildEducationalCode();
     private static final LdpcCode QC_LIKE_CODE = buildQcInspiredCode();
     private static final PolarCode POLAR_128_64 = buildPolarCode128_64();
+    private static final double NEG_INF = -1e9;
+    private static final TurboCode TURBO_LTE_CODE = buildTurboCode(40, 2026);
 
     public ActiveCode resolveActiveCode(SimulationConfig config) {
         if (SimulationConfig.PROFILE_POLAR.equals(config.getLdpcProfile())) {
-            return new ActiveCode(true, null, POLAR_128_64, POLAR_128_64.k, POLAR_128_64.n, POLAR_128_64.rate);
+            return new ActiveCode(true, false, null, POLAR_128_64, null, POLAR_128_64.k, POLAR_128_64.n, POLAR_128_64.rate);
+        }
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(config.getLdpcProfile())) {
+            return new ActiveCode(false, true, null, null, TURBO_LTE_CODE, TURBO_LTE_CODE.k, TURBO_LTE_CODE.n, TURBO_LTE_CODE.rate);
         }
         LdpcCode ldpc = getLdpcCode(config.getLdpcProfile(), config);
-        return new ActiveCode(false, ldpc, null, ldpc.k, ldpc.n, ldpc.rate);
+        return new ActiveCode(false, false, ldpc, null, null, ldpc.k, ldpc.n, ldpc.rate);
     }
 
     public int[] encode(int[] infoBits, ActiveCode code) {
-        return code.polarMode
-                ? encodePolar(infoBits, code.polar)
-                : encodeLdpc(infoBits, code.ldpc);
+        if (code.polarMode) return encodePolar(infoBits, code.polar);
+        if (code.turboMode) return encodeTurbo(infoBits, code.turbo);
+        return encodeLdpc(infoBits, code.ldpc);
     }
 
     public DecodeResult decodeFromLlr(double[] llr, ActiveCode code, int maxIterations, double normalization) {
@@ -50,9 +55,14 @@ public class CodecEngine {
             double normalization,
             String decoderType
     ) {
-        return code.polarMode
-                ? decodePolarFromLlr(llr, code.polar)
-                : decodeLdpcFromLlr(llr, code.ldpc, maxIterations, normalization, decoderType);
+        if (code.polarMode) {
+            return decodePolarFromLlr(llr, code.polar);
+        }
+        if (code.turboMode) {
+            int iter = Math.max(2, Math.min(10, maxIterations));
+            return decodeTurboFromLlr(llr, code.turbo, iter);
+        }
+        return decodeLdpcFromLlr(llr, code.ldpc, maxIterations, normalization, decoderType);
     }
 
     private LdpcCode getLdpcCode(String profile, SimulationConfig config) {
@@ -77,6 +87,206 @@ public class CodecEngine {
             case 32 -> NR_BG1_Z32_CODE;
             default -> NR_BG1_Z8_CODE;
         };
+    }
+    private int[] encodeTurbo(int[] infoBits, TurboCode code) {
+        int[] sys = Arrays.copyOf(infoBits, code.k);
+        int[] p1 = rscEncode(sys, code.nextState, code.parityBit);
+
+        int[] interleaved = interleaveInt(sys, code.interleaver);
+        int[] p2 = rscEncode(interleaved, code.nextState, code.parityBit);
+
+        int[] out = new int[code.n];
+        System.arraycopy(sys, 0, out, 0, code.k);
+        System.arraycopy(p1, 0, out, code.k, code.k);
+        System.arraycopy(p2, 0, out, 2 * code.k, code.k);
+        return out;
+    }
+
+    private DecodeResult decodeTurboFromLlr(double[] llr, TurboCode code, int iterations) {
+        int k = code.k;
+        double[] sys = new double[k];
+        double[] p1 = new double[k];
+        double[] p2 = new double[k];
+
+        for (int i = 0; i < k; i++) {
+            sys[i] = i < llr.length ? llr[i] : 0.0;
+            p1[i] = (k + i) < llr.length ? llr[k + i] : 0.0;
+            p2[i] = (2 * k + i) < llr.length ? llr[2 * k + i] : 0.0;
+        }
+
+        double[] sysInter = interleaveDouble(sys, code.interleaver);
+        double[] apriori1 = new double[k];
+        double[] finalLlrInter = new double[k];
+
+        for (int it = 0; it < iterations; it++) {
+            TurboDecodeInternal dec1 = maxLogMap(sys, p1, apriori1, code.nextState, code.parityBit);
+            double[] apriori2 = interleaveDouble(dec1.extrinsic, code.interleaver);
+
+            TurboDecodeInternal dec2 = maxLogMap(sysInter, p2, apriori2, code.nextState, code.parityBit);
+            apriori1 = deinterleaveDouble(dec2.extrinsic, code.inverseInterleaver);
+            finalLlrInter = dec2.llr;
+        }
+
+        double[] finalLlr = deinterleaveDouble(finalLlrInter, code.inverseInterleaver);
+        int[] bits = new int[k];
+        for (int i = 0; i < k; i++) bits[i] = finalLlr[i] < 0.0 ? 1 : 0;
+
+        return new DecodeResult(bits, iterations, true);
+    }
+
+    private TurboDecodeInternal maxLogMap(
+            double[] sysLlr,
+            double[] parityLlr,
+            double[] aprioriLlr,
+            int[][] nextState,
+            int[][] parityBit
+    ) {
+        int n = sysLlr.length;
+        double[][] alpha = new double[n + 1][8];
+        double[][] beta = new double[n + 1][8];
+
+        for (int k = 0; k <= n; k++) {
+            Arrays.fill(alpha[k], NEG_INF);
+            Arrays.fill(beta[k], 0.0);
+        }
+        alpha[0][0] = 0.0;
+
+        for (int k = 0; k < n; k++) {
+            for (int s = 0; s < 8; s++) {
+                if (alpha[k][s] <= NEG_INF / 2) continue;
+                for (int u = 0; u <= 1; u++) {
+                    int ns = nextState[s][u];
+                    int pb = parityBit[s][u];
+                    double sysSign = (u == 0) ? 1.0 : -1.0;
+                    double parSign = (pb == 0) ? 1.0 : -1.0;
+                    double gamma = 0.5 * (
+                            aprioriLlr[k] * sysSign +
+                                    sysLlr[k] * sysSign +
+                                    parityLlr[k] * parSign
+                    );
+                    double cand = alpha[k][s] + gamma;
+                    if (cand > alpha[k + 1][ns]) alpha[k + 1][ns] = cand;
+                }
+            }
+        }
+
+        for (int k = n - 1; k >= 0; k--) {
+            double[] cur = new double[8];
+            Arrays.fill(cur, NEG_INF);
+            for (int s = 0; s < 8; s++) {
+                for (int u = 0; u <= 1; u++) {
+                    int ns = nextState[s][u];
+                    int pb = parityBit[s][u];
+                    double sysSign = (u == 0) ? 1.0 : -1.0;
+                    double parSign = (pb == 0) ? 1.0 : -1.0;
+                    double gamma = 0.5 * (
+                            aprioriLlr[k] * sysSign +
+                                    sysLlr[k] * sysSign +
+                                    parityLlr[k] * parSign
+                    );
+                    double cand = beta[k + 1][ns] + gamma;
+                    if (cand > cur[s]) cur[s] = cand;
+                }
+            }
+            beta[k] = cur;
+        }
+
+        double[] llr = new double[n];
+        double[] ext = new double[n];
+
+        for (int k = 0; k < n; k++) {
+            double m0 = NEG_INF;
+            double m1 = NEG_INF;
+            for (int s = 0; s < 8; s++) {
+                for (int u = 0; u <= 1; u++) {
+                    int ns = nextState[s][u];
+                    int pb = parityBit[s][u];
+                    double sysSign = (u == 0) ? 1.0 : -1.0;
+                    double parSign = (pb == 0) ? 1.0 : -1.0;
+                    double gamma = 0.5 * (
+                            aprioriLlr[k] * sysSign +
+                                    sysLlr[k] * sysSign +
+                                    parityLlr[k] * parSign
+                    );
+                    double cand = alpha[k][s] + gamma + beta[k + 1][ns];
+                    if (u == 0) m0 = Math.max(m0, cand);
+                    else m1 = Math.max(m1, cand);
+                }
+            }
+            llr[k] = m0 - m1;
+            ext[k] = llr[k] - aprioriLlr[k] - sysLlr[k];
+        }
+
+        return new TurboDecodeInternal(llr, ext);
+    }
+    private static TurboCode buildTurboCode(int k, int seed) {
+        int[][] next = new int[8][2];
+        int[][] parity = new int[8][2];
+
+        for (int state = 0; state < 8; state++) {
+            int s1 = state & 1;
+            int s2 = (state >> 1) & 1;
+            int s3 = (state >> 2) & 1;
+
+            for (int u = 0; u <= 1; u++) {
+                int feedback = u ^ s2 ^ s3;
+                int pb = feedback ^ s1 ^ s2 ^ s3;
+                int ns = feedback | (s1 << 1) | (s2 << 2);
+
+                next[state][u] = ns;
+                parity[state][u] = pb;
+            }
+        }
+
+        int[] pi = buildInterleaver(k, seed);
+        int[] inv = new int[k];
+        for (int i = 0; i < k; i++) inv[pi[i]] = i;
+
+        return new TurboCode(k, 3 * k, 1.0 / 3.0, pi, inv, next, parity);
+    }
+
+    private static int[] buildInterleaver(int size, int seed) {
+        int[] arr = new int[size];
+        for (int i = 0; i < size; i++) arr[i] = i;
+
+        long x = seed & 0xffffffffL;
+        for (int i = size - 1; i > 0; i--) {
+            x = (1664525L * x + 1013904223L) & 0xffffffffL;
+            int j = (int) (x % (i + 1));
+            int t = arr[i];
+            arr[i] = arr[j];
+            arr[j] = t;
+        }
+        return arr;
+    }
+
+    private int[] rscEncode(int[] bits, int[][] nextState, int[][] parityBit) {
+        int[] out = new int[bits.length];
+        int state = 0;
+        for (int i = 0; i < bits.length; i++) {
+            int u = bits[i] & 1;
+            out[i] = parityBit[state][u];
+            state = nextState[state][u];
+        }
+        return out;
+    }
+
+    private int[] interleaveInt(int[] v, int[] pi) {
+        int[] out = new int[v.length];
+        for (int i = 0; i < v.length; i++) out[i] = v[pi[i]];
+        return out;
+    }
+
+    private double[] interleaveDouble(double[] v, int[] pi) {
+        double[] out = new double[v.length];
+        for (int i = 0; i < v.length; i++) out[i] = v[pi[i]];
+        return out;
+    }
+
+    private double[] deinterleaveDouble(double[] v, int[] invPi) {
+        double[] out = new double[v.length];
+        for (int i = 0; i < v.length; i++) out[i] = v[invPi[i]];
+        return out;
     }
 
     private int[] encodeLdpc(int[] infoBits, LdpcCode code) {
@@ -525,5 +735,25 @@ public class CodecEngine {
     private record PolarCode(int n, int k, double rate, boolean[] infoMask) {}
 
     public record DecodeResult(int[] decodedInfo, int iterationsUsed, boolean success) {}
-    public record ActiveCode(boolean polarMode, LdpcCode ldpc, PolarCode polar, int k, int n, double rate) {}
+    private record TurboCode(
+            int k,
+            int n,
+            double rate,
+            int[] interleaver,
+            int[] inverseInterleaver,
+            int[][] nextState,
+            int[][] parityBit
+    ) {}
+
+    private record TurboDecodeInternal(double[] llr, double[] extrinsic) {}
+    public record ActiveCode(
+            boolean polarMode,
+            boolean turboMode,
+            LdpcCode ldpc,
+            PolarCode polar,
+            TurboCode turbo,
+            int k,
+            int n,
+            double rate
+    ) {}
 }

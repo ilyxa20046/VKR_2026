@@ -234,7 +234,8 @@ public class SimulationConfigProfiles {
                 "Защита · 256-QAM stress",
                 "Защита · OFDM showcase",
                 "Защита · LDPC vs Polar · LDPC ref",
-                "Защита · LDPC vs Polar · Polar ref"
+                "Защита · LDPC vs Polar · Polar ref",
+                "Защита · LDPC vs Turbo · Turbo ref"
         );
     }
 
@@ -265,8 +266,26 @@ public class SimulationConfigProfiles {
             case "Защита · OFDM showcase" -> profileDefenseOfdmShowcase();
             case "Защита · LDPC vs Polar · LDPC ref" -> profileDefenseLdpcVsPolarLdpcRef();
             case "Защита · LDPC vs Polar · Polar ref" -> profileDefenseLdpcVsPolarPolarRef();
+            case "Защита · LDPC vs Turbo · Turbo ref" -> profileDefenseLdpcVsTurboTurboRef();
             default -> profileDefenseAwgnReference();
         };
+    }
+    public SimulationConfig profileDefenseLdpcVsTurboTurboRef() {
+        SimulationConfig c = base(
+                240, 0.0, 8.0, 0.5, 260, 6, 0.85, 2026,
+                SimulationConfig.MOD_QPSK,
+                SimulationConfig.CHANNEL_AWGN,
+                SimulationConfig.PROFILE_TURBO_LTE,
+                SimulationConfig.WAVEFORM_SC,
+                SimulationConfig.SPATIAL_SISO,
+                0,
+                SimulationConfig.EQUALIZER_NONE
+        );
+        applyNrChain(c, SimulationConfig.NR_BG_AUTO, 8, false, false, false, 0, SimulationConfig.BLER_BY_BIT_MISMATCH);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 80, 6000, 0.95);
+        applyHarq(c, false, 0);
+        normalizeInfo(c);
+        return c;
     }
 
     private SimulationConfig base(

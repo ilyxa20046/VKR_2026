@@ -15,6 +15,7 @@ public class SimulationConfig {
     public static final String PROFILE_QC = "qcldpc-96-48";
     public static final String PROFILE_POLAR = "polar-128-64";
     public static final String PROFILE_5GNR_BG1 = "5gnr-bg1-z8";
+    public static final String PROFILE_TURBO_LTE = "turbo-lte";
 
     public static final String WAVEFORM_SC = "Single-carrier";
     public static final String WAVEFORM_OFDM64 = "OFDM-64";
@@ -49,6 +50,7 @@ public class SimulationConfig {
 
     public static final boolean DEFAULT_HARQ_ENABLED = false;
     public static final int DEFAULT_HARQ_MAX_RETX = 0;
+
 
     private boolean harqEnabled = DEFAULT_HARQ_ENABLED;
     private int harqMaxRetx = DEFAULT_HARQ_MAX_RETX;

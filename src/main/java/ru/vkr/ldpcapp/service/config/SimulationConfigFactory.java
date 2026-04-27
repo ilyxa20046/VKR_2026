@@ -34,7 +34,8 @@ public final class SimulationConfigFactory {
                 SimulationConfig.PROFILE_EDU,
                 SimulationConfig.PROFILE_QC,
                 SimulationConfig.PROFILE_5GNR_BG1,
-                SimulationConfig.PROFILE_POLAR
+                SimulationConfig.PROFILE_POLAR,
+                SimulationConfig.PROFILE_TURBO_LTE
         );
     }
 
@@ -164,10 +165,13 @@ public final class SimulationConfigFactory {
     }
 
     public static int getProfileInfoWordLength(String profile, int liftingSize, String nrBaseGraph) {
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) {
+            return 40; // LTE-like turbo transport segment
+        }
         if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
             int z = (liftingSize == 8 || liftingSize == 16 || liftingSize == 32) ? liftingSize : 8;
             boolean bg2 = SimulationConfig.NR_BG2.equals(nrBaseGraph);
-            int infoCols = bg2 ? 10 : 22; // BG2 vs BG1
+            int infoCols = bg2 ? 10 : 22;
             return infoCols * z;
         }
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) {
@@ -201,10 +205,11 @@ public final class SimulationConfigFactory {
     }
 
     public static double getProfileCodeRate(String profile) {
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return 1.0 / 3.0;
         if (SimulationConfig.PROFILE_EDU.equals(profile)) return 12.0 / 24.0;
         if (SimulationConfig.PROFILE_QC.equals(profile)) return 48.0 / 96.0;
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) return 64.0 / 128.0;
-        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return 22.0 / 68.0; // BG1 default
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return 22.0 / 68.0;
         return 0.5;
     }
 
@@ -235,12 +240,16 @@ public final class SimulationConfigFactory {
     }
 
     public static String getProfileFamily(String profile) {
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "4G LTE / Turbo";
         if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "3GPP NR / Base Graph";
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like / SC";
         return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-Inspired / 5G-like" : "Educational";
     }
 
     public static String getProfileDescription(String profile) {
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) {
+            return "LTE-like Turbo profile (R=1/3) for baseline comparison with NR LDPC.";
+        }
         if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
             return "5G NR-oriented profile with selectable BG1/BG2 for research scenarios.";
         }
@@ -253,6 +262,7 @@ public final class SimulationConfigFactory {
     }
 
     public static String getProfileName(String profile) {
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "Turbo LTE-like (R=1/3)";
         if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR Base Graph (selectable)";
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like (128,64)";
         return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-inspired LDPC (96,48)" : "Educational LDPC (24,12)";
@@ -273,6 +283,7 @@ public final class SimulationConfigFactory {
     }
 
     public static String getProfileUiName(String profile) {
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "4G LTE Turbo (R=1/3) · Baseline";
         if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR LDPC (BG1/BG2 selectable)";
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like (128,64) · Comparison";
         return SimulationConfig.PROFILE_QC.equals(profile)
