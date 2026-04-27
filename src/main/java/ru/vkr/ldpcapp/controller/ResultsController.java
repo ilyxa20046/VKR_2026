@@ -3,32 +3,32 @@ package ru.vkr.ldpcapp.controller;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.HBox;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import ru.vkr.ldpcapp.model.ExperimentSummary;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.BerTheoryService;
 import ru.vkr.ldpcapp.service.ChapterThreeMaterialsService;
+import ru.vkr.ldpcapp.service.ChartInteractionService;
 import ru.vkr.ldpcapp.service.CompareSession;
 import ru.vkr.ldpcapp.service.ExperimentSession;
 import ru.vkr.ldpcapp.service.ExportService;
 import ru.vkr.ldpcapp.service.ReportService;
-import ru.vkr.ldpcapp.service.ChartInteractionService;
 import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
 import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
-import ru.vkr.ldpcapp.service.BerTheoryService;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,142 +41,67 @@ public class ResultsController {
     private final ReportService reportService = new ReportService();
     private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
     private final ChapterThreeMaterialsService chapterThreeMaterialsService = new ChapterThreeMaterialsService();
+    private final ChartInteractionService chartInteractionService = new ChartInteractionService();
     private final BerTheoryService berTheoryService = new BerTheoryService();
+
     private SimulationConfig currentConfig;
     private List<ResultPoint> currentPoints = List.of();
     private String currentDetailedReport = "";
     private String currentChapterThreeMaterials = "";
 
-    @FXML
-    private Label bestBerGainLabel;
+    @FXML private Label bestBerGainLabel;
+    @FXML private Label bestBlerGainLabel;
+    @FXML private Label peakThroughputLabel;
+    @FXML private Label peakSpectralEfficiencyLabel;
+    @FXML private Label requiredSnrBerLabel;
+    @FXML private Label requiredSnrBlerLabel;
+    @FXML private Label averageIterationsLabel;
+    @FXML private Label successRatioLabel;
+    @FXML private Label averageThroughputLabel;
+    @FXML private Label averageSpectralEfficiencyLabel;
+    @FXML private Label blerCriterionLabel;
+    @FXML private Label nrChainStatusLabel;
+    @FXML private Label exportStatusLabel;
 
-    @FXML
-    private Label bestBlerGainLabel;
+    @FXML private Label resultsModulationChip;
+    @FXML private Label resultsChannelChip;
+    @FXML private Label resultsWaveformChip;
+    @FXML private Label resultsSpatialChip;
+    @FXML private Label resultsLdpcChip;
+    @FXML private Label resultsScenarioModeChip;
 
-    @FXML
-    private Label peakThroughputLabel;
+    @FXML private CheckBox defenseModeCheckBox;
+    @FXML private Label compareScenarioStatusChip;
+    @FXML private HBox defenseSummaryBox;
+    @FXML private Label defenseBerLabel;
+    @FXML private Label defenseBlerLabel;
+    @FXML private Label defenseThroughputLabel;
+    @FXML private Label defenseSnrLabel;
 
-    @FXML
-    private Label peakSpectralEfficiencyLabel;
+    @FXML private LineChart<Number, Number> berChart;
+    @FXML private LineChart<Number, Number> blerChart;
+    @FXML private LineChart<Number, Number> throughputChart;
+    @FXML private LineChart<Number, Number> spectralChart;
 
-    @FXML
-    private Label requiredSnrBerLabel;
+    @FXML private TableView<ResultPoint> resultsTable;
+    @FXML private TableColumn<ResultPoint, Number> snrColumn;
+    @FXML private TableColumn<ResultPoint, Number> berUncodedColumn;
+    @FXML private TableColumn<ResultPoint, Number> berLdpcColumn;
+    @FXML private TableColumn<ResultPoint, Number> blerUncodedColumn;
+    @FXML private TableColumn<ResultPoint, Number> blerLdpcColumn;
+    @FXML private TableColumn<ResultPoint, Number> iterationsColumn;
+    @FXML private TableColumn<ResultPoint, Number> successColumn;
+    @FXML private TableColumn<ResultPoint, Number> throughputColumn;
+    @FXML private TableColumn<ResultPoint, Number> spectralEfficiencyColumn;
 
-    @FXML
-    private Label requiredSnrBlerLabel;
-
-    @FXML
-    private Label averageIterationsLabel;
-
-    @FXML
-    private Label successRatioLabel;
-
-    @FXML
-    private Label averageThroughputLabel;
-
-    @FXML
-    private Label averageSpectralEfficiencyLabel;
-
-    @FXML
-    private Label blerCriterionLabel;
-
-    @FXML
-    private Label nrChainStatusLabel;
-
-    @FXML
-    private Label exportStatusLabel;
-
-    @FXML
-    private Label resultsModulationChip;
-
-    @FXML
-    private Label resultsChannelChip;
-
-    @FXML
-    private Label resultsWaveformChip;
-
-    @FXML
-    private Label resultsSpatialChip;
-
-    @FXML
-    private Label resultsLdpcChip;
-
-    @FXML
-    private Label resultsScenarioModeChip;
-
-    @FXML
-    private CheckBox defenseModeCheckBox;
-
-    @FXML
-    private Label compareScenarioStatusChip;
-
-    @FXML
-    private HBox defenseSummaryBox;
-
-    @FXML
-    private Label defenseBerLabel;
-
-    @FXML
-    private Label defenseBlerLabel;
-
-    @FXML
-    private Label defenseThroughputLabel;
-
-    @FXML
-    private Label defenseSnrLabel;
-
-    @FXML
-    private LineChart<Number, Number> berChart;
-
-    @FXML
-    private LineChart<Number, Number> blerChart;
-
-    @FXML
-    private TableView<ResultPoint> resultsTable;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> snrColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> berUncodedColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> berLdpcColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> blerUncodedColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> blerLdpcColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> iterationsColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> successColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> throughputColumn;
-
-    @FXML
-    private TableColumn<ResultPoint, Double> spectralEfficiencyColumn;
-
-    @FXML
-    private TextArea narrativeArea;
-
-    private final ChartInteractionService chartInteractionService = new ChartInteractionService();
-
-    @FXML
-    private LineChart<Number, Number> throughputChart;
-
-    @FXML
-    private LineChart<Number, Number> spectralChart;
+    @FXML private TextArea narrativeArea;
 
     @FXML
     public void initialize() {
         configureTable();
         updateDefenseModeState(false);
         updateCompareScenarioStatus();
+
         if (ExperimentSession.hasResults()) {
             currentConfig = ExperimentSession.getLastConfig();
             setResults(ExperimentSession.getLastResults());
@@ -188,7 +113,7 @@ public class ResultsController {
             currentConfig.setCyclicPrefix(SimulationConfigFactory.normalizeCyclicPrefix(8, currentConfig.getWaveform()));
             currentConfig.setEqualizerMode(SimulationConfig.EQUALIZER_ZF);
             loadDemoData();
-            exportStatusLabel.setText("На данный момент, открыты демонстрационные результаты.");
+            exportStatusLabel.setText("На данный момент открыты демонстрационные результаты.");
         }
     }
 
@@ -218,17 +143,17 @@ public class ResultsController {
         if (throughputChart != null) throughputChart.getData().clear();
         if (spectralChart != null) spectralChart.getData().clear();
 
-        if (points == null || points.isEmpty()) return;
+        if (points == null || points.isEmpty()) {
+            return;
+        }
 
         XYChart.Series<Number, Number> berUncodedSeries = new XYChart.Series<>();
         berUncodedSeries.setName("BER без кодирования");
-
         XYChart.Series<Number, Number> berLdpcSeries = new XYChart.Series<>();
         berLdpcSeries.setName("BER LDPC");
 
         XYChart.Series<Number, Number> blerUncodedSeries = new XYChart.Series<>();
         blerUncodedSeries.setName("BLER без кодирования");
-
         XYChart.Series<Number, Number> blerLdpcSeries = new XYChart.Series<>();
         blerLdpcSeries.setName("BLER LDPC");
 
@@ -266,7 +191,7 @@ public class ResultsController {
             maxThroughput = Math.max(maxThroughput, point.getEffectiveThroughputMbps());
             maxSpectral = Math.max(maxSpectral, point.getSpectralEfficiency());
 
-            if (isAwgn) {
+            if (isAwgn && currentConfig != null) {
                 double berTheory = berTheoryService.theoreticalBerAwgnUncoded(
                         currentConfig.getModulation(),
                         currentConfig.getSnrDomain(),
@@ -283,7 +208,6 @@ public class ResultsController {
         }
 
         blerChart.getData().setAll(blerUncodedSeries, blerLdpcSeries);
-
         if (throughputChart != null) throughputChart.getData().setAll(throughputSeries);
         if (spectralChart != null) spectralChart.getData().setAll(spectralSeries);
 
@@ -292,7 +216,6 @@ public class ResultsController {
 
         chartInteractionService.installPointTooltips(berChart, "SNR (dB)", "BER", true);
         chartInteractionService.installPointTooltips(blerChart, "SNR (dB)", "BLER", true);
-
         if (throughputChart != null) {
             chartInteractionService.installPointTooltips(throughputChart, "SNR (dB)", "Throughput (Mbps)", false);
         }
@@ -340,7 +263,6 @@ public class ResultsController {
         if (throughputChart != null) {
             NumberAxis x = (NumberAxis) throughputChart.getXAxis();
             NumberAxis y = (NumberAxis) throughputChart.getYAxis();
-
             x.setAutoRanging(false);
             x.setLowerBound(Math.floor(minSnr) - 0.5);
             x.setUpperBound(Math.ceil(maxSnr) + 0.5);
@@ -355,7 +277,6 @@ public class ResultsController {
         if (spectralChart != null) {
             NumberAxis x = (NumberAxis) spectralChart.getXAxis();
             NumberAxis y = (NumberAxis) spectralChart.getYAxis();
-
             x.setAutoRanging(false);
             x.setLowerBound(Math.floor(minSnr) - 0.5);
             x.setUpperBound(Math.ceil(maxSnr) + 0.5);
@@ -370,6 +291,7 @@ public class ResultsController {
 
     private void updateSummary(List<ResultPoint> points) {
         ExperimentSummary summary = ExperimentSummary.from(points);
+
         bestBerGainLabel.setText(formatGain(summary.getBestBerGain()));
         bestBlerGainLabel.setText(formatGain(summary.getBestBlerGain()));
         peakThroughputLabel.setText(formatThroughput(summary.getPeakThroughputMbps()));
@@ -388,16 +310,16 @@ public class ResultsController {
             resultsSpatialChip.setText(currentConfig.getSpatialMode());
             resultsLdpcChip.setText(SimulationConfigFactory.getProfileDisplayName(currentConfig.getLdpcProfile(), currentConfig.getLiftingSize()));
             resultsScenarioModeChip.setText("Канал: " + currentConfig.getChannelModel() + " / Эквалайзер: " + currentConfig.getEqualizerMode());
+
             if (blerCriterionLabel != null) {
                 blerCriterionLabel.setText(currentConfig.getBlerCriterion());
             }
             if (nrChainStatusLabel != null) {
-                nrChainStatusLabel.setText("CRC "
-                        + (currentConfig.isCrcEnabled() ? "ON" : "OFF")
-                        + " / Segm "
-                        + (currentConfig.isSegmentationEnabled() ? "ON" : "OFF")
-                        + " / RM "
-                        + (currentConfig.isRateMatchingEnabled() ? "ON" : "OFF"));
+                nrChainStatusLabel.setText(
+                        "CRC " + (currentConfig.isCrcEnabled() ? "ON" : "OFF")
+                                + " / Segm " + (currentConfig.isSegmentationEnabled() ? "ON" : "OFF")
+                                + " / RM " + (currentConfig.isRateMatchingEnabled() ? "ON" : "OFF")
+                );
             }
         }
 
@@ -424,7 +346,8 @@ public class ResultsController {
                         + System.lineSeparator()
                         + System.lineSeparator()
                         + buildConfidenceAppendix(points)
-                        + System.lineSeparator() + System.lineSeparator()
+                        + System.lineSeparator()
+                        + System.lineSeparator()
                         + buildReliabilityWarning(points)
         );
     }
@@ -507,7 +430,6 @@ public class ResultsController {
             exportStatusLabel.setText("Нет результатов для пакетного экспорта. Сначала выполните моделирование.");
             return;
         }
-
         if (currentDetailedReport == null || currentDetailedReport.isBlank()) {
             exportStatusLabel.setText("Полный отчёт недоступен. Сначала выполните моделирование.");
             return;
@@ -515,7 +437,6 @@ public class ResultsController {
 
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Выберите каталог для экспорта полного комплекта");
-
         Window window = resultsTable.getScene() != null ? resultsTable.getScene().getWindow() : null;
         File selectedDirectory = directoryChooser.showDialog(window);
         if (selectedDirectory == null) {
@@ -545,7 +466,6 @@ public class ResultsController {
             exportStatusLabel.setText("Текстовый вывод пуст. Копирование не выполнено.");
             return;
         }
-
         ClipboardContent content = new ClipboardContent();
         content.putString(text);
         Clipboard.getSystemClipboard().setContent(content);
@@ -558,7 +478,6 @@ public class ResultsController {
             exportStatusLabel.setText("Полный отчёт пока недоступен. Сначала выполните моделирование.");
             return;
         }
-
         ClipboardContent content = new ClipboardContent();
         content.putString(currentDetailedReport);
         Clipboard.getSystemClipboard().setContent(content);
@@ -598,7 +517,6 @@ public class ResultsController {
             exportStatusLabel.setText("Материалы для главы 3 недоступны. Сначала выполните моделирование.");
             return;
         }
-
         ClipboardContent content = new ClipboardContent();
         content.putString(currentChapterThreeMaterials);
         Clipboard.getSystemClipboard().setContent(content);
@@ -766,9 +684,8 @@ public class ResultsController {
     }
 
     private void updateCompareScenarioStatus() {
-        if (compareScenarioStatusChip == null) {
-            return;
-        }
+        if (compareScenarioStatusChip == null) return;
+
         compareScenarioStatusChip.getStyleClass().removeAll("compare-stage-pill-ready", "compare-stage-pill-complete");
         if (CompareSession.hasComparison()) {
             compareScenarioStatusChip.setText("Сравнение A/B готово");
@@ -782,15 +699,9 @@ public class ResultsController {
     }
 
     private String formatGain(double value) {
-        if (Double.isInfinite(value)) {
-            return "ошибки не наблюдались";
-        }
-        if (value >= 100.0) {
-            return String.format("%.0fx", value);
-        }
-        if (value >= 10.0) {
-            return String.format("%.1fx", value);
-        }
+        if (Double.isInfinite(value)) return "ошибки не наблюдались";
+        if (value >= 100.0) return String.format("%.0fx", value);
+        if (value >= 10.0) return String.format("%.1fx", value);
         return String.format("%.2fx", value);
     }
 
@@ -809,24 +720,34 @@ public class ResultsController {
     private String formatFixed(double value) {
         return String.format("%.2f", value);
     }
+
     private String buildConfidenceAppendix(List<ResultPoint> points) {
         if (points == null || points.isEmpty()) {
             return "Доверительные интервалы недоступны: нет данных.";
         }
+
         ResultPoint last = points.get(points.size() - 1);
+
+        double avgRetx = points.stream().mapToDouble(ResultPoint::getAverageRetx).average().orElse(0.0);
+        double harqSucc = points.stream().mapToDouble(ResultPoint::getHarqSuccessRatio).average().orElse(0.0);
+
         return String.format(
-                "Статистическая достоверность:%n" +
-                        "• confidence level: %.2f%n" +
-                        "• BER LDPC CI (последняя точка): [%s; %s]%n" +
-                        "• BLER LDPC CI (последняя точка): [%s; %s]%n" +
-                        "• объём выборки последней точки: %d бит, %d блоков",
+                "Статистическая достоверность:%n"
+                        + "• confidence level: %.2f%n"
+                        + "• BER LDPC CI (последняя точка): [%s; %s]%n"
+                        + "• BLER LDPC CI (последняя точка): [%s; %s]%n"
+                        + "• объём выборки последней точки: %d бит, %d блоков%n"
+                        + "• HARQ avg extra tx/codeword: %.2f%n"
+                        + "• HARQ decode success ratio: %.2f%%",
                 last.getConfidenceLevel(),
                 formatSci(last.getBerLdpcCiLow()),
                 formatSci(last.getBerLdpcCiHigh()),
                 formatSci(last.getBlerLdpcCiLow()),
                 formatSci(last.getBlerLdpcCiHigh()),
                 last.getTotalBits(),
-                last.getTotalBlocks()
+                last.getTotalBlocks(),
+                avgRetx,
+                harqSucc * 100.0
         );
     }
 
@@ -837,10 +758,12 @@ public class ResultsController {
     private double toLog10(double value) {
         return Math.log10(Math.max(1e-8, value));
     }
+
     private String buildReliabilityWarning(List<ResultPoint> points) {
         if (points == null || points.isEmpty()) {
             return "";
         }
+
         long weak = points.stream()
                 .filter(p -> p.getBitErrorsLdpc() < 20 || p.getBlockErrorsLdpc() < 20)
                 .count();

@@ -47,6 +47,12 @@ public class SimulationConfig {
     public static final int DEFAULT_MAX_BLOCKS_PER_SNR = 2000;
     public static final double DEFAULT_CONFIDENCE_LEVEL = 0.95;
 
+    public static final boolean DEFAULT_HARQ_ENABLED = false;
+    public static final int DEFAULT_HARQ_MAX_RETX = 0;
+
+    private boolean harqEnabled = DEFAULT_HARQ_ENABLED;
+    private int harqMaxRetx = DEFAULT_HARQ_MAX_RETX;
+
     private int infoBlockLength;
     private double snrStart;
     private double snrEnd;
@@ -404,5 +410,20 @@ public class SimulationConfig {
 
     public void setBlerCriterion(String blerCriterion) {
         this.blerCriterion = blerCriterion;
+    }
+    public boolean isHarqEnabled() {
+        return harqEnabled;
+    }
+
+    public void setHarqEnabled(boolean harqEnabled) {
+        this.harqEnabled = harqEnabled;
+    }
+
+    public int getHarqMaxRetx() {
+        return harqMaxRetx;
+    }
+
+    public void setHarqMaxRetx(int harqMaxRetx) {
+        this.harqMaxRetx = Math.max(0, harqMaxRetx);
     }
 }

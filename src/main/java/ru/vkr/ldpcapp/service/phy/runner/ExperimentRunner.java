@@ -47,8 +47,15 @@ public class ExperimentRunner {
         Random uncodedRandom = new Random(config.getSeed() + 1009L * (index + 1));
         Random codedRandom = new Random(config.getSeed() + 5003L * (index + 1));
 
-        double sigmaUncoded = phyMetricsEngine.sigmaFromSnrDomain(snrDb, config, 1.0);
-        double sigmaCoded = phyMetricsEngine.sigmaFromSnrDomain(snrDb, config, codeRate);
+        double ebN0Db = SimulationConfigFactory.toEbN0Db(
+                snrDb,
+                config.getSnrDomain(),
+                config.getModulation(),
+                config.getLdpcProfile()
+        );
+
+        double sigmaUncoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), 1.0);
+        double sigmaCoded = phyMetricsEngine.sigmaFromEbN0(ebN0Db, config.getModulation(), codeRate);
 
         int codewordsPerBlock = config.getInfoBlockLength() / codeK;
         int targetBlocks = config.isAdaptiveStopEnabled() ? config.getMaxBlocksPerSnr() : config.getBlocks();
@@ -59,6 +66,9 @@ public class ExperimentRunner {
         boolean rateMatchingEnabled = config.isRateMatchingEnabled();
         boolean blerByCrc = SimulationConfig.BLER_BY_CRC_FAIL.equals(config.getBlerCriterion());
 
+        boolean harqEnabled = config.isHarqEnabled();
+        int harqMaxRetx = Math.max(0, config.getHarqMaxRetx());
+
         int uncodedBitErrors = 0;
         int uncodedBlockErrors = 0;
         int codedBitErrors = 0;
@@ -66,6 +76,10 @@ public class ExperimentRunner {
         double iterationsSum = 0.0;
         int successfulCodewords = 0;
         int processedBlocks = 0;
+
+        long totalHarqExtraTx = 0L;       // дополнительные передачи сверх первой
+        long totalHarqSegments = 0L;      // число сегментов (codewords)
+        long totalHarqSuccessSegments = 0L;
 
         for (int block = 0; block < targetBlocks; block++) {
             processedBlocks++;
@@ -91,28 +105,58 @@ public class ExperimentRunner {
                 int[] encoded = codecEngine.encode(info, activeCode);
 
                 int targetE = config.getTargetCodewordLength() > 0 ? config.getTargetCodewordLength() : encoded.length;
-                int[] txBits = rateMatchingEnabled ? bitTransport.rateMatchBits(encoded, targetE) : encoded;
+                int[] txBitsBase = rateMatchingEnabled ? bitTransport.rateMatchBits(encoded, targetE) : encoded;
 
-                ChannelEngine.Transmission transmission = channelEngine.transmitBits(txBits, config, sigmaCoded, codedRandom);
-                double[] llrTx = channelEngine.demapToLlr(transmission, sigmaCoded, config);
-                double[] llr = rateMatchingEnabled ? bitTransport.rateDematchLlr(llrTx, codeN) : llrTx;
+                double[] llrAccum = null;
+                CodecEngine.DecodeResult lastDecoded = null;
+                boolean decodedSuccess = false;
+                int usedExtraTx = 0;
 
-                CodecEngine.DecodeResult decoded = codecEngine.decodeFromLlr(
-                        llr,
-                        activeCode,
-                        config.getMaxIterations(),
-                        config.getNormalization(),
-                        config.getDecoderType()
-                );
+                int attempts = harqEnabled ? (harqMaxRetx + 1) : 1;
 
-                iterationsSum += decoded.iterationsUsed();
-                if (decoded.success()) {
+                for (int txAttempt = 0; txAttempt < attempts; txAttempt++) {
+                    ChannelEngine.Transmission transmission =
+                            channelEngine.transmitBits(txBitsBase, config, sigmaCoded, codedRandom);
+
+                    double[] llrTx = channelEngine.demapToLlr(transmission, sigmaCoded, config);
+                    double[] llr = rateMatchingEnabled ? bitTransport.rateDematchLlr(llrTx, codeN) : llrTx;
+
+                    if (llrAccum == null) {
+                        llrAccum = llr.clone();
+                    } else {
+                        for (int i = 0; i < llrAccum.length; i++) {
+                            llrAccum[i] += llr[i]; // HARQ Chase Combining
+                        }
+                        usedExtraTx++;
+                    }
+
+                    lastDecoded = codecEngine.decodeFromLlr(
+                            llrAccum,
+                            activeCode,
+                            config.getMaxIterations(),
+                            config.getNormalization(),
+                            config.getDecoderType()
+                    );
+
+                    iterationsSum += lastDecoded.iterationsUsed();
+
+                    if (lastDecoded.success()) {
+                        decodedSuccess = true;
+                        break;
+                    }
+                }
+
+                totalHarqSegments++;
+                totalHarqExtraTx += usedExtraTx;
+                if (decodedSuccess) {
+                    totalHarqSuccessSegments++;
                     successfulCodewords++;
                 }
 
-                int compareLength = Math.min(rawSegment.length, decoded.decodedInfo().length);
+                // lastDecoded гарантированно не null (минимум 1 попытка)
+                int compareLength = Math.min(rawSegment.length, lastDecoded.decodedInfo().length);
                 int[] decodedSegment = new int[compareLength];
-                System.arraycopy(decoded.decodedInfo(), 0, decodedSegment, 0, compareLength);
+                System.arraycopy(lastDecoded.decodedInfo(), 0, decodedSegment, 0, compareLength);
                 decodedSegments.add(decodedSegment);
 
                 for (int i = 0; i < compareLength; i++) {
@@ -137,7 +181,7 @@ public class ExperimentRunner {
 
         int totalBlocks = Math.max(1, processedBlocks);
         int totalBits = totalBlocks * config.getInfoBlockLength();
-        int totalCodewords = totalBlocks * codewordsPerBlock;
+        int totalCodewords = Math.max(1, totalBlocks * codewordsPerBlock);
 
         double berLdpc = statsMath.safeDivide(codedBitErrors, totalBits);
         double blerLdpc = statsMath.safeDivide(codedBlockErrors, totalBlocks);
@@ -149,6 +193,9 @@ public class ExperimentRunner {
 
         StatsMath.Interval berCi = statsMath.wilsonInterval(codedBitErrors, totalBits, config.getConfidenceLevel());
         StatsMath.Interval blerCi = statsMath.wilsonInterval(codedBlockErrors, totalBlocks, config.getConfidenceLevel());
+
+        double averageRetx = totalHarqSegments == 0 ? 0.0 : (double) totalHarqExtraTx / totalHarqSegments;
+        double harqSuccessRatio = totalHarqSegments == 0 ? 0.0 : (double) totalHarqSuccessSegments / totalHarqSegments;
 
         return new ResultPoint(
                 snrDb,
@@ -168,7 +215,9 @@ public class ExperimentRunner {
                 codedBlockErrors,
                 totalBits,
                 totalBlocks,
-                config.getConfidenceLevel()
+                config.getConfidenceLevel(),
+                averageRetx,
+                harqSuccessRatio
         );
     }
 

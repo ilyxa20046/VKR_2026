@@ -22,6 +22,9 @@ public class ResultPoint {
     private final int totalBlocks;
     private final double confidenceLevel;
 
+    private final double averageRetx;
+    private final double harqSuccessRatio;
+
     public ResultPoint(
             double snr,
             double berUncoded,
@@ -36,7 +39,8 @@ public class ResultPoint {
         this(
                 snr, berUncoded, berLdpc, blerUncoded, blerLdpc,
                 averageIterations, successRatio, effectiveThroughputMbps, spectralEfficiency,
-                0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0.95
+                0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0.95,
+                0.0, 0.0
         );
     }
 
@@ -60,6 +64,37 @@ public class ResultPoint {
             int totalBlocks,
             double confidenceLevel
     ) {
+        this(
+                snr, berUncoded, berLdpc, blerUncoded, blerLdpc,
+                averageIterations, successRatio, effectiveThroughputMbps, spectralEfficiency,
+                berLdpcCiLow, berLdpcCiHigh, blerLdpcCiLow, blerLdpcCiHigh,
+                bitErrorsLdpc, blockErrorsLdpc, totalBits, totalBlocks, confidenceLevel,
+                0.0, 0.0
+        );
+    }
+
+    public ResultPoint(
+            double snr,
+            double berUncoded,
+            double berLdpc,
+            double blerUncoded,
+            double blerLdpc,
+            double averageIterations,
+            double successRatio,
+            double effectiveThroughputMbps,
+            double spectralEfficiency,
+            double berLdpcCiLow,
+            double berLdpcCiHigh,
+            double blerLdpcCiLow,
+            double blerLdpcCiHigh,
+            int bitErrorsLdpc,
+            int blockErrorsLdpc,
+            int totalBits,
+            int totalBlocks,
+            double confidenceLevel,
+            double averageRetx,
+            double harqSuccessRatio
+    ) {
         this.snr = snr;
         this.berUncoded = berUncoded;
         this.berLdpc = berLdpc;
@@ -78,6 +113,8 @@ public class ResultPoint {
         this.totalBits = totalBits;
         this.totalBlocks = totalBlocks;
         this.confidenceLevel = confidenceLevel;
+        this.averageRetx = averageRetx;
+        this.harqSuccessRatio = harqSuccessRatio;
     }
 
     public double getSnr() { return snr; }
@@ -102,4 +139,7 @@ public class ResultPoint {
     public int getTotalBits() { return totalBits; }
     public int getTotalBlocks() { return totalBlocks; }
     public double getConfidenceLevel() { return confidenceLevel; }
+
+    public double getAverageRetx() { return averageRetx; }
+    public double getHarqSuccessRatio() { return harqSuccessRatio; }
 }

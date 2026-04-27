@@ -49,126 +49,88 @@ public class SimulationController {
     private CheckBox adaptiveStopCheckBox;
     @FXML
     private ComboBox<String> snrDomainComboBox;
-
+    @FXML private CheckBox harqEnabledCheckBox;
+    @FXML private Spinner<Integer> harqMaxRetxSpinner;
     @FXML
     private VBox advancedNrChainBox;
-
     @FXML
     private ComboBox<String> nrBaseGraphComboBox;
-
     @FXML
     private ComboBox<Integer> liftingSizeComboBox;
-
     @FXML
     private CheckBox crcEnabledCheckBox;
-
     @FXML
     private ComboBox<Integer> crcBitsComboBox;
-
     @FXML
     private CheckBox segmentationEnabledCheckBox;
-
     @FXML
     private CheckBox rateMatchingEnabledCheckBox;
-
     @FXML
     private ComboBox<String> blerCriterionComboBox;
-
     @FXML
     private Spinner<Integer> targetCodewordLengthSpinner;
-
     @FXML
     private Spinner<Integer> minErrorEventsSpinner;
-
     @FXML
     private Spinner<Integer> maxBlocksPerSnrSpinner;
-
     @FXML
     private Spinner<Double> confidenceLevelSpinner;
-
     @FXML
     private VBox advancedStatisticsBox;
-
     @FXML
     private ComboBox<String> ldpcProfileComboBox;
     @FXML
     private ScrollPane simulationScrollPane;
-
     @FXML
     private ComboBox<String> modulationComboBox;
-
     @FXML
     private ComboBox<String> channelComboBox;
-
     @FXML
     private ComboBox<String> waveformComboBox;
-
     @FXML
     private ComboBox<String> spatialModeComboBox;
-
     @FXML
     private Spinner<Integer> cyclicPrefixSpinner;
-
     @FXML
     private ComboBox<String> equalizerComboBox;
-
     @FXML
     private Spinner<Integer> infoBlockSpinner;
-
     @FXML
     private Spinner<Double> snrStartSpinner;
-
     @FXML
     private Spinner<Double> snrEndSpinner;
-
     @FXML
     private Spinner<Double> snrStepSpinner;
-
     @FXML
     private Spinner<Integer> blocksSpinner;
-
     @FXML
     private Spinner<Integer> maxIterationsSpinner;
-
     @FXML
     private Spinner<Double> normalizationSpinner;
-
     @FXML
     private Spinner<Integer> seedSpinner;
-
     @FXML
     private ProgressBar simulationProgressBar;
-
     @FXML
     private Label progressLabel;
-
     @FXML
     private Label validationLabel;
-
     @FXML
     private TextArea configPreviewArea;
-
     @FXML
     private Label configFileStatusLabel;
-
     @FXML
     private Label modeStatusChip;
-
     @FXML
     private Button runButton;
-
     @FXML
     private CheckBox advancedModeCheckBox;
-
     @FXML
     private VBox advancedChannelSection;
-
     @FXML
     private VBox advancedIterationsBox;
-
     @FXML
     private VBox advancedNormalizationBox;
-
     @FXML
     private VBox advancedSeedBox;
     @FXML private ComboBox<String> decoderTypeComboBox;
@@ -250,6 +212,15 @@ public class SimulationController {
                     SimulationConfigFactory.supportedDecoderTypes()
             ));
             decoderTypeComboBox.setValue(SimulationConfig.DECODER_NMS);
+        }
+        if (harqMaxRetxSpinner != null) {
+            harqMaxRetxSpinner.setValueFactory(
+                    new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 8, SimulationConfig.DEFAULT_HARQ_MAX_RETX, 1)
+            );
+            harqMaxRetxSpinner.setEditable(true);
+        }
+        if (harqEnabledCheckBox != null) {
+            harqEnabledCheckBox.setSelected(SimulationConfig.DEFAULT_HARQ_ENABLED);
         }
 
         configureEditableSpinners();
@@ -624,6 +595,12 @@ public class SimulationController {
         if (decoderTypeComboBox != null) {
             config.setDecoderType(decoderTypeComboBox.getValue());
         }
+        if (harqEnabledCheckBox != null) {
+            config.setHarqEnabled(harqEnabledCheckBox.isSelected());
+        }
+        if (harqMaxRetxSpinner != null) {
+            config.setHarqMaxRetx(harqMaxRetxSpinner.getValue());
+        }
 
         if (!config.isRateMatchingEnabled()) {
             config.setTargetCodewordLength(0);
@@ -651,6 +628,12 @@ public class SimulationController {
         progressLabel.setText(autoRun ? "Подготовка автоматического запуска..." : "Сценарий из истории применён к форме");
         if (autoRun) {
             onRunSimulation();
+        }
+        if (harqEnabledCheckBox != null) {
+            harqEnabledCheckBox.setSelected(config.isHarqEnabled());
+        }
+        if (harqMaxRetxSpinner != null && harqMaxRetxSpinner.getValueFactory() != null) {
+            harqMaxRetxSpinner.getValueFactory().setValue(config.getHarqMaxRetx());
         }
     }
 
@@ -714,6 +697,12 @@ public class SimulationController {
         if (confidenceLevelSpinner != null) {
             confidenceLevelSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
         }
+        if (harqEnabledCheckBox != null) {
+            harqEnabledCheckBox.selectedProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
+        if (harqMaxRetxSpinner != null) {
+            harqMaxRetxSpinner.valueProperty().addListener((obs, oldValue, newValue) -> updatePreview());
+        }
     }
 
     private void attachScientificListeners() {
@@ -762,6 +751,9 @@ public class SimulationController {
         }
         if (confidenceLevelSpinner != null) {
             confidenceLevelSpinner.setEditable(true);
+        }
+        if (harqMaxRetxSpinner != null) {
+            harqMaxRetxSpinner.setEditable(true);
         }
     }
 
