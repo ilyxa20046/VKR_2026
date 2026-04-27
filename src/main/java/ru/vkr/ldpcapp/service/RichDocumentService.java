@@ -3,11 +3,12 @@ package ru.vkr.ldpcapp.service;
 import ru.vkr.ldpcapp.model.BatchScenarioResult;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFormatter;
 
 import java.util.List;
 
 public class RichDocumentService {
-
+    private final SimulationConfigFormatter configFormatter = new SimulationConfigFormatter();
     private final ReportService reportService;
     private final BatchReportService batchReportService;
     private final PresentationSummaryService presentationSummaryService;
@@ -70,10 +71,10 @@ public class RichDocumentService {
                 summary,
                 "",
                 "2. Описание сценария A",
-                leftConfig == null ? "не указано" : leftConfig.toSummaryText(),
+                leftConfig == null ? "не указано" : configFormatter.toSummaryText(leftConfig),
                 "",
                 "3. Описание сценария B",
-                rightConfig == null ? "не указано" : rightConfig.toSummaryText(),
+                rightConfig == null ? "не указано" : configFormatter.toSummaryText(rightConfig),
                 "",
                 "4. Итог для текста диплома",
                 "Этот фрагмент можно напрямую использовать в разделе сравнительного анализа главы 3, дополнив его рисунками BER(SNR), BLER(SNR) и таблицей required SNR / throughput / spectral efficiency."

@@ -4,6 +4,7 @@ import javafx.scene.chart.LineChart;
 import ru.vkr.ldpcapp.model.BatchScenarioResult;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFormatter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,6 +25,7 @@ public class ExportService {
     private final BatchReportService batchReportService;
     private final PresentationSummaryService presentationSummaryService;
     private final RichDocumentService richDocumentService;
+    private final SimulationConfigFormatter configFormatter = new SimulationConfigFormatter();
 
     public ExportService() {
         this(
@@ -301,7 +303,7 @@ public class ExportService {
                 "- manifest.txt",
                 "",
                 "Experiment parameters:",
-                config.toSummaryText(),
+                configFormatter.toSummaryText(config),
                 "",
                 "Points exported: " + (points == null ? 0 : points.size())
         );
@@ -321,7 +323,7 @@ public class ExportService {
                 "- manifest.txt",
                 "",
                 "Base configuration:",
-                baseConfig == null ? "not provided" : baseConfig.toSummaryText(),
+                baseConfig == null ? "not provided" : configFormatter.toSummaryText(baseConfig),
                 "",
                 "Scenarios exported: " + (scenarios == null ? 0 : scenarios.size())
         );

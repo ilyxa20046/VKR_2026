@@ -88,13 +88,62 @@ public final class SimulationConfigFactory {
                 : "Компактный учебный LDPC-код.";
     }
 
+    public static int normalizeInfoBlockLength(int value, String profile) {
+        int k = getProfileInfoWordLength(profile);
+        int safeValue = Math.max(k, value);
+        int blocks = (int) Math.ceil((double) safeValue / k);
+        return Math.max(k, blocks * k);
+    }
+
+    public static int getProfileInfoWordLength(String profile) {
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return 176;
+        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return 64;
+        return SimulationConfig.PROFILE_QC.equals(profile) ? 48 : 12;
+    }
+
+    public static String getProfileName(String profile) {
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR BG1 (68x46)";
+        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like (128,64)";
+        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-inspired LDPC (96,48)" : "Учебный LDPC (24,12)";
+    }
+
     public static String getProfileDisplayName(String profile, int liftingSize) {
         if (!SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
-            if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like (128,64)";
-            if (SimulationConfig.PROFILE_QC.equals(profile)) return "QC-inspired LDPC (96,48)";
-            return "Учебный LDPC (24,12)";
+            return getProfileName(profile);
         }
         int z = (liftingSize == 8 || liftingSize == 16 || liftingSize == 32) ? liftingSize : 8;
-        return "5G NR BG1 (68x46), Z=" + z + ", k=" + (22 * z);
+        int k = 22 * z;
+        return "5G NR BG1 (68x46), Z=" + z + ", k=" + k;
+    }
+
+    public static String getProfileUiName(String profile) {
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR LDPC BG1 (Z=8)";
+        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like (128,64) · Сравнение";
+        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-LDPC (96,48) · Базовый" : "Учебный LDPC (24,12)";
+    }
+
+    public static String getWaveformDisplayName(String waveform) {
+        return switch (waveform) {
+            case SimulationConfig.WAVEFORM_SC -> "Однонесущая";
+            case SimulationConfig.WAVEFORM_OFDM64 -> "OFDM-64";
+            case SimulationConfig.WAVEFORM_OFDM128 -> "OFDM-128";
+            default -> waveform;
+        };
+    }
+
+    public static String getSpatialModeDisplayName(String spatialMode) {
+        return switch (spatialMode) {
+            case SimulationConfig.SPATIAL_SISO -> "SISO (1x1)";
+            case SimulationConfig.SPATIAL_2X2 -> "Разнесение 2x2";
+            default -> spatialMode;
+        };
+    }
+
+    public static String getEqualizerDisplayName(String equalizerMode) {
+        return switch (equalizerMode) {
+            case SimulationConfig.EQUALIZER_NONE -> "Без эквализации";
+            case SimulationConfig.EQUALIZER_ZF -> "Однотактный ZF";
+            default -> equalizerMode;
+        };
     }
 }

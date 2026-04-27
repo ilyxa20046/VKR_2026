@@ -3,6 +3,8 @@ package ru.vkr.ldpcapp.service;
 import ru.vkr.ldpcapp.model.ExperimentSummary;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
 
 import java.util.List;
 import java.util.Locale;
@@ -10,6 +12,7 @@ import java.util.Locale;
 public class ChapterThreeMaterialsService {
 
     private final ReportService reportService;
+    private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
 
     public ChapterThreeMaterialsService() {
         this(new ReportService());
@@ -24,7 +27,7 @@ public class ChapterThreeMaterialsService {
             return "Материалы для главы 3 не могут быть сформированы, так как результаты моделирования отсутствуют.";
         }
 
-        SimulationConfig safeConfig = config == null ? SimulationConfig.recommendedProfile() : config;
+        SimulationConfig safeConfig = config == null ? configProfiles.recommendedProfile() : config;
         ExperimentSummary summary = ExperimentSummary.from(points);
 
         return String.join(System.lineSeparator(),
@@ -57,7 +60,7 @@ public class ChapterThreeMaterialsService {
                         + ", spatial mode " + config.getSpatialMode()
                         + ", cyclic prefix " + config.getCyclicPrefix()
                         + ", equalizer " + config.getEqualizerMode()
-                        + ", профиль " + SimulationConfig.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize()) + ".",
+                        + ", профиль " + SimulationConfigFactory.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize()) + ".",
                 "Параметры эксперимента имели следующие значения:",
                 "- длина информационного блока: " + config.getInfoBlockLength() + " бит;",
                 "- диапазон SNR: " + formatFixed(Math.min(config.getSnrStart(), config.getSnrEnd())) + " ... "
@@ -83,8 +86,8 @@ public class ChapterThreeMaterialsService {
                         + " и spatial mode " + config.getSpatialMode()
                         + ", а также итерационное soft-decision декодирование методом normalized min-sum.",
                 "После этого рассчитывались показатели BER и BLER, среднее число итераций декодирования, доля успешной сходимости декодера, effective throughput, спектральная эффективность, требуемый SNR по целевым порогам BER = 10^-3 и BLER = 10^-1, а также энергетический выигрыш кодирования.",
-                "Число исследованных точек SNR составило " + config.getSnrPointCount() + ", а суммарное количество обработанных блоков — " + config.getExperimentBlockCount() + ".",
-                "Общий оценочный объём переданной информационной последовательности составил " + config.getEstimatedInformationBits() + " бит."
+                "Число исследованных точек SNR составило " + SimulationConfigFactory.getSnrPointCount(config) + ", а суммарное количество обработанных блоков — " + SimulationConfigFactory.getExperimentBlockCount(config) + ".",
+                "Общий оценочный объём переданной информационной последовательности составил " + SimulationConfigFactory.getEstimatedInformationBits(config) + " бит."
         );
     }
 

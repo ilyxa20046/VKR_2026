@@ -22,19 +22,19 @@ import ru.vkr.ldpcapp.model.SimulationConfig;
 import ru.vkr.ldpcapp.service.CompareSession;
 import ru.vkr.ldpcapp.service.ExportService;
 import ru.vkr.ldpcapp.service.ChartInteractionService;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFormatter;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static java.util.Objects.nonNull;
-
 public class CompareController {
 
     private final ExportService exportService = new ExportService();
+    private final SimulationConfigFormatter configFormatter = new SimulationConfigFormatter();
 
     @FXML
     private Label compareStatusLabel;
@@ -147,8 +147,8 @@ public class CompareController {
         leftSpatialChip.setText(leftConfig.getSpatialMode());
         rightWaveformChip.setText(rightConfig.getWaveform());
         rightSpatialChip.setText(rightConfig.getSpatialMode());
-        leftSummaryLabel.setText(leftConfig.toSummaryText());
-        rightSummaryLabel.setText(rightConfig.toSummaryText());
+        leftSummaryLabel.setText(configFormatter.toSummaryText(leftConfig));
+        rightSummaryLabel.setText(configFormatter.toSummaryText(rightConfig));
 
         updateCharts(leftResults, rightResults);
         updateTable(leftResults, rightResults);
@@ -229,8 +229,13 @@ public class CompareController {
             rightBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerLdpc()));
         }
 
-        compareBerChart.getData().addAll(leftBerSeries, rightBerSeries, leftBerUncodedSeries, rightBerUncodedSeries);
-        compareBlerChart.getData().addAll(leftBlerSeries, rightBlerSeries);
+        compareBerChart.getData().add(leftBerSeries);
+        compareBerChart.getData().add(rightBerSeries);
+        compareBerChart.getData().add(leftBerUncodedSeries);
+        compareBerChart.getData().add(rightBerUncodedSeries);
+
+        compareBlerChart.getData().add(leftBlerSeries);
+        compareBlerChart.getData().add(rightBlerSeries);
 
         chartInteractionService.installPointTooltips(compareBerChart, "SNR (dB)", "BER", true);
         chartInteractionService.installPointTooltips(compareBlerChart, "SNR (dB)", "BLER", true);
@@ -320,7 +325,7 @@ public class CompareController {
                         "Итог:%n%s",
                 leftConfig.getModulation(),
                 leftConfig.getChannelModel(),
-                SimulationConfig.getProfileDisplayName(leftConfig.getLdpcProfile(), leftConfig.getLiftingSize()),
+                SimulationConfigFactory.getProfileDisplayName(leftConfig.getLdpcProfile(), leftConfig.getLiftingSize()),
                 formatGain(leftSummary.getBestBerGain()),
                 formatGain(leftSummary.getBestBlerGain()),
                 formatEnergy(leftSummary.getBerEnergyGainDb()),
@@ -331,7 +336,7 @@ public class CompareController {
                 formatRequiredSnr(leftSummary.getRequiredSnrBlerDb()),
                 rightConfig.getModulation(),
                 rightConfig.getChannelModel(),
-                SimulationConfig.getProfileDisplayName(rightConfig.getLdpcProfile(), rightConfig.getLiftingSize()),
+                SimulationConfigFactory.getProfileDisplayName(rightConfig.getLdpcProfile(), rightConfig.getLiftingSize()),
                 formatGain(rightSummary.getBestBerGain()),
                 formatGain(rightSummary.getBestBlerGain()),
                 formatEnergy(rightSummary.getBerEnergyGainDb()),
@@ -560,6 +565,7 @@ public class CompareController {
         }
     }
 
+    @SuppressWarnings("unused")
     public static class CompareRow {
         private final double snr;
         private final double leftBer;

@@ -3,19 +3,22 @@ package ru.vkr.ldpcapp.service;
 import ru.vkr.ldpcapp.model.ExperimentSummary;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 public class ReportService {
+    private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
 
     public String buildShortNarrative(SimulationConfig config, List<ResultPoint> points) {
         if (points == null || points.isEmpty()) {
             return "Результаты эксперимента отсутствуют. Для формирования аналитического вывода необходимо выполнить моделирование.";
         }
 
-        SimulationConfig safeConfig = config == null ? SimulationConfig.recommendedProfile() : config;
+        SimulationConfig safeConfig = config == null ? configProfiles.recommendedProfile() : config;
         ExperimentSummary summary = ExperimentSummary.from(points);
         ResultPoint bestBlerPoint = findBestBlerPoint(points);
         ResultPoint lastPoint = points.get(points.size() - 1);
@@ -33,7 +36,7 @@ public class ReportService {
                 + " / "
                 + safeConfig.getSpatialMode()
                 + " / "
-                + SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize())
+                + SimulationConfigFactory.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize())
                 + " применение LDPC-кодирования обеспечивает заметное снижение вероятности блочной ошибки по сравнению с передачей без кодирования. "
                 + "Наибольший выигрыш по BLER наблюдается вблизи SNR = "
                 + formatFixed(bestBlerPoint.getSnr())
@@ -61,7 +64,7 @@ public class ReportService {
             return "Отчёт по эксперименту не может быть сформирован, так как список результатов пуст.";
         }
 
-        SimulationConfig safeConfig = config == null ? SimulationConfig.recommendedProfile() : config;
+        SimulationConfig safeConfig = config == null ? configProfiles.recommendedProfile() : config;
         ExperimentSummary summary = ExperimentSummary.from(points);
         ResultPoint bestBerPoint = findBestBerPoint(points);
         ResultPoint bestBlerPoint = findBestBlerPoint(points);
@@ -72,8 +75,8 @@ public class ReportService {
                 "Аналитический отчёт по результатам исследовательского моделирования LDPC-кодирования",
                 "",
                 "1. Параметры эксперимента",
-                buildParameterLine("Профиль LDPC", SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize())),
-                buildParameterLine("Семейство кода", SimulationConfig.getProfileFamily(safeConfig.getLdpcProfile())),
+                buildParameterLine("Профиль LDPC", SimulationConfigFactory.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize())),
+                buildParameterLine("Семейство кода", SimulationConfigFactory.getProfileFamily(safeConfig.getLdpcProfile())),
                 buildParameterLine("Модуляция", safeConfig.getModulation()),
                 buildParameterLine("Канал", safeConfig.getChannelModel()),
                 buildParameterLine("Waveform", safeConfig.getWaveform()),

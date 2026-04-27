@@ -26,6 +26,8 @@ import ru.vkr.ldpcapp.service.ExperimentSession;
 import ru.vkr.ldpcapp.service.ExportService;
 import ru.vkr.ldpcapp.service.ReportService;
 import ru.vkr.ldpcapp.service.ChartInteractionService;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +38,7 @@ public class ResultsController {
 
     private final ExportService exportService = new ExportService();
     private final ReportService reportService = new ReportService();
+    private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
     private final ChapterThreeMaterialsService chapterThreeMaterialsService = new ChapterThreeMaterialsService();
 
     private SimulationConfig currentConfig;
@@ -178,10 +181,10 @@ public class ResultsController {
             setResults(ExperimentSession.getLastResults());
             exportStatusLabel.setText("Если в gain-метриках указано «ошибки не наблюдались», это означает отсутствие ошибок в текущей выборке эксперимента.");
         } else {
-            currentConfig = SimulationConfig.recommendedProfile();
+            currentConfig = configProfiles.recommendedProfile();
             currentConfig.setWaveform(SimulationConfig.WAVEFORM_OFDM64);
             currentConfig.setSpatialMode(SimulationConfig.SPATIAL_SISO);
-            currentConfig.setCyclicPrefix(SimulationConfig.normalizeCyclicPrefix(8, currentConfig.getWaveform()));
+            currentConfig.setCyclicPrefix(SimulationConfigFactory.normalizeCyclicPrefix(8, currentConfig.getWaveform()));
             currentConfig.setEqualizerMode(SimulationConfig.EQUALIZER_ZF);
             loadDemoData();
             exportStatusLabel.setText("На данный момент, открыты демонстрационные результаты.");
@@ -261,8 +264,11 @@ public class ResultsController {
             maxSpectral = Math.max(maxSpectral, point.getSpectralEfficiency());
         }
 
-        berChart.getData().addAll(berUncodedSeries, berLdpcSeries);
-        blerChart.getData().addAll(blerUncodedSeries, blerLdpcSeries);
+        berChart.getData().add(berUncodedSeries);
+        berChart.getData().add(berLdpcSeries);
+
+        blerChart.getData().add(blerUncodedSeries);
+        blerChart.getData().add(blerLdpcSeries);
 
         if (throughputChart != null) {
             throughputChart.getData().add(throughputSeries);
@@ -375,7 +381,7 @@ public class ResultsController {
             resultsChannelChip.setText(currentConfig.getChannelModel());
             resultsWaveformChip.setText(currentConfig.getWaveform());
             resultsSpatialChip.setText(currentConfig.getSpatialMode());
-            resultsLdpcChip.setText(SimulationConfig.getProfileDisplayName(currentConfig.getLdpcProfile(), currentConfig.getLiftingSize()));
+            resultsLdpcChip.setText(SimulationConfigFactory.getProfileDisplayName(currentConfig.getLdpcProfile(), currentConfig.getLiftingSize()));
             resultsScenarioModeChip.setText("Канал: " + currentConfig.getChannelModel() + " / Эквалайзер: " + currentConfig.getEqualizerMode());
             if (blerCriterionLabel != null) {
                 blerCriterionLabel.setText(currentConfig.getBlerCriterion());

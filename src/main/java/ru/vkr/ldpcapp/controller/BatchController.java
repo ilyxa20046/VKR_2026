@@ -26,6 +26,9 @@ import ru.vkr.ldpcapp.service.BatchService;
 import ru.vkr.ldpcapp.service.BatchSession;
 import ru.vkr.ldpcapp.service.ExperimentSession;
 import ru.vkr.ldpcapp.service.ExportService;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFormatter;
+import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -39,6 +42,8 @@ public class BatchController {
     private final BatchReportService batchReportService = new BatchReportService();
     private final ExportService exportService = new ExportService();
     private final BatchFileService batchFileService = new BatchFileService();
+    private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
+    private final SimulationConfigFormatter configFormatter = new SimulationConfigFormatter();
     private SimulationConfig currentBaseConfig;
     private List<BatchScenarioResult> currentBatchResults = new ArrayList<>();
     private BatchScenarioResult highlightedBestScenario;
@@ -176,7 +181,7 @@ public class BatchController {
 
     @FXML
     private void onUseRecommendedProfile() {
-        currentBaseConfig = SimulationConfig.recommendedProfile();
+        currentBaseConfig = configProfiles.recommendedProfile();
         updateBaseConfigPreview();
         batchStatusLabel.setText("Для пакетного анализа применён рекомендуемый исследовательский профиль.");
     }
@@ -414,7 +419,7 @@ public class BatchController {
 
         try {
             BatchFileService.BatchFileData data = batchFileService.loadBatchExperiment(file.toPath());
-            currentBaseConfig = data.baseConfig() == null ? SimulationConfig.recommendedProfile() : copyConfig(data.baseConfig());
+            currentBaseConfig = data.baseConfig() == null ? configProfiles.recommendedProfile() : copyConfig(data.baseConfig());
             updateBaseConfigPreview();
             currentBatchResults = new ArrayList<>(data.scenarios());
             BatchSession.save(currentBaseConfig, currentBatchResults);
@@ -437,7 +442,7 @@ public class BatchController {
 
     private void loadBaseConfigFromSession() {
         SimulationConfig fromSession = ExperimentSession.getLastConfig();
-        currentBaseConfig = fromSession == null ? SimulationConfig.recommendedProfile() : copyConfig(fromSession);
+        currentBaseConfig = fromSession == null ? configProfiles.recommendedProfile() : copyConfig(fromSession);
         updateBaseConfigPreview();
     }
 
@@ -450,7 +455,7 @@ public class BatchController {
         batchWaveformChip.setText(currentBaseConfig.getWaveform());
         batchSpatialChip.setText(currentBaseConfig.getSpatialMode());
 
-        String text = currentBaseConfig.toSummaryText() + String.format(
+        String text = configFormatter.toSummaryText(currentBaseConfig) + String.format(
                 Locale.US,
                 "%n%nКомбинации для пакетного анализа:%n" +
                         "• модуляции: %s%n" +
@@ -459,7 +464,9 @@ public class BatchController {
                         "• ожидаемое число сценариев: %d",
                 join(selectedModulations()),
                 join(selectedChannels()),
-                join(selectedProfiles().stream().map(SimulationConfig::getProfileName).collect(Collectors.toList())),
+                join(selectedProfiles().stream()
+                        .map(profile -> SimulationConfigFactory.getProfileName(profile))
+                        .collect(Collectors.toList())),
                 selectedModulations().size() * selectedChannels().size() * selectedProfiles().size()
         );
         batchBaseConfigArea.setText(text);

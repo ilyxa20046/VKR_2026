@@ -1,5 +1,7 @@
 package ru.vkr.ldpcapp.model;
 
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,14 +45,15 @@ public class BatchScenarioResult {
     }
 
     public String getLdpcProfileName() {
-        return SimulationConfig.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize());
+        return SimulationConfigFactory.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize());
     }
 
     private SimulationConfig copyConfig(SimulationConfig source) {
         if (source == null) {
             return null;
         }
-        return new SimulationConfig(
+
+        SimulationConfig copy = new SimulationConfig(
                 source.getInfoBlockLength(),
                 source.getSnrStart(),
                 source.getSnrEnd(),
@@ -65,7 +68,22 @@ public class BatchScenarioResult {
                 source.getWaveform(),
                 source.getSpatialMode(),
                 source.getCyclicPrefix(),
-                source.getEqualizerMode()
+                source.getEqualizerMode(),
+                source.isAdaptiveStopEnabled(),
+                source.getMinErrorEventsPerSnr(),
+                source.getMaxBlocksPerSnr(),
+                source.getConfidenceLevel()
         );
+
+        copy.setNrBaseGraph(source.getNrBaseGraph());
+        copy.setLiftingSize(source.getLiftingSize());
+        copy.setCrcEnabled(source.isCrcEnabled());
+        copy.setCrcBits(source.getCrcBits());
+        copy.setSegmentationEnabled(source.isSegmentationEnabled());
+        copy.setRateMatchingEnabled(source.isRateMatchingEnabled());
+        copy.setTargetCodewordLength(source.getTargetCodewordLength());
+        copy.setBlerCriterion(source.getBlerCriterion());
+
+        return copy;
     }
 }

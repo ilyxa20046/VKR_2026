@@ -3,6 +3,7 @@ package ru.vkr.ldpcapp.service;
 import ru.vkr.ldpcapp.model.BatchScenarioResult;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -130,7 +131,7 @@ public class BatchFileService {
         String ldpcProfile = properties.getProperty(prefix + "ldpcProfile", SimulationConfig.PROFILE_QC);
         String waveform = properties.getProperty(prefix + "waveform", SimulationConfig.WAVEFORM_OFDM64);
         String spatialMode = properties.getProperty(prefix + "spatialMode", SimulationConfig.SPATIAL_SISO);
-        int normalizedLength = SimulationConfig.normalizeInfoBlockLength(
+        int normalizedLength = SimulationConfigFactory.normalizeInfoBlockLength(
                 parseInt(properties.getProperty(prefix + "infoBlockLength", "192"), 192),
                 ldpcProfile
         );
@@ -149,7 +150,13 @@ public class BatchFileService {
                 ldpcProfile,
                 waveform,
                 spatialMode,
-                parseInt(properties.getProperty(prefix + "cyclicPrefix", String.valueOf(SimulationConfig.normalizeCyclicPrefix(0, waveform))), SimulationConfig.normalizeCyclicPrefix(0, waveform)),
+                parseInt(
+                        properties.getProperty(
+                                prefix + "cyclicPrefix",
+                                String.valueOf(SimulationConfigFactory.normalizeCyclicPrefix(0, waveform))
+                        ),
+                        SimulationConfigFactory.normalizeCyclicPrefix(0, waveform)
+                ),
                 properties.getProperty(prefix + "equalizerMode", SimulationConfig.WAVEFORM_SC.equals(waveform) ? SimulationConfig.EQUALIZER_NONE : SimulationConfig.EQUALIZER_ZF)
         );
     }

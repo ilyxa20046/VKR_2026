@@ -4,19 +4,22 @@ import ru.vkr.ldpcapp.model.BatchScenarioResult;
 import ru.vkr.ldpcapp.model.ExperimentSummary;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 public class PresentationSummaryService {
+    private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
 
     public String buildExperimentSummary(SimulationConfig config, List<ResultPoint> points) {
         if (points == null || points.isEmpty()) {
             return "Краткая презентационная сводка недоступна: сначала выполните расчёт сценария.";
         }
 
-        SimulationConfig safeConfig = config == null ? SimulationConfig.recommendedProfile() : config;
+        SimulationConfig safeConfig = config == null ? configProfiles.recommendedProfile() : config;
         ExperimentSummary summary = ExperimentSummary.from(points);
 
         return String.join(System.lineSeparator(),
@@ -25,7 +28,7 @@ public class PresentationSummaryService {
                 "Сценарий:",
                 "• modulation: " + safeConfig.getModulation(),
                 "• channel: " + safeConfig.getChannelModel(),
-                "• LDPC: " + SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()),
+                "• LDPC: " + SimulationConfigFactory.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()),
                 "• waveform: " + safeConfig.getWaveform(),
                 "• spatial mode: " + safeConfig.getSpatialMode(),
                 "",
@@ -127,7 +130,7 @@ public class PresentationSummaryService {
     }
 
     private String scenarioLine(SimulationConfig config, ExperimentSummary summary) {
-        SimulationConfig safeConfig = config == null ? SimulationConfig.recommendedProfile() : config;
+        SimulationConfig safeConfig = config == null ? configProfiles.recommendedProfile() : config;
         return safeConfig.getModulation() + ", "
                 + safeConfig.getChannelModel() + ", "
                 + safeConfig.getWaveform() + ", "

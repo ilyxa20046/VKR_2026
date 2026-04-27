@@ -3,6 +3,8 @@ package ru.vkr.ldpcapp.service;
 import ru.vkr.ldpcapp.model.ExperimentSummary;
 import ru.vkr.ldpcapp.model.ResultPoint;
 import ru.vkr.ldpcapp.model.SimulationConfig;
+import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
+import ru.vkr.ldpcapp.service.config.SimulationConfigProfiles;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -12,9 +14,10 @@ import java.util.List;
 import java.util.Locale;
 
 public class CsvWriter {
+    private final SimulationConfigProfiles configProfiles = new SimulationConfigProfiles();
 
     public String buildResultsCsv(SimulationConfig config, List<ResultPoint> points) {
-        SimulationConfig safeConfig = config != null ? config : SimulationConfig.recommendedProfile();
+        SimulationConfig safeConfig = config != null ? config : configProfiles.recommendedProfile();
         List<ResultPoint> safePoints = points != null ? points : List.of();
         ExperimentSummary summary = ExperimentSummary.from(safePoints);
 
@@ -26,11 +29,11 @@ public class CsvWriter {
         appendRow(builder, "SNR_Start_dB", formatNumber(safeConfig.getSnrStart()));
         appendRow(builder, "SNR_End_dB", formatNumber(safeConfig.getSnrEnd()));
         appendRow(builder, "SNR_Step_dB", formatNumber(safeConfig.getSnrStep()));
-        appendRow(builder, "SNR_Point_Count", Integer.toString(safeConfig.getSnrPointCount()));
+        appendRow(builder, "SNR_Point_Count", Integer.toString(SimulationConfigFactory.getSnrPointCount(safeConfig)));
         appendRow(builder, "Blocks_Per_SNR", Integer.toString(safeConfig.getBlocks()));
-        appendRow(builder, "Total_Blocks", Integer.toString(safeConfig.getExperimentBlockCount()));
-        appendRow(builder, "Estimated_Information_Bits", Integer.toString(safeConfig.getEstimatedInformationBits()));
-        appendRow(builder, "Code_Rate", formatNumber(safeConfig.getCodeRate()));
+        appendRow(builder, "Total_Blocks", Integer.toString(SimulationConfigFactory.getExperimentBlockCount(safeConfig)));
+        appendRow(builder, "Estimated_Information_Bits", Integer.toString(SimulationConfigFactory.getEstimatedInformationBits(safeConfig)));
+        appendRow(builder, "Code_Rate", formatNumber(SimulationConfigFactory.getCodeRate(safeConfig)));
         appendRow(builder, "Max_Iterations", Integer.toString(safeConfig.getMaxIterations()));
         appendRow(builder, "Normalization_Factor", formatNumber(safeConfig.getNormalization()));
         appendRow(builder, "Random_Seed", Integer.toString(safeConfig.getSeed()));
@@ -40,7 +43,7 @@ public class CsvWriter {
         appendRow(builder, "Spatial_Mode", safeConfig.getSpatialMode());
         appendRow(builder, "Equalizer", safeConfig.getEqualizerMode());
         appendRow(builder, "LDPC_Profile", safeConfig.getLdpcProfile());
-        appendRow(builder, "Coding", SimulationConfig.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()) + ", normalized min-sum");
+        appendRow(builder, "Coding", SimulationConfigFactory.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()) + ", normalized min-sum");
         appendRow(builder, "Adaptive_Stop_Enabled", Boolean.toString(safeConfig.isAdaptiveStopEnabled()));
         appendRow(builder, "Min_Error_Events_Per_SNR", Integer.toString(safeConfig.getMinErrorEventsPerSnr()));
         appendRow(builder, "Max_Blocks_Per_SNR", Integer.toString(safeConfig.getMaxBlocksPerSnr()));
