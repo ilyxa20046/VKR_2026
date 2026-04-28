@@ -10,36 +10,33 @@ public class SimulationConfigFormatter {
         return String.format(
                 Locale.US,
                 "Конфигурация эксперимента:%n" +
-                        "• профиль LDPC: %s%n" +
+                        "• профиль кодирования: %s%n" +
                         "• семейство кода: %s%n" +
                         "• модуляция: %s%n" +
-                        "• канал: %s%n" +
-                        "• waveform: %s%n" +
-                        "• spatial mode: %s%n" +
-                        "• cyclic prefix: %d%n" +
-                        "• equalizer: %s%n" +
+                        "• тип канала: %s%n" +
+                        "• форма сигнала: %s%n" +
+                        "• пространственный режим: %s%n" +
+                        "• циклический префикс: %d%n" +
+                        "• режим эквализации: %s%n" +
                         "• информационный блок: %d бит%n" +
                         "• кодовое слово: %d информационных бит на одно слово%n" +
-                        "• диапазон SNR: %.2f ... %.2f дБ с шагом %.2f дБ%n" +
+                        "• диапазон SNR: %.2f ... %.2f дБ, шаг %.2f дБ%n" +
                         "• число точек SNR: %d%n" +
-                        "• блоков на точку: %d%n" +
+                        "• блоков на точку SNR: %d%n" +
                         "• общий объём моделирования: %d блоков%n" +
                         "• оценочное число информационных бит: %d%n" +
-                        "• декодер: normalized min-sum, максимум %d итераций%n" +
+                        "• тип декодера: %s, максимум %d итераций%n" +
                         "• коэффициент нормализации: %.2f%n" +
-                        "• скорость кода: %.2f%n" +
-                        "• описание профиля: %s%n" +
-                        "• базовая скорость профиля: %.3f%n" +
-                        "• эффективная скорость (с учетом rate matching): %.3f%n" +
-                        "• MCS-like комбинация: %s%n",
-                SimulationConfigFactory.getProfileDisplayName(c.getLdpcProfile(), c.getLiftingSize()),
+                        "• скорость кода: %.3f%n" +
+                        "• описание профиля: %s%n",
+                SimulationConfigFactory.getProfileDisplayName(c.getLdpcProfile(), c.getLiftingSize(), c.getNrBaseGraph()),
                 SimulationConfigFactory.getProfileFamily(c.getLdpcProfile()),
                 c.getModulation(),
-                c.getChannelModel(),
-                c.getWaveform(),
-                c.getSpatialMode(),
+                SimulationConfigFactory.getChannelUiName(c.getChannelModel()),
+                SimulationConfigFactory.getWaveformUiName(c.getWaveform()),
+                SimulationConfigFactory.getSpatialModeUiName(c.getSpatialMode()),
                 c.getCyclicPrefix(),
-                c.getEqualizerMode(),
+                SimulationConfigFactory.getEqualizerUiName(c.getEqualizerMode()),
                 c.getInfoBlockLength(),
                 SimulationConfigFactory.getCodeInfoLength(c),
                 Math.min(c.getSnrStart(), c.getSnrEnd()),
@@ -49,13 +46,11 @@ public class SimulationConfigFormatter {
                 c.getBlocks(),
                 SimulationConfigFactory.getExperimentBlockCount(c),
                 SimulationConfigFactory.getEstimatedInformationBits(c),
+                SimulationConfigFactory.getDecoderTypeUiName(c.getDecoderType()),
                 c.getMaxIterations(),
                 c.getNormalization(),
                 SimulationConfigFactory.getCodeRate(c),
-                SimulationConfigFactory.getProfileDescription(c.getLdpcProfile()),
-                SimulationConfigFactory.getProfileCodeRate(c.getLdpcProfile(), c.getNrBaseGraph()),
-                SimulationConfigFactory.getEffectiveCodeRate(c),
-                SimulationConfigFactory.getMcsLikeLabel(c)
+                SimulationConfigFactory.getProfileDescription(c.getLdpcProfile())
         );
     }
 }

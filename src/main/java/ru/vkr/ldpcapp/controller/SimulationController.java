@@ -182,7 +182,7 @@ public class SimulationController {
             ));
             nrBaseGraphComboBox.setValue(SimulationConfig.NR_BG_AUTO);
         }
-
+        setupNrBaseGraphPresentation();
         if (liftingSizeComboBox != null) {
             liftingSizeComboBox.setItems(FXCollections.observableArrayList(8, 16, 32));
             liftingSizeComboBox.setValue(8);
@@ -195,11 +195,12 @@ public class SimulationController {
             ));
             crcBitsComboBox.setValue(SimulationConfig.CRC_NONE);
         }
+        setupCrcBitsPresentation();
         if (blerCriterionComboBox != null) {
             blerCriterionComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedBlerCriteria()));
             blerCriterionComboBox.setValue(SimulationConfig.BLER_BY_BIT_MISMATCH);
         }
-
+        setupBlerCriterionPresentation();
         if (targetCodewordLengthSpinner != null) {
             targetCodewordLengthSpinner.setValueFactory(
                     new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 50000, 0, 8)
@@ -216,6 +217,7 @@ public class SimulationController {
             ));
             decoderTypeComboBox.setValue(SimulationConfig.DECODER_NMS);
         }
+        setupDecoderTypeComboPresentation();
         if (harqMaxRetxSpinner != null) {
             harqMaxRetxSpinner.setValueFactory(
                     new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 8, SimulationConfig.DEFAULT_HARQ_MAX_RETX, 1)
@@ -1190,6 +1192,7 @@ public class SimulationController {
         modulationComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("modulation")));
         channelComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("channel")));
         waveformComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("waveform")));
+        setupWaveformComboPresentation();
         spatialModeComboBox.setTooltip(new Tooltip(parameterHelpService.getTooltip("spatial")));
         infoBlockSpinner.setTooltip(new Tooltip(parameterHelpService.getTooltip("infoBlock")));
         blocksSpinner.setTooltip(new Tooltip(parameterHelpService.getTooltip("blocks")));
@@ -1261,5 +1264,210 @@ public class SimulationController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+    private void setupWaveformComboPresentation() {
+        if (waveformComboBox == null) {
+            return;
+        }
+
+        waveformComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(String waveform) {
+                return waveform == null ? "" : SimulationConfigFactory.getWaveformUiName(waveform);
+            }
+
+            @Override
+            public String fromString(String text) {
+                if (text == null || text.isBlank()) {
+                    return null;
+                }
+                for (String item : waveformComboBox.getItems()) {
+                    if (SimulationConfigFactory.getWaveformUiName(item).equals(text)) {
+                        return item;
+                    }
+                }
+                return waveformComboBox.getValue();
+            }
+        });
+
+        waveformComboBox.setCellFactory(cb -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getWaveformUiName(item));
+            }
+        });
+
+        waveformComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getWaveformUiName(item));
+            }
+        });
+    }
+    private void setupDecoderTypeComboPresentation() {
+        if (decoderTypeComboBox == null) {
+            return;
+        }
+
+        decoderTypeComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(String value) {
+                return value == null ? "" : SimulationConfigFactory.getDecoderTypeUiName(value);
+            }
+
+            @Override
+            public String fromString(String text) {
+                if (text == null || text.isBlank()) {
+                    return null;
+                }
+                for (String item : decoderTypeComboBox.getItems()) {
+                    if (SimulationConfigFactory.getDecoderTypeUiName(item).equals(text)) {
+                        return item;
+                    }
+                }
+                return decoderTypeComboBox.getValue();
+            }
+        });
+
+        decoderTypeComboBox.setCellFactory(cb -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getDecoderTypeUiName(item));
+            }
+        });
+
+        decoderTypeComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getDecoderTypeUiName(item));
+            }
+        });
+    }
+    private void setupNrBaseGraphPresentation() {
+        if (nrBaseGraphComboBox == null) {
+            return;
+        }
+
+        nrBaseGraphComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(String value) {
+                return value == null ? "" : SimulationConfigFactory.getNrBaseGraphUiName(value);
+            }
+
+            @Override
+            public String fromString(String text) {
+                if (text == null || text.isBlank()) {
+                    return null;
+                }
+                for (String item : nrBaseGraphComboBox.getItems()) {
+                    if (SimulationConfigFactory.getNrBaseGraphUiName(item).equals(text)) {
+                        return item;
+                    }
+                }
+                return nrBaseGraphComboBox.getValue();
+            }
+        });
+
+        nrBaseGraphComboBox.setCellFactory(cb -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getNrBaseGraphUiName(item));
+            }
+        });
+
+        nrBaseGraphComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getNrBaseGraphUiName(item));
+            }
+        });
+    }
+    private void setupBlerCriterionPresentation() {
+        if (blerCriterionComboBox == null) {
+            return;
+        }
+
+        blerCriterionComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(String value) {
+                return value == null ? "" : SimulationConfigFactory.getBlerCriterionUiName(value);
+            }
+
+            @Override
+            public String fromString(String text) {
+                if (text == null || text.isBlank()) {
+                    return null;
+                }
+                for (String item : blerCriterionComboBox.getItems()) {
+                    if (SimulationConfigFactory.getBlerCriterionUiName(item).equals(text)) {
+                        return item;
+                    }
+                }
+                return blerCriterionComboBox.getValue();
+            }
+        });
+
+        blerCriterionComboBox.setCellFactory(cb -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getBlerCriterionUiName(item));
+            }
+        });
+
+        blerCriterionComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getBlerCriterionUiName(item));
+            }
+        });
+    }
+    private void setupCrcBitsPresentation() {
+        if (crcBitsComboBox == null) {
+            return;
+        }
+
+        crcBitsComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(Integer value) {
+                return value == null ? "" : SimulationConfigFactory.getCrcBitsUiName(value);
+            }
+
+            @Override
+            public Integer fromString(String text) {
+                if (text == null || text.isBlank()) {
+                    return null;
+                }
+                for (Integer item : crcBitsComboBox.getItems()) {
+                    if (SimulationConfigFactory.getCrcBitsUiName(item).equals(text)) {
+                        return item;
+                    }
+                }
+                return crcBitsComboBox.getValue();
+            }
+        });
+
+        crcBitsComboBox.setCellFactory(cb -> new ListCell<>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getCrcBitsUiName(item));
+            }
+        });
+
+        crcBitsComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : SimulationConfigFactory.getCrcBitsUiName(item));
+            }
+        });
     }
 }

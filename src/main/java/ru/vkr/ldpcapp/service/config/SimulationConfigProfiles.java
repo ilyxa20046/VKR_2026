@@ -12,7 +12,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileResearchReference() {
         SimulationConfig c = base(
-                352, 0.0, 12.0, 1.0, 220, 18, 0.80, 2025,
+                352, 0.0, 12.0, 1.0, 220, 18, 0.80, 2026,
                 SimulationConfig.MOD_QPSK,
                 SimulationConfig.CHANNEL_AWGN,
                 SimulationConfig.PROFILE_5GNR_BG1,
@@ -22,7 +22,7 @@ public class SimulationConfigProfiles {
                 SimulationConfig.EQUALIZER_ZF
         );
         applyNrChain(c, SimulationConfig.NR_BG1, 8, true, true, true, 384, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 8000, 0.95);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 2500, 0.95);
         applyHarq(c, false, 0);
         normalizeInfo(c);
         return c;
@@ -30,7 +30,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileAwgnBaseline() {
         SimulationConfig c = base(
-                352, -2.0, 14.0, 1.0, 220, 16, 0.80, 2025,
+                352, -2.0, 14.0, 1.0, 220, 16, 0.80, 2026,
                 SimulationConfig.MOD_QPSK,
                 SimulationConfig.CHANNEL_AWGN,
                 SimulationConfig.PROFILE_5GNR_BG1,
@@ -40,7 +40,7 @@ public class SimulationConfigProfiles {
                 SimulationConfig.EQUALIZER_NONE
         );
         applyNrChain(c, SimulationConfig.NR_BG1, 8, true, true, false, 0, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 7000, 0.95);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 2000, 0.95);
         applyHarq(c, false, 0);
         normalizeInfo(c);
         return c;
@@ -48,7 +48,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileRayleighOfdmBaseline() {
         SimulationConfig c = base(
-                352, 0.0, 16.0, 1.0, 240, 18, 0.80, 2025,
+                352, 0.0, 16.0, 1.0, 240, 18, 0.80, 2026,
                 SimulationConfig.MOD_QPSK,
                 SimulationConfig.CHANNEL_RAYLEIGH,
                 SimulationConfig.PROFILE_5GNR_BG1,
@@ -58,7 +58,7 @@ public class SimulationConfigProfiles {
                 SimulationConfig.EQUALIZER_ZF
         );
         applyNrChain(c, SimulationConfig.NR_BG1, 8, true, true, true, 384, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 120, 9000, 0.95);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 120, 3000, 0.95);
         applyHarq(c, false, 0);
         normalizeInfo(c);
         return c;
@@ -66,7 +66,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileDiversityRobust() {
         SimulationConfig c = base(
-                352, 0.0, 16.0, 1.0, 240, 20, 0.78, 2025,
+                352, 0.0, 16.0, 1.0, 240, 20, 0.78, 2026,
                 SimulationConfig.MOD_QPSK,
                 SimulationConfig.CHANNEL_RAYLEIGH,
                 SimulationConfig.PROFILE_5GNR_BG1,
@@ -76,7 +76,7 @@ public class SimulationConfigProfiles {
                 SimulationConfig.EQUALIZER_ZF
         );
         applyNrChain(c, SimulationConfig.NR_BG1, 8, true, true, true, 384, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 140, 10000, 0.95);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 140, 4000, 0.95);
         applyHarq(c, true, 2);
         normalizeInfo(c);
         return c;
@@ -84,7 +84,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileHighRate16Qam() {
         SimulationConfig c = base(
-                352, 4.0, 20.0, 1.0, 260, 20, 0.80, 2025,
+                352, 4.0, 20.0, 1.0, 260, 20, 0.80, 2026,
                 SimulationConfig.MOD_16QAM,
                 SimulationConfig.CHANNEL_AWGN,
                 SimulationConfig.PROFILE_5GNR_BG1,
@@ -94,7 +94,7 @@ public class SimulationConfigProfiles {
                 SimulationConfig.EQUALIZER_ZF
         );
         applyNrChain(c, SimulationConfig.NR_BG1, 16, true, true, true, 768, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 140, 10000, 0.95);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 140, 4000, 0.95);
         applyHarq(c, false, 0);
         normalizeInfo(c);
         return c;
@@ -102,7 +102,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileEducationalCalibration() {
         SimulationConfig c = base(
-                120, 0.0, 10.0, 1.0, 150, 10, 0.85, 2025,
+                120, 0.0, 10.0, 1.0, 150, 10, 0.85, 2026,
                 SimulationConfig.MOD_BPSK,
                 SimulationConfig.CHANNEL_AWGN,
                 SimulationConfig.PROFILE_EDU,
@@ -119,7 +119,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileDeepFadeOfdm() {
         SimulationConfig c = base(
-                240, 0.0, 20.0, 1.0, 280, 22, 0.78, 2025,
+                240, 0.0, 20.0, 1.0, 280, 22, 0.78, 2026,
                 SimulationConfig.MOD_256QAM,
                 SimulationConfig.CHANNEL_RAYLEIGH,
                 SimulationConfig.PROFILE_5GNR_BG1,
@@ -129,7 +129,7 @@ public class SimulationConfigProfiles {
                 SimulationConfig.EQUALIZER_ZF
         );
         applyNrChain(c, SimulationConfig.NR_BG2, 8, true, true, false, 0, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_MIN_SUM, true, 160, 12000, 0.95);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_MIN_SUM, true, 160, 5000, 0.95);
         applyHarq(c, true, 3);
         normalizeInfo(c);
         return c;
@@ -186,7 +186,7 @@ public class SimulationConfigProfiles {
 
     public SimulationConfig profileDefenseLdpcVsPolarLdpcRef() {
         SimulationConfig c = base(
-                256, 0.0, 12.0, 1.0, 220, 18, 0.80, 2025,
+                256, 0.0, 12.0, 1.0, 220, 18, 0.80, 2026,
                 SimulationConfig.MOD_QPSK,
                 SimulationConfig.CHANNEL_AWGN,
                 SimulationConfig.PROFILE_QC,
@@ -196,7 +196,7 @@ public class SimulationConfigProfiles {
                 SimulationConfig.EQUALIZER_NONE
         );
         applyNrChain(c, SimulationConfig.NR_BG_AUTO, 8, true, true, false, 0, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 8000, 0.95);
+        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 2000, 0.95);
         applyHarq(c, false, 0);
         return c;
     }

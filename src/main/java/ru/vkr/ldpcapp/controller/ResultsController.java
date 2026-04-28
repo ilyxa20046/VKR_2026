@@ -149,11 +149,13 @@ public class ResultsController {
 
         XYChart.Series<Number, Number> berUncodedSeries = new XYChart.Series<>();
         berUncodedSeries.setName("BER без кодирования");
+
         XYChart.Series<Number, Number> berLdpcSeries = new XYChart.Series<>();
         berLdpcSeries.setName("BER LDPC");
 
         XYChart.Series<Number, Number> blerUncodedSeries = new XYChart.Series<>();
         blerUncodedSeries.setName("BLER без кодирования");
+
         XYChart.Series<Number, Number> blerLdpcSeries = new XYChart.Series<>();
         blerLdpcSeries.setName("BLER LDPC");
 
@@ -165,6 +167,12 @@ public class ResultsController {
 
         XYChart.Series<Number, Number> berTheorySeries = new XYChart.Series<>();
         berTheorySeries.setName("BER теория (AWGN, uncoded)");
+
+        XYChart.Series<Number, Number> berBpskTheorySeries = new XYChart.Series<>();
+        berBpskTheorySeries.setName("BER теория BPSK (AWGN, Q-функция)");
+
+        XYChart.Series<Number, Number> shannonBoundSeries = new XYChart.Series<>();
+        shannonBoundSeries.setName("Граница Шеннона (R)");
 
         boolean isAwgn = currentConfig != null
                 && SimulationConfig.CHANNEL_AWGN.equals(currentConfig.getChannelModel());
@@ -181,10 +189,8 @@ public class ResultsController {
 
             berUncodedSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBerUncoded())));
             berLdpcSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBerLdpc())));
-
             blerUncodedSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBlerUncoded())));
             blerLdpcSeries.getData().add(new XYChart.Data<>(snr, toLog10(point.getBlerLdpc())));
-
             throughputSeries.getData().add(new XYChart.Data<>(snr, point.getEffectiveThroughputMbps()));
             spectralSeries.getData().add(new XYChart.Data<>(snr, point.getSpectralEfficiency()));
 
@@ -201,8 +207,37 @@ public class ResultsController {
             }
         }
 
+        if (isAwgn && currentConfig != null) {
+            // BPSK Q-curve (reference) over x-range
+            double step = 0.25;
+            for (double snr = minSnr; snr <= maxSnr + 1e-9; snr += step) {
+                double ebN0DbForBpsk = snr; // for BPSK reference
+                double berBpsk = berTheoryService.theoreticalBerBpskAwgnFromEbN0(ebN0DbForBpsk);
+                berBpskTheorySeries.getData().add(new XYChart.Data<>(snr, toLog10(berBpsk)));
+            }
+
+            // Shannon bound for current code rate as vertical line
+            double codeRate = SimulationConfigFactory.getCodeRate(currentConfig);
+            double shEbN0Db = berTheoryService.shannonLimitEbN0Db(codeRate);
+            double shX = berTheoryService.convertEbN0ToSnrDomain(
+                    shEbN0Db,
+                    currentConfig.getSnrDomain(),
+                    currentConfig.getModulation(),
+                    codeRate
+            );
+
+            shannonBoundSeries.getData().add(new XYChart.Data<>(shX, -6.0));
+            shannonBoundSeries.getData().add(new XYChart.Data<>(shX, 0.0));
+        }
+
         if (isAwgn) {
-            berChart.getData().setAll(berUncodedSeries, berLdpcSeries, berTheorySeries);
+            berChart.getData().setAll(
+                    berUncodedSeries,
+                    berLdpcSeries,
+                    berTheorySeries,
+                    berBpskTheorySeries,
+                    shannonBoundSeries
+            );
         } else {
             berChart.getData().setAll(berUncodedSeries, berLdpcSeries);
         }
@@ -357,8 +392,8 @@ public class ResultsController {
         boolean enabled = defenseModeCheckBox != null && defenseModeCheckBox.isSelected();
         updateDefenseModeState(enabled);
         exportStatusLabel.setText(enabled
-                ? "Режим защиты включён: акцент на крупных KPI и демонстрационных итогах."
-                : "Режим защиты выключен: доступен полный аналитический режим.");
+                ? "Режим демонстрации включён: акцент на крупных KPI и демонстрационных итогах."
+                : "Режим демонстрации выключен: доступен полный аналитический режим.");
     }
 
     @FXML

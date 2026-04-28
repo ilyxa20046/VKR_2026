@@ -2399,3 +2399,21 @@
     -fx-background-color: #f59e0b, white;
     -fx-background-insets: 0, 2;
 }
+/* BER chart series styles:
+0 - BER uncoded
+1 - BER LDPC
+2 - BER theory (current uncoded)
+3 - BER BPSK Q-theory
+4 - Shannon bound
+*/
+
+#berChart .default-color3.chart-series-line {
+    -fx-stroke: #00bcd4;
+    -fx-stroke-width: 2px;
+}
+
+#berChart .default-color4.chart-series-line {
+    -fx-stroke: #ff5252;
+    -fx-stroke-width: 2.2px;
+    -fx-stroke-dash-array: 10 6;
+}

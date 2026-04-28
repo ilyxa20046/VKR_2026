@@ -240,32 +240,32 @@ public final class SimulationConfigFactory {
     }
 
     public static String getProfileFamily(String profile) {
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "3GPP NR / Базовый граф";
+        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-подобный / SC";
         if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "4G LTE / Turbo";
-        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "3GPP NR / Base Graph";
-        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like / SC";
-        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-Inspired / 5G-like" : "Educational";
+        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-подобный / 5G-like" : "Учебный";
     }
 
     public static String getProfileDescription(String profile) {
-        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) {
-            return "LTE-like Turbo profile (R=1/3) for baseline comparison with NR LDPC.";
-        }
         if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
-            return "5G NR-oriented profile with selectable BG1/BG2 for research scenarios.";
+            return "Профиль, ориентированный на 5G NR, с выбором базового графа BG1/BG2 для исследовательских сценариев.";
         }
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) {
-            return "Simplified Polar-like profile (N=128, K=64).";
+            return "Упрощенный Polar-подобный профиль (N=128, K=64).";
+        }
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) {
+            return "Turbo-профиль, соответствующий подходу 4G LTE (R=1/3), для сравнения с 5G NR LDPC.";
         }
         return SimulationConfig.PROFILE_QC.equals(profile)
-                ? "Longer quasi-cyclic inspired LDPC profile."
-                : "Compact educational LDPC profile.";
+                ? "Удлиненный квазициклический LDPC-профиль."
+                : "Компактный учебный LDPC-профиль.";
     }
 
     public static String getProfileName(String profile) {
-        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "Turbo LTE-like (R=1/3)";
-        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR Base Graph (selectable)";
-        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like (128,64)";
-        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-inspired LDPC (96,48)" : "Educational LDPC (24,12)";
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR LDPC (выбрать BG1/BG2)";
+        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-подобный (128,64)";
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "Turbo LTE-подобный (R=1/3)";
+        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-подобный LDPC (96,48)" : "Учебный LDPC (24,12)";
     }
 
     public static String getProfileDisplayName(String profile, int liftingSize) {
@@ -283,12 +283,12 @@ public final class SimulationConfigFactory {
     }
 
     public static String getProfileUiName(String profile) {
-        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "4G LTE Turbo (R=1/3) · Baseline";
-        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR LDPC (BG1/BG2 selectable)";
-        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-like (128,64) · Comparison";
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR LDPC (выбрать BG1/BG2)";
+        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-подобный (128,64) · Сравнение";
+        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "4G LTE Turbo (R=1/3) · Базовый";
         return SimulationConfig.PROFILE_QC.equals(profile)
-                ? "QC-LDPC (96,48) · Baseline"
-                : "Educational LDPC (24,12)";
+                ? "QC-LDPC (96,48) · Базовый"
+                : "Учебный LDPC (24,12)";
     }
     public static List<Double> supportedRateComparisons() {
         return List.of(1.0 / 3.0, 1.0 / 2.0, 2.0 / 3.0, 5.0 / 6.0);
@@ -323,28 +323,82 @@ public final class SimulationConfigFactory {
         return c.getModulation() + " @ R=" + formatRate(getEffectiveCodeRate(c));
     }
 
-    public static String getWaveformDisplayName(String waveform) {
+    public static String getWaveformUiName(String waveform) {
         return switch (waveform) {
-            case SimulationConfig.WAVEFORM_SC -> "Single-carrier";
+            case SimulationConfig.WAVEFORM_SC -> "Однонесущая";
             case SimulationConfig.WAVEFORM_OFDM64 -> "OFDM-64";
             case SimulationConfig.WAVEFORM_OFDM128 -> "OFDM-128";
             default -> waveform;
         };
     }
+    public static String getDecoderTypeUiName(String decoderType) {
+        return switch (decoderType) {
+            case SimulationConfig.DECODER_SUM_PRODUCT -> "Сумма-произведение";
+            case SimulationConfig.DECODER_MIN_SUM -> "минимум-сумма";
+            case SimulationConfig.DECODER_NMS -> "Нормализованная минимум-сумма";
+            default -> decoderType;
+        };
+    }
+    public static String getNrBaseGraphUiName(String bg) {
+        return switch (bg) {
+            case SimulationConfig.NR_BG_AUTO -> "Автоматический выбор";
+            case SimulationConfig.NR_BG1 -> "BG1";
+            case SimulationConfig.NR_BG2 -> "BG2";
+            default -> bg;
+        };
+    }
 
-    public static String getSpatialModeDisplayName(String spatialMode) {
+    public static String getBlerCriterionUiName(String criterion) {
+        return switch (criterion) {
+            case SimulationConfig.BLER_BY_BIT_MISMATCH -> "Несовпадение битов";
+            case SimulationConfig.BLER_BY_CRC_FAIL -> "Ошибка CRC";
+            default -> criterion;
+        };
+    }
+
+    public static String getModulationUiName(String modulation) {
+        return switch (modulation) {
+            case SimulationConfig.MOD_BPSK -> "BPSK";
+            case SimulationConfig.MOD_QPSK -> "QPSK";
+            case SimulationConfig.MOD_16QAM -> "16-QAM";
+            case SimulationConfig.MOD_64QAM -> "64-QAM";
+            case SimulationConfig.MOD_256QAM -> "256-QAM";
+            default -> modulation;
+        };
+    }
+
+    public static String getChannelUiName(String channel) {
+        return switch (channel) {
+            case SimulationConfig.CHANNEL_AWGN -> "AWGN";
+            case SimulationConfig.CHANNEL_RAYLEIGH -> "Рэлеевский канал";
+            default -> channel;
+        };
+    }
+    public static String getEqualizerUiName(String equalizerMode) {
+        return switch (equalizerMode) {
+            case SimulationConfig.EQUALIZER_NONE -> "Без эквализации";
+            case SimulationConfig.EQUALIZER_ZF -> "Однотактный ZF";
+            default -> equalizerMode;
+        };
+    }
+    public static String getSpatialModeUiName(String spatialMode) {
         return switch (spatialMode) {
-            case SimulationConfig.SPATIAL_SISO -> "SISO (1x1)";
-            case SimulationConfig.SPATIAL_2X2 -> "2x2 diversity";
+            case SimulationConfig.SPATIAL_SISO -> "SISO";
+            case SimulationConfig.SPATIAL_2X2 -> "2x2 (разнесение)";
             default -> spatialMode;
         };
     }
 
-    public static String getEqualizerDisplayName(String equalizerMode) {
-        return switch (equalizerMode) {
-            case SimulationConfig.EQUALIZER_NONE -> "No equalization";
-            case SimulationConfig.EQUALIZER_ZF -> "One-tap ZF";
-            default -> equalizerMode;
+    public static String getSnrDomainUiName(String domain) {
+        return switch (domain) {
+            case SimulationConfig.SNR_DOMAIN_EB_N0 -> "Eb/N0";
+            case SimulationConfig.SNR_DOMAIN_ES_N0 -> "Es/N0";
+            default -> domain;
         };
+    }
+
+    public static String getCrcBitsUiName(Integer bits) {
+        if (bits == null) return "";
+        return bits == 0 ? "Без CRC" : "CRC-" + bits;
     }
 }

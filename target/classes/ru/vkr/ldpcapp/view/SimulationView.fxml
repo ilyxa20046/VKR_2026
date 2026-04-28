@@ -126,13 +126,13 @@
 
                                                 <VBox fx:id="advancedNormalizationBox" spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
                                                     <children>
-                                                        <Label styleClass="field-label" text="Коэффициент normalizing factor" />
+                                                        <Label styleClass="field-label" text="Коэффициент нормализации (NMS)" />
                                                         <Spinner fx:id="normalizationSpinner" maxWidth="Infinity" />
                                                     </children>
                                                 </VBox>
                                                 <VBox fx:id="advancedSeedBox" spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
                                                     <children>
-                                                        <Label styleClass="field-label" text="Seed генератора" />
+                                                        <Label styleClass="field-label" text="Значение генератора случайных чисел" />
                                                         <Spinner fx:id="seedSpinner" maxWidth="Infinity" />
                                                     </children>
                                                 </VBox>
@@ -207,19 +207,19 @@
 
                                 <VBox fx:id="advancedNrChainBox" spacing="8.0" styleClass="panel-card compact-card">
                                     <children>
-                                        <Label text="NR chain (TS 38.212-like)" styleClass="panel-title" />
+                                        <Label text="Цепочка NR (TS 38.212)" styleClass="panel-title" />
 
                                         <HBox spacing="10.0">
                                             <children>
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="Base graph" styleClass="dashboard-bullet" />
+                                                        <Label text="Базовый граф" styleClass="dashboard-bullet" />
                                                         <ComboBox fx:id="nrBaseGraphComboBox" prefWidth="220.0" />
                                                     </children>
                                                 </VBox>
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="Lifting size Z" styleClass="dashboard-bullet" />
+                                                        <Label text="Коэффициент подъема Z" styleClass="dashboard-bullet" />
                                                         <ComboBox fx:id="liftingSizeComboBox" prefWidth="220.0" />
                                                     </children>
                                                 </VBox>
@@ -228,9 +228,9 @@
 
                                         <HBox spacing="14.0">
                                             <children>
-                                                <CheckBox fx:id="crcEnabledCheckBox" text="CRC" />
-                                                <CheckBox fx:id="segmentationEnabledCheckBox" text="Segmentation" />
-                                                <CheckBox fx:id="rateMatchingEnabledCheckBox" text="Rate matching" />
+                                                <CheckBox fx:id="crcEnabledCheckBox" text="Контрольная сумма (CRC)" />
+                                                <CheckBox fx:id="segmentationEnabledCheckBox" text="Сегментация" />
+                                                <CheckBox fx:id="rateMatchingEnabledCheckBox" text="Согласование скорости" />
                                             </children>
                                         </HBox>
 
@@ -238,13 +238,13 @@
                                             <children>
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="CRC bits" styleClass="dashboard-bullet" />
+                                                        <Label text="Разрядность CRC" styleClass="dashboard-bullet" />
                                                         <ComboBox fx:id="crcBitsComboBox" prefWidth="220.0" />
                                                     </children>
                                                 </VBox>
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="BLER criterion" styleClass="dashboard-bullet" />
+                                                        <Label text="Критерий BLER" styleClass="dashboard-bullet" />
                                                         <ComboBox fx:id="blerCriterionComboBox" prefWidth="220.0" />
                                                     </children>
                                                 </VBox>
@@ -255,7 +255,7 @@
                                             <children>
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="Target codeword length (E)" styleClass="dashboard-bullet" />
+                                                        <Label text="Целевая длина кодового слова (E)" styleClass="dashboard-bullet" />
                                                         <Spinner fx:id="targetCodewordLengthSpinner" prefWidth="220.0" />
                                                     </children>
                                                 </VBox>
@@ -266,21 +266,21 @@
                                             <children>
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="Rate preset (MCS-like)" styleClass="dashboard-bullet" />
+                                                        <Label text="Предустановка скорости (MCS)" styleClass="dashboard-bullet" />
                                                         <ComboBox fx:id="ratePresetComboBox" onAction="#onApplyRatePreset" prefWidth="220.0" />
                                                     </children>
                                                 </VBox>
 
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="Effective code rate" styleClass="dashboard-bullet" />
+                                                        <Label text="Эффективная скорость кода" styleClass="dashboard-bullet" />
                                                         <Label fx:id="effectiveRateValueLabel" text="R=0.500" />
                                                     </children>
                                                 </VBox>
 
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="MCS-like label" styleClass="dashboard-bullet" />
+                                                        <Label text="MCS-подобная метка" styleClass="dashboard-bullet" />
                                                         <Label fx:id="mcsLikeValueLabel" text="QPSK @ R=0.500" wrapText="true" />
                                                     </children>
                                                 </VBox>
@@ -330,7 +330,7 @@
                                     <children>
                                         <Label styleClass="panel-title" text="Статистические параметры" />
 
-                                        <CheckBox fx:id="adaptiveStopCheckBox" text="Adaptive stop" />
+                                        <CheckBox fx:id="adaptiveStopCheckBox" text="Адаптивная остановка" />
 
                                         <GridPane hgap="14.0" vgap="14.0">
                                             <columnConstraints>
@@ -340,19 +340,19 @@
                                             <children>
                                                 <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                                     <children>
-                                                        <Label styleClass="field-label" text="Min error events / SNR" />
+                                                        <Label styleClass="field-label" text="Минимум ошибок на точку SNR" />
                                                         <Spinner fx:id="minErrorEventsSpinner" maxWidth="Infinity" />
                                                     </children>
                                                 </VBox>
                                                 <VBox spacing="6.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                                     <children>
-                                                        <Label styleClass="field-label" text="Max blocks / SNR" />
+                                                        <Label styleClass="field-label" text="Максимум блоков на точку SNR" />
                                                         <Spinner fx:id="maxBlocksPerSnrSpinner" maxWidth="Infinity" />
                                                     </children>
                                                 </VBox>
                                                 <VBox spacing="6.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                                                     <children>
-                                                        <Label styleClass="field-label" text="Confidence level" />
+                                                        <Label styleClass="field-label" text="Уровень доверия (дов. интервалы BER/BLER)" />
                                                         <Spinner fx:id="confidenceLevelSpinner" maxWidth="Infinity" />
                                                     </children>
                                                 </VBox>
