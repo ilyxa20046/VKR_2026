@@ -66,14 +66,14 @@
                 </VBox>
                 <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-blue">
                     <children>
-                        <Label styleClass="defense-kpi-label" text="Peak throughput" />
+                        <Label styleClass="defense-kpi-label" text="Пиковая полезная скорость" />
                         <Label fx:id="defenseThroughputLabel" styleClass="defense-kpi-value" text="—" />
                         <Label styleClass="defense-kpi-meta" text="Лучший сценарий по полезной пропускной способности" wrapText="true" />
                     </children>
                 </VBox>
                 <VBox HBox.hgrow="ALWAYS" spacing="6.0" styleClass="defense-kpi defense-kpi-mint">
                     <children>
-                        <Label styleClass="defense-kpi-label" text="Peak spectral efficiency" />
+                        <Label styleClass="defense-kpi-label" text="Пиковая спектральная эффективность" />
                         <Label fx:id="defenseSpectralLabel" styleClass="defense-kpi-value" text="—" />
                         <Label styleClass="defense-kpi-meta" text="Лучший сценарий по спектральной эффективности" wrapText="true" />
                     </children>
@@ -203,20 +203,20 @@
                         <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
                         <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица сравнения по точкам SNR" />
-                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Позволяет сравнить BER/BLER, throughput и spectral efficiency сценариев A и B по каждой точке SNR." wrapText="true" />
+                        <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Позволяет сравнить BER/BLER, полезную скорость и спектральную эффективность сценариев A и B в каждой точке SNR." wrapText="true" />
                     </children>
                 </GridPane>
                 <TableView fx:id="compareTable" styleClass="results-data-table results-data-table-elevated" prefHeight="330.0">
                     <columns>
-                        <TableColumn fx:id="snrColumn" prefWidth="70.0" text="SNR" />
+                        <TableColumn fx:id="snrColumn" prefWidth="70.0" text="SNR, дБ" />
                         <TableColumn fx:id="leftBerColumn" prefWidth="95.0" text="BER A" />
                         <TableColumn fx:id="rightBerColumn" prefWidth="95.0" text="BER B" />
                         <TableColumn fx:id="leftBlerColumn" prefWidth="95.0" text="BLER A" />
                         <TableColumn fx:id="rightBlerColumn" prefWidth="95.0" text="BLER B" />
-                        <TableColumn fx:id="leftThroughputColumn" prefWidth="120.0" text="Thr A" />
-                        <TableColumn fx:id="rightThroughputColumn" prefWidth="120.0" text="Thr B" />
-                        <TableColumn fx:id="leftSpectralColumn" prefWidth="120.0" text="SE A" />
-                        <TableColumn fx:id="rightSpectralColumn" prefWidth="120.0" text="SE B" />
+                        <TableColumn fx:id="leftThroughputColumn" prefWidth="120.0" text="Полезн. скорость A" />
+                        <TableColumn fx:id="rightThroughputColumn" prefWidth="120.0" text="Полезн. скорость B" />
+                        <TableColumn fx:id="leftSpectralColumn" prefWidth="120.0" text="Спектр. эфф. A" />
+                        <TableColumn fx:id="rightSpectralColumn" prefWidth="120.0" text="Спектр. эфф. B" />
                     </columns>
                 </TableView>
             </children>

@@ -68,6 +68,17 @@ public class BatchController {
 
     @FXML
     private CheckBox qcProfileCheckBox;
+    @FXML private CheckBox qam64CheckBox;
+    @FXML private CheckBox qam256CheckBox;
+
+    @FXML private CheckBox nrProfileCheckBox;
+    @FXML private CheckBox turboProfileCheckBox;
+    @FXML private CheckBox polarProfileCheckBox;
+
+    @FXML private CheckBox rateR13CheckBox;
+    @FXML private CheckBox rateR12CheckBox;
+    @FXML private CheckBox rateR23CheckBox;
+    @FXML private CheckBox rateR56CheckBox;
 
     @FXML
     private TextArea batchBaseConfigArea;
@@ -196,9 +207,11 @@ public class BatchController {
         List<String> modulations = selectedModulations();
         List<String> channels = selectedChannels();
         List<String> profiles = selectedProfiles();
+        List<Double> rates = selectedRates();
 
         try {
-            Task<List<BatchScenarioResult>> task = batchService.createTask(currentBaseConfig, modulations, channels, profiles);
+            Task<List<BatchScenarioResult>> task =
+                    batchService.createTask(currentBaseConfig, modulations, channels, profiles, rates);
             batchRunButton.setDisable(true);
             batchProgressBar.progressProperty().unbind();
             batchProgressBar.progressProperty().bind(task.progressProperty());
@@ -434,10 +447,22 @@ public class BatchController {
         bpskCheckBox.setSelected(false);
         qpskCheckBox.setSelected(true);
         qam16CheckBox.setSelected(true);
+        qam64CheckBox.setSelected(false);
+        qam256CheckBox.setSelected(false);
+
         awgnCheckBox.setSelected(true);
         rayleighCheckBox.setSelected(true);
+
         educationalProfileCheckBox.setSelected(false);
         qcProfileCheckBox.setSelected(true);
+        nrProfileCheckBox.setSelected(true);
+        turboProfileCheckBox.setSelected(true);
+        polarProfileCheckBox.setSelected(false);
+
+        rateR13CheckBox.setSelected(false);
+        rateR12CheckBox.setSelected(true);
+        rateR23CheckBox.setSelected(false);
+        rateR56CheckBox.setSelected(false);
     }
 
     private void loadBaseConfigFromSession() {
@@ -452,22 +477,43 @@ public class BatchController {
             return;
         }
 
-        batchWaveformChip.setText(currentBaseConfig.getWaveform());
-        batchSpatialChip.setText(currentBaseConfig.getSpatialMode());
+        batchWaveformChip.setText(SimulationConfigFactory.getWaveformUiName(currentBaseConfig.getWaveform()));
+        batchSpatialChip.setText(SimulationConfigFactory.getSpatialModeUiName(currentBaseConfig.getSpatialMode()));
+
+        List<String> modulationUi = selectedModulations().stream()
+                .map(SimulationConfigFactory::getModulationUiName)
+                .collect(Collectors.toList());
+
+        List<String> channelUi = selectedChannels().stream()
+                .map(SimulationConfigFactory::getChannelUiName)
+                .collect(Collectors.toList());
+
+        List<String> profileUi = selectedProfiles().stream()
+                .map(SimulationConfigFactory::getProfileUiName)
+                .collect(Collectors.toList());
+
+        List<String> rateUi = selectedRates().stream()
+                .map(r -> "R=" + SimulationConfigFactory.formatRate(r))
+                .collect(Collectors.toList());
+
+        int scenarioCount = selectedModulations().size()
+                * selectedChannels().size()
+                * selectedProfiles().size()
+                * Math.max(1, selectedRates().size());
 
         String text = configFormatter.toSummaryText(currentBaseConfig) + String.format(
                 Locale.US,
                 "%n%nКомбинации для пакетного анализа:%n" +
                         "• модуляции: %s%n" +
                         "• каналы: %s%n" +
-                        "• LDPC-профили: %s%n" +
+                        "• профили кодирования: %s%n" +
+                        "• скорости кода: %s%n" +
                         "• ожидаемое число сценариев: %d",
-                join(selectedModulations()),
-                join(selectedChannels()),
-                join(selectedProfiles().stream()
-                        .map(profile -> SimulationConfigFactory.getProfileName(profile))
-                        .collect(Collectors.toList())),
-                selectedModulations().size() * selectedChannels().size() * selectedProfiles().size()
+                join(modulationUi),
+                join(channelUi),
+                join(profileUi),
+                join(rateUi),
+                scenarioCount
         );
         batchBaseConfigArea.setText(text);
     }
@@ -490,9 +536,15 @@ public class BatchController {
                 }
             }
         });
-        modulationColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getModulation()));
-        channelColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getChannel()));
-        profileColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getLdpcProfileName()));
+        modulationColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(SimulationConfigFactory.getModulationUiName(cell.getValue().getModulation()))
+        );
+        channelColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(SimulationConfigFactory.getChannelUiName(cell.getValue().getChannel()))
+        );
+        profileColumn.setCellValueFactory(cell ->
+                new ReadOnlyStringWrapper(SimulationConfigFactory.getProfileUiName(cell.getValue().getConfig().getLdpcProfile()))
+        );
         bestBerGainColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatGain(cell.getValue().getSummary().getBestBerGain())));
         bestBlerGainColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatGain(cell.getValue().getSummary().getBestBlerGain())));
         berEnergyGainColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(formatDb(cell.getValue().getSummary().getBerEnergyGainDb())));
@@ -572,6 +624,8 @@ public class BatchController {
         if (bpskCheckBox.isSelected()) values.add(SimulationConfig.MOD_BPSK);
         if (qpskCheckBox.isSelected()) values.add(SimulationConfig.MOD_QPSK);
         if (qam16CheckBox.isSelected()) values.add(SimulationConfig.MOD_16QAM);
+        if (qam64CheckBox.isSelected()) values.add(SimulationConfig.MOD_64QAM);
+        if (qam256CheckBox.isSelected()) values.add(SimulationConfig.MOD_256QAM);
         return values;
     }
 
@@ -586,6 +640,17 @@ public class BatchController {
         List<String> values = new ArrayList<>();
         if (educationalProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_EDU);
         if (qcProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_QC);
+        if (nrProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_5GNR_BG1);
+        if (turboProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_TURBO_LTE);
+        if (polarProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_POLAR);
+        return values;
+    }
+    private List<Double> selectedRates() {
+        List<Double> values = new ArrayList<>();
+        if (rateR13CheckBox.isSelected()) values.add(1.0 / 3.0);
+        if (rateR12CheckBox.isSelected()) values.add(1.0 / 2.0);
+        if (rateR23CheckBox.isSelected()) values.add(2.0 / 3.0);
+        if (rateR56CheckBox.isSelected()) values.add(5.0 / 6.0);
         return values;
     }
 
@@ -685,7 +750,11 @@ public class BatchController {
                 .min(Double::compareTo)
                 .orElse(null);
 
-        defenseWinnerLabel.setText(winner.getModulation() + " · " + winner.getChannel() + " · " + winner.getConfig().getWaveform());
+        defenseWinnerLabel.setText(
+                SimulationConfigFactory.getModulationUiName(winner.getModulation()) + " · " +
+                        SimulationConfigFactory.getChannelUiName(winner.getChannel()) + " · " +
+                        SimulationConfigFactory.getWaveformUiName(winner.getConfig().getWaveform())
+        );
         defenseThroughputLabel.setText(formatThroughput(maxThroughput));
         defenseSpectralLabel.setText(formatSpectralEfficiency(maxSpectral));
         defenseSnrLabel.setText(formatDb(bestRequiredSnr));

@@ -158,7 +158,7 @@
 
                                 <Label GridPane.columnIndex="0" GridPane.rowIndex="6" styleClass="summary-table-key-cell" text="Критерий BLER" />
                                 <Label fx:id="blerCriterionLabel" GridPane.columnIndex="1" GridPane.rowIndex="6" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
-                                <Label GridPane.columnIndex="2" GridPane.rowIndex="6" styleClass="summary-table-key-cell" text="NR chain" />
+                                <Label GridPane.columnIndex="2" GridPane.rowIndex="6" styleClass="summary-table-key-cell" text="Цепочка NR" />
                                 <Label fx:id="nrChainStatusLabel" GridPane.columnIndex="3" GridPane.rowIndex="6" styleClass="summary-table-value-cell summary-table-value-cell-secondary" text="-" />
                             </children>
                         </GridPane>
@@ -204,10 +204,10 @@
                             <children>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
                                     <children>
-                                        <Label styleClass="panel-title" text="Графики BER(SNR), BLER(SNR), Throughput(SNR), Spectral Efficiency(SNR)" />
+                                        <Label styleClass="panel-title" text="Графики BER(SNR), BLER(SNR), полезной скорости (SNR), спектральной эффективности (SNR)" />
                                     </children>
                                 </HBox>
-                                <Label styleClass="dashboard-bullet" wrapText="true" text="Интерактивный визуальный блок анализа: BER/BLER, throughput и спектральная эффективность по SNR." />
+                                <Label styleClass="dashboard-bullet" wrapText="true" text="Интерактивный визуальный блок анализа: BER/BLER, полезной скорости и спектральная эффективность по SNR." />
                                 <GridPane hgap="18.0" vgap="18.0">
                                     <columnConstraints>
                                         <ColumnConstraints percentWidth="50.0" />
@@ -250,7 +250,7 @@
                                                         <NumberAxis label="SNR, дБ" />
                                                     </xAxis>
                                                     <yAxis>
-                                                        <NumberAxis label="Throughput, Мбит/с" autoRanging="true" />
+                                                        <NumberAxis label="Скорость передачи, Мбит/с" autoRanging="true" />
                                                     </yAxis>
                                                 </LineChart>
                                             </children>
@@ -293,15 +293,15 @@
                                 </GridPane>
                                 <TableView fx:id="resultsTable" prefHeight="340.0" styleClass="results-data-table results-data-table-elevated">
                                     <columns>
-                                        <TableColumn fx:id="snrColumn" prefWidth="70.0" text="SNR" />
-                                        <TableColumn fx:id="berUncodedColumn" prefWidth="90.0" text="BER без кода" />
-                                        <TableColumn fx:id="berLdpcColumn" prefWidth="90.0" text="BER LDPC" />
-                                        <TableColumn fx:id="blerUncodedColumn" prefWidth="90.0" text="BLER без кода" />
-                                        <TableColumn fx:id="blerLdpcColumn" prefWidth="90.0" text="BLER LDPC" />
-                                        <TableColumn fx:id="iterationsColumn" prefWidth="90.0" text="Итерации" />
-                                        <TableColumn fx:id="successColumn" prefWidth="90.0" text="Сходимость" />
-                                        <TableColumn fx:id="throughputColumn" prefWidth="110.0" text="Throughput" />
-                                        <TableColumn fx:id="spectralEfficiencyColumn" prefWidth="110.0" text="Spec. eff." />
+                                        <TableColumn fx:id="snrColumn" prefWidth="65.0" text="SNR, дБ" />
+                                        <TableColumn fx:id="berUncodedColumn" prefWidth="135.0" text="BER без кодирования" />
+                                        <TableColumn fx:id="berLdpcColumn" prefWidth="85.0" text="BER LDPC" />
+                                        <TableColumn fx:id="blerUncodedColumn" prefWidth="140.0" text="BLER без кодирования" />
+                                        <TableColumn fx:id="blerLdpcColumn" prefWidth="85.0" text="BLER LDPC" />
+                                        <TableColumn fx:id="iterationsColumn" prefWidth="85.0" text="Итерации" />
+                                        <TableColumn fx:id="successColumn" prefWidth="120.0" text="Доля сходимости" />
+                                        <TableColumn fx:id="throughputColumn" prefWidth="110.0" text="Полезн. скорость" />
+                                        <TableColumn fx:id="spectralEfficiencyColumn" prefWidth="150.0" text="Спектр. эффективность" />
                                     </columns>
                                 </TableView>
                             </children>

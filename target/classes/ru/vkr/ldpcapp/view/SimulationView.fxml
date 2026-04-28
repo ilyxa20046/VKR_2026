@@ -52,7 +52,7 @@
                                     </items>
                                 </MenuButton>
 
-                                <MenuButton styleClass="secondary-button secondary-button-strong compact-action-button" text="Сценарии для защиты">
+                                <MenuButton styleClass="secondary-button secondary-button-strong compact-action-button" text="Сценарии для демонстрации">
                                     <items>
                                         <MenuItem onAction="#onApplyDefenseAwgnProfile" text="Защита · AWGN baseline — опорный сценарий" />
                                         <MenuItem onAction="#onApplyDefenseRayleighProfile" text="Защита · Rayleigh vs OFDM — влияние fading" />

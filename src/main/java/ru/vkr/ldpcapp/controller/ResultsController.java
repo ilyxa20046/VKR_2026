@@ -160,13 +160,13 @@ public class ResultsController {
         blerLdpcSeries.setName("BLER LDPC");
 
         XYChart.Series<Number, Number> throughputSeries = new XYChart.Series<>();
-        throughputSeries.setName("Throughput LDPC");
+        throughputSeries.setName("Полезная скорость LDPC");
 
         XYChart.Series<Number, Number> spectralSeries = new XYChart.Series<>();
-        spectralSeries.setName("Spectral Efficiency LDPC");
+        spectralSeries.setName("Спектральная эффективность LDPC");
 
         XYChart.Series<Number, Number> berTheorySeries = new XYChart.Series<>();
-        berTheorySeries.setName("BER теория (AWGN, uncoded)");
+        berTheorySeries.setName("BER теория (AWGN, без кодирования)");
 
         XYChart.Series<Number, Number> berBpskTheorySeries = new XYChart.Series<>();
         berBpskTheorySeries.setName("BER теория BPSK (AWGN, Q-функция)");
@@ -347,13 +347,13 @@ public class ResultsController {
             resultsScenarioModeChip.setText("Канал: " + currentConfig.getChannelModel() + " / Эквалайзер: " + currentConfig.getEqualizerMode());
 
             if (blerCriterionLabel != null) {
-                blerCriterionLabel.setText(currentConfig.getBlerCriterion());
+                blerCriterionLabel.setText(SimulationConfigFactory.getBlerCriterionUiName(currentConfig.getBlerCriterion()));
             }
             if (nrChainStatusLabel != null) {
                 nrChainStatusLabel.setText(
-                        "CRC " + (currentConfig.isCrcEnabled() ? "ON" : "OFF")
-                                + " / Segm " + (currentConfig.isSegmentationEnabled() ? "ON" : "OFF")
-                                + " / RM " + (currentConfig.isRateMatchingEnabled() ? "ON" : "OFF")
+                        "CRC " + (currentConfig.isCrcEnabled() ? "вкл" : "выкл") +
+                                " / Сегментация " + (currentConfig.isSegmentationEnabled() ? "вкл" : "выкл") +
+                                " / Согл. скорости " + (currentConfig.isRateMatchingEnabled() ? "вкл" : "выкл")
                 );
             }
         }
@@ -402,7 +402,7 @@ public class ResultsController {
             exportStatusLabel.setText("Нет результатов для подготовки сценария A. Сначала выполните моделирование.");
             return;
         }
-        CompareSession.stageCurrentExperiment("Scenario A", currentConfig, currentPoints);
+        CompareSession.stageCurrentExperiment("Сценарий A", currentConfig, currentPoints);
         updateCompareScenarioStatus();
         exportStatusLabel.setText("Сценарий A выбран. Выполните второй запуск и нажмите «Сравнить A/B».");
     }
@@ -417,7 +417,7 @@ public class ResultsController {
             exportStatusLabel.setText("Сначала сохраните один из запусков как сценарий A.");
             return;
         }
-        CompareSession.pairWithCurrentExperiment("Scenario B", currentConfig, currentPoints);
+        CompareSession.pairWithCurrentExperiment("Сценарий B", currentConfig, currentPoints);
         updateCompareScenarioStatus();
         exportStatusLabel.setText("Пара A/B готова. Откройте вкладку «Сравнение».");
     }
