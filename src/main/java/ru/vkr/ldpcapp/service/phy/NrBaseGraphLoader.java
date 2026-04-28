@@ -95,9 +95,9 @@ public final class NrBaseGraphLoader {
     }
     public int[][] loadBg1FullShifts(int z, int expectedRows, int totalCols) {
         String resourcePath = switch (z) {
-            case 8 -> "/ru/vkr/ldpcapp/ldpc/NR_BG1_FULL_Z8.txt";
-            case 16 -> "/ru/vkr/ldpcapp/ldpc/NR_BG1_FULL_Z16.txt";
-            case 32 -> "/ru/vkr/ldpcapp/ldpc/NR_BG1_FULL_Z32.txt";
+            case 8 -> "/ru/vkr/ldpcapp/ldpc/NR_1_0_8.txt";
+            case 16 -> "/ru/vkr/ldpcapp/ldpc/NR_1_0_16.txt";
+            case 32 -> "/ru/vkr/ldpcapp/ldpc/NR_1_0_32.txt";
             default -> throw new IllegalArgumentException("Unsupported Z=" + z);
         };
         return loadMatrix(resourcePath, expectedRows, totalCols);
@@ -105,9 +105,9 @@ public final class NrBaseGraphLoader {
 
     public int[][] loadBg2FullShifts(int z, int expectedRows, int totalCols) {
         String resourcePath = switch (z) {
-            case 8 -> "/ru/vkr/ldpcapp/ldpc/NR_BG2_FULL_Z8.txt";
-            case 16 -> "/ru/vkr/ldpcapp/ldpc/NR_BG2_FULL_Z16.txt";
-            case 32 -> "/ru/vkr/ldpcapp/ldpc/NR_BG2_FULL_Z32.txt";
+            case 8 -> "/ru/vkr/ldpcapp/ldpc/NR_2_0_8.txt";
+            case 16 -> "/ru/vkr/ldpcapp/ldpc/NR_2_0_16.txt";
+            case 32 -> "/ru/vkr/ldpcapp/ldpc/NR_2_0_32.txt";
             default -> throw new IllegalArgumentException("Unsupported Z=" + z);
         };
         return loadMatrix(resourcePath, expectedRows, totalCols);
