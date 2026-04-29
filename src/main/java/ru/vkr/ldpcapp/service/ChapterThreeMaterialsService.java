@@ -56,10 +56,10 @@ public class ChapterThreeMaterialsService {
                 "В ходе вычислительного эксперимента использовалась расширенная имитационная модель цифрового канала связи, позволяющая учитывать тип модуляции, модель канала, выбранный LDPC-профиль и дополнительные исследовательские метрики производительности.",
                 "Исследование проводилось для сценария: " + config.getModulation()
                         + ", канал " + config.getChannelModel()
-                        + ", waveform " + config.getWaveform()
-                        + ", spatial mode " + config.getSpatialMode()
-                        + ", cyclic prefix " + config.getCyclicPrefix()
-                        + ", equalizer " + config.getEqualizerMode()
+                        + ", форма сигнала " + config.getWaveform()
+                        + ", спектральный режим " + config.getSpatialMode()
+                        + ", циклический префикс " + config.getCyclicPrefix()
+                        + ", эквалайзер " + config.getEqualizerMode()
                         + ", профиль " + SimulationConfigFactory.getProfileDisplayName(config.getLdpcProfile(), config.getLiftingSize()) + ".",
                 "Параметры эксперимента имели следующие значения:",
                 "- длина информационного блока: " + config.getInfoBlockLength() + " бит;",
@@ -68,9 +68,9 @@ public class ChapterThreeMaterialsService {
                 "- шаг по SNR: " + formatFixed(config.getSnrStep()) + " дБ;",
                 "- количество блоков на точку SNR: " + config.getBlocks() + ";",
                 "- максимальное число итераций декодера: " + config.getMaxIterations() + ";",
-                "- коэффициент normalized min-sum: " + formatFixed(config.getNormalization()) + ";",
-                "- cyclic prefix: " + config.getCyclicPrefix() + ";",
-                "- equalizer: " + config.getEqualizerMode() + ";",
+                "- коэффициент нормализованная минимум-сумма: " + formatFixed(config.getNormalization()) + ";",
+                "- циклический префикс: " + config.getCyclicPrefix() + ";",
+                "- эквалайзер: " + config.getEqualizerMode() + ";",
                 "- seed генератора псевдослучайных чисел: " + config.getSeed() + "."
         );
     }
@@ -80,12 +80,12 @@ public class ChapterThreeMaterialsService {
                 "Моделирование выполнялось по множеству точек отношения сигнал/шум в заданном диапазоне. Для каждой точки SNR генерировалась последовательность информационных блоков, которые затем передавались по двум сценариям: без кодирования и с применением LDPC-кода.",
                 "В кодированном режиме выполнялось LDPC-кодирование, выбранная модуляция (" + config.getModulation()
                         + "), передача по каналу " + config.getChannelModel()
-                        + ", использование waveform " + config.getWaveform()
-                        + ", cyclic prefix " + config.getCyclicPrefix()
-                        + ", equalizer " + config.getEqualizerMode()
-                        + " и spatial mode " + config.getSpatialMode()
-                        + ", а также итерационное soft-decision декодирование методом normalized min-sum.",
-                "После этого рассчитывались показатели BER и BLER, среднее число итераций декодирования, доля успешной сходимости декодера, effective throughput, спектральная эффективность, требуемый SNR по целевым порогам BER = 10^-3 и BLER = 10^-1, а также энергетический выигрыш кодирования.",
+                        + ", использование форма сигнала " + config.getWaveform()
+                        + ", циклический префикс " + config.getCyclicPrefix()
+                        + ", эквалайзер " + config.getEqualizerMode()
+                        + " и спектральный режим " + config.getSpatialMode()
+                        + ", а также итерационное простое решение декодирование методом нормализованная минимум-сумма.",
+                "После этого рассчитывались показатели BER и BLER, среднее число итераций декодирования, доля успешной сходимости декодера, эффективная полезная скорость, спектральная эффективность, требуемый SNR по целевым порогам BER = 10^-3 и BLER = 10^-1, а также энергетический выигрыш кодирования.",
                 "Число исследованных точек SNR составило " + SimulationConfigFactory.getSnrPointCount(config) + ", а суммарное количество обработанных блоков — " + SimulationConfigFactory.getExperimentBlockCount(config) + ".",
                 "Общий оценочный объём переданной информационной последовательности составил " + SimulationConfigFactory.getEstimatedInformationBits(config) + " бит."
         );
@@ -121,11 +121,11 @@ public class ChapterThreeMaterialsService {
         return String.join(System.lineSeparator(),
                 "1. Применение LDPC-кодирования обеспечивает уменьшение BER и BLER по сравнению с передачей без кодирования даже в расширенной исследовательской модели канала.",
                 "2. Наибольший выигрыш по BER составил " + formatGain(summary.getBestBerGain()) + ", а по BLER — " + formatGain(summary.getBestBlerGain()) + ".",
-                "3. Средний effective throughput равен " + formatFixed(summary.getAverageThroughputMbps()) + " Мбит/с, а пиковое значение достигает " + formatFixed(summary.getPeakThroughputMbps()) + " Мбит/с.",
+                "3. Средняя полезная скорость равна " + formatFixed(summary.getAverageThroughputMbps()) + " Мбит/с, а пиковое значение достигает " + formatFixed(summary.getPeakThroughputMbps()) + " Мбит/с.",
                 "4. Средняя спектральная эффективность составляет " + formatFixed(summary.getAverageSpectralEfficiency()) + " бит/с/Гц, а максимальная — " + formatFixed(summary.getPeakSpectralEfficiency()) + " бит/с/Гц.",
                 "5. Требуемый SNR по порогу BER = 10^-3 равен " + formatDb(summary.getRequiredSnrBerDb()) + ", а по порогу BLER = 10^-1 — " + formatDb(summary.getRequiredSnrBlerDb()) + ".",
                 "6. Энергетический выигрыш по порогу BER = 10^-3 равен " + formatEnergy(summary.getBerEnergyGainDb()) + ", а по порогу BLER = 10^-1 — " + formatEnergy(summary.getBlerEnergyGainDb()) + ".",
-                "7. Полученные результаты подтверждают, что дополнение модели метриками throughput, spectral efficiency и required SNR существенно повышает её инженерную и исследовательскую ценность для задач мобильных систем связи 5G."
+                "7. Полученные результаты подтверждают, что дополнение модели метриками полезная скорость, спектральная эффективность и требуемый SNR существенно повышает её инженерную и исследовательскую ценность для задач мобильных систем связи 5G."
         );
     }
 

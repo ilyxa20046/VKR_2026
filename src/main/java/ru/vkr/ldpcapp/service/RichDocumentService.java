@@ -33,16 +33,16 @@ public class RichDocumentService {
 
         return String.join(System.lineSeparator(),
                 "LDPC RESEARCH STUDIO",
-                "Документ для Word / DOCX-friendly вставки",
+                "Документ для Word / DOCX вставки",
                 "",
-                "1. Краткая сводка для защиты",
+                "1. Краткая сводка для диплома",
                 summary,
                 "",
                 "2. Развёрнутый отчёт эксперимента",
                 detailed,
                 "",
                 "3. Рекомендация по вставке",
-                "Ниже приведён текст в plain-text friendly структуре: его удобно переносить в Word, где можно применить стили заголовков, таблиц и нумерованных списков."
+                "Ниже приведён текст: его удобно переносить в Word, где можно применить стили заголовков, таблиц и нумерованных списков."
         );
     }
 
@@ -65,7 +65,7 @@ public class RichDocumentService {
 
         return String.join(System.lineSeparator(),
                 "LDPC RESEARCH STUDIO",
-                "Документ для Word / DOCX-friendly вставки",
+                "Документ для Word / DOCX вставки",
                 "",
                 "1. Краткая сравнительная сводка",
                 summary,
@@ -77,7 +77,7 @@ public class RichDocumentService {
                 rightConfig == null ? "не указано" : configFormatter.toSummaryText(rightConfig),
                 "",
                 "4. Итог для текста диплома",
-                "Этот фрагмент можно напрямую использовать в разделе сравнительного анализа главы 3, дополнив его рисунками BER(SNR), BLER(SNR) и таблицей required SNR / throughput / spectral efficiency."
+                "Этот фрагмент можно напрямую использовать в разделе сравнительного анализа главы 3, дополнив его рисунками BER(SNR), BLER(SNR) и таблицей требуемого SNR / пропускной способностью / спектральной эффективностью."
         );
     }
 
@@ -87,16 +87,16 @@ public class RichDocumentService {
 
         return String.join(System.lineSeparator(),
                 "LDPC RESEARCH STUDIO",
-                "Документ для Word / DOCX-friendly вставки",
+                "Документ для Word / DOCX вставки",
                 "",
-                "1. Краткая batch-сводка",
+                "1. Краткая пакетная-сводка",
                 summary,
                 "",
-                "2. Развёрнутый batch-отчёт",
+                "2. Развёрнутый пакетный-отчёт",
                 detailed,
                 "",
                 "3. Рекомендация по оформлению",
-                "Этот текст подходит для переноса в Word перед вставкой в раздел сравнительного анализа, приложения и материалы к защите."
+                "Этот текст подходит для переноса в Word перед вставкой в раздел сравнительного анализа."
         );
     }
 

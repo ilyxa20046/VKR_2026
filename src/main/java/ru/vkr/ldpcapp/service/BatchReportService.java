@@ -72,14 +72,14 @@ public class BatchReportService {
         for (BatchScenarioResult item : scenarios) {
             ExperimentSummary summary = item.getSummary();
             builder.append("• ").append(item.getScenarioLabel())
-                    .append(": BER gain ").append(formatGain(summary.getBestBerGain()))
-                    .append(", BLER gain ").append(formatGain(summary.getBestBlerGain()))
-                    .append(", BER energy ").append(formatDb(summary.getBerEnergyGainDb()))
-                    .append(", BLER energy ").append(formatDb(summary.getBlerEnergyGainDb()))
-                    .append(", peak thrpt ").append(formatThroughput(summary.getPeakThroughputMbps()))
-                    .append(", peak η ").append(formatSpectralEfficiency(summary.getPeakSpectralEfficiency()))
-                    .append(", req SNR BER ").append(formatDb(summary.getRequiredSnrBerDb()))
-                    .append(", req SNR BLER ").append(formatDb(summary.getRequiredSnrBlerDb()))
+                    .append(": выигрыш BER ").append(formatGain(summary.getBestBerGain()))
+                    .append(", выигрыш BLER ").append(formatGain(summary.getBestBlerGain()))
+                    .append(", энергия BER ").append(formatDb(summary.getBerEnergyGainDb()))
+                    .append(", энергия BLER ").append(formatDb(summary.getBlerEnergyGainDb()))
+                    .append(", Пиковая пропускная способность ").append(formatThroughput(summary.getPeakThroughputMbps()))
+                    .append(", Пиковая спектральная эффективность ").append(formatSpectralEfficiency(summary.getPeakSpectralEfficiency()))
+                    .append(", требуемый SNR BER ").append(formatDb(summary.getRequiredSnrBerDb()))
+                    .append(", требуемый SNR BLER ").append(formatDb(summary.getRequiredSnrBlerDb()))
                     .append("\n");
         }
 

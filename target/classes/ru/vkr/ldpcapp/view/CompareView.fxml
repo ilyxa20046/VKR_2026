@@ -129,7 +129,6 @@
                         <ColumnConstraints percentWidth="38.0" />
                     </columnConstraints>
                     <children>
-                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Сценарий A" />
                         <Label GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Сценарий B" />
 
@@ -150,7 +149,6 @@
                         <ColumnConstraints percentWidth="66.0" />
                     </columnConstraints>
                     <children>
-                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Значение" />
                         <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Победитель" />
                         <Label fx:id="winnerLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-multiline compare-winner-cell" wrapText="true" text="-" />
@@ -199,7 +197,6 @@
                         <ColumnConstraints percentWidth="58.0" />
                     </columnConstraints>
                     <children>
-                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
                         <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Таблица сравнения по точкам SNR" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Позволяет сравнить BER/BLER, полезную скорость и спектральную эффективность сценариев A и B в каждой точке SNR." wrapText="true" />

@@ -23,25 +23,25 @@ public class PresentationSummaryService {
         ExperimentSummary summary = ExperimentSummary.from(points);
 
         return String.join(System.lineSeparator(),
-                "PRESENTATION SUMMARY · SINGLE SCENARIO",
+                "Краткое содержание · Единый сценарий",
                 "",
                 "Сценарий:",
-                "• modulation: " + safeConfig.getModulation(),
-                "• channel: " + safeConfig.getChannelModel(),
+                "• модуляция: " + safeConfig.getModulation(),
+                "• канал: " + safeConfig.getChannelModel(),
                 "• LDPC: " + SimulationConfigFactory.getProfileDisplayName(safeConfig.getLdpcProfile(), safeConfig.getLiftingSize()),
-                "• waveform: " + safeConfig.getWaveform(),
-                "• spatial mode: " + safeConfig.getSpatialMode(),
+                "• форма сигнала: " + safeConfig.getWaveform(),
+                "• пространственный режим: " + safeConfig.getSpatialMode(),
                 "",
                 "Ключевые показатели:",
-                "• BER gain: " + formatGain(summary.getBestBerGain()),
-                "• BLER gain: " + formatGain(summary.getBestBlerGain()),
-                "• peak throughput: " + formatThroughput(summary.getPeakThroughputMbps()),
-                "• peak spectral efficiency: " + formatEfficiency(summary.getPeakSpectralEfficiency()),
-                "• required SNR @ BER=10^-3: " + formatDb(summary.getRequiredSnrBerDb()),
-                "• required SNR @ BLER=10^-1: " + formatDb(summary.getRequiredSnrBlerDb()),
+                "• выигрыш BER: " + formatGain(summary.getBestBerGain()),
+                "• выигрыш BLER: " + formatGain(summary.getBestBlerGain()),
+                "• пик пропускной способности: " + formatThroughput(summary.getPeakThroughputMbps()),
+                "• пик спектральной эффективности: " + formatEfficiency(summary.getPeakSpectralEfficiency()),
+                "• требуемый SNR BER=10^-3: " + formatDb(summary.getRequiredSnrBerDb()),
+                "• требуемый SNR BLER=10^-1: " + formatDb(summary.getRequiredSnrBlerDb()),
                 "",
                 "Краткий вывод:",
-                "LDPC-кодирование в выбранном waveform/spatial профиле обеспечивает заметное улучшение надёжности передачи и даёт инженерно интерпретируемый выигрыш по качеству и полезной скорости."
+                "LDPC-кодирование в выбранном форме сигнала/пространственном профиле обеспечивает заметное улучшение надёжности передачи и даёт инженерно интерпретируемый выигрыш по качеству и полезной скорости."
         );
     }
 
@@ -66,25 +66,25 @@ public class PresentationSummaryService {
                 : (leftScore > rightScore ? leftTitle : rightTitle);
 
         return String.join(System.lineSeparator(),
-                "PRESENTATION SUMMARY · COMPARE",
+                "Краткое содержание · Сравнение",
                 "",
-                "Scenario A: " + leftTitle,
+                "Сценарий A: " + leftTitle,
                 "• " + scenarioLine(leftConfig, leftSummary),
                 "",
-                "Scenario B: " + rightTitle,
+                "Сценарий B: " + rightTitle,
                 "• " + scenarioLine(rightConfig, rightSummary),
                 "",
                 "Победитель:",
                 "• " + winner,
                 "",
                 "Вывод:",
-                "Попарное сравнение показывает компромисс между BER/BLER, required SNR и throughput. Presentation-режим помогает быстро показать комиссии лучший сценарий и его инженерные преимущества."
+                "Попарное сравнение показывает компромисс между BER/BLER, требуемым SNR и пропускной способностью. Демонстрационный-режим помогает быстро показать комиссии лучший сценарий и его инженерные преимущества."
         );
     }
 
     public String buildBatchSummary(SimulationConfig baseConfig, List<BatchScenarioResult> scenarios) {
         if (scenarios == null || scenarios.isEmpty()) {
-            return "Краткая презентационная batch-сводка недоступна: сначала выполните batch-расчёт.";
+            return "Краткая презентационная пакетная-сводка недоступна: сначала выполните пакетный анализ.";
         }
 
         BatchScenarioResult winner = scenarios.stream()
@@ -109,23 +109,23 @@ public class PresentationSummaryService {
                 .orElse(null);
 
         return String.join(System.lineSeparator(),
-                "PRESENTATION SUMMARY · BATCH",
+                "Краткое содержание · Пакетного анализа",
                 "",
                 "Базовая конфигурация:",
-                baseConfig == null ? "• не указана" : "• " + baseConfig.getWaveform() + ", " + baseConfig.getSpatialMode() + ", blocks=" + baseConfig.getBlocks(),
+                baseConfig == null ? "• не указана" : "• " + baseConfig.getWaveform() + ", " + baseConfig.getSpatialMode() + ", блоков=" + baseConfig.getBlocks(),
                 "",
-                "Лучший сценарий batch-анализа:",
+                "Лучший сценарий Пакетного анализа:",
                 "• " + winner.getScenarioLabel(),
-                "• BER gain: " + formatGain(winner.getSummary().getBestBerGain()),
-                "• BLER gain: " + formatGain(winner.getSummary().getBestBlerGain()),
+                "• выигрыш BER: " + formatGain(winner.getSummary().getBestBerGain()),
+                "• выигрыш BLER: " + formatGain(winner.getSummary().getBestBlerGain()),
                 "",
                 "Лучшие показатели среди всех сценариев:",
-                "• peak throughput: " + formatThroughput(maxThroughput),
-                "• peak spectral efficiency: " + formatEfficiency(maxEfficiency),
-                "• best required SNR: " + formatDb(bestRequiredSnr),
+                "• пик пропускной способности: " + formatThroughput(maxThroughput),
+                "• пик спектральной эффективности: " + formatEfficiency(maxEfficiency),
+                "• лучший требуемый SNR: " + formatDb(bestRequiredSnr),
                 "",
                 "Вывод:",
-                "Batch-режим позволяет быстро выбрать наиболее подходящий modulation/channel/LDPC/waveform/spatial профиль для демонстрации и включения в главу 3 диплома."
+                "Пакетный анализ позволяет быстро выбрать наиболее подходящую модуляцию/канал/LDPC/форму сигнала/пространственный профиль для демонстрации."
         );
     }
 
@@ -135,11 +135,11 @@ public class PresentationSummaryService {
                 + safeConfig.getChannelModel() + ", "
                 + safeConfig.getWaveform() + ", "
                 + safeConfig.getSpatialMode()
-                + " | BER gain=" + formatGain(summary.getBestBerGain())
-                + ", BLER gain=" + formatGain(summary.getBestBlerGain())
-                + ", thr=" + formatThroughput(summary.getPeakThroughputMbps())
-                + ", η=" + formatEfficiency(summary.getPeakSpectralEfficiency())
-                + ", req SNR=" + formatDb(bestNullable(summary.getRequiredSnrBerDb(), summary.getRequiredSnrBlerDb()));
+                + " | выигрыш BER=" + formatGain(summary.getBestBerGain())
+                + ", выигрыш BLER=" + formatGain(summary.getBestBlerGain())
+                + ", пиковая полезная скорость=" + formatThroughput(summary.getPeakThroughputMbps())
+                + ", пиковая спектральная эффективность=" + formatEfficiency(summary.getPeakSpectralEfficiency())
+                + ", требуемый SNR=" + formatDb(bestNullable(summary.getRequiredSnrBerDb(), summary.getRequiredSnrBlerDb()));
     }
 
     private Double bestNullable(Double a, Double b) {

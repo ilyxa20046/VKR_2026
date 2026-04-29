@@ -2,14 +2,14 @@ package ru.vkr.ldpcapp.service;
 
 public final class AppMetadata {
 
-    public static final String PRODUCT_NAME = "LDPC Research Studio";
+    public static final String PRODUCT_NAME = "LDPC Исследовательская Студия";
     public static final String PRODUCT_SUBTITLE = "Мультиплатформенное графическое приложение для исследования помехоустойчивого кодирования в каналах 5G";
-    public static final String VERSION = "1.0.0";
-    public static final String VENDOR = "VKR Research Project";
+    public static final String VERSION = "1.4.3";
+    public static final String VENDOR = "Ульянов И.В.";
     public static final String AUTHOR = "Выпускная квалификационная работа";
     public static final String STACK = "Java 17 · JavaFX 17 · Maven";
     public static final String PLATFORMS = "Windows · Linux · RED OS";
-    public static final String RESEARCH_SCOPE = "BPSK, QPSK, 16-QAM · AWGN, Rayleigh · LDPC, QC-inspired 5G-like profiles · BER, BLER, energy gain";
+    public static final String RESEARCH_SCOPE = "BPSK, QPSK, 16-QAM, 64-QAM, 256-QAM · AWGN, Rayleigh · LDPC, 5G profiles · BER, BLER, энергетический выигрыш";
 
     private AppMetadata() {
     }
@@ -19,7 +19,7 @@ public final class AppMetadata {
                 + PRODUCT_SUBTITLE + "\n\n"
                 + "Версия: " + VERSION + "\n"
                 + "Проект: " + AUTHOR + "\n"
-                + "Поставщик: " + VENDOR + "\n"
+                + "Разработчик: " + VENDOR + "\n"
                 + "Стек: " + STACK + "\n"
                 + "Платформы: " + PLATFORMS + "\n\n"
                 + "Исследовательские возможности:\n"

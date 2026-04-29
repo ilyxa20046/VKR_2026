@@ -46,7 +46,7 @@ public class ReportService {
                 + formatEnergy(summary.getBlerEnergyGainDb())
                 + ", а "
                 + requiredSnrText
-                + ". Средний effective throughput составляет "
+                + ". Средняя полезная скорость составляет "
                 + formatFixed(summary.getAverageThroughputMbps())
                 + " Мбит/с, средняя спектральная эффективность — "
                 + formatFixed(summary.getAverageSpectralEfficiency())
@@ -79,10 +79,10 @@ public class ReportService {
                 buildParameterLine("Семейство кода", SimulationConfigFactory.getProfileFamily(safeConfig.getLdpcProfile())),
                 buildParameterLine("Модуляция", safeConfig.getModulation()),
                 buildParameterLine("Канал", safeConfig.getChannelModel()),
-                buildParameterLine("Waveform", safeConfig.getWaveform()),
-                buildParameterLine("Spatial mode", safeConfig.getSpatialMode()),
-                buildParameterLine("Cyclic prefix", String.valueOf(safeConfig.getCyclicPrefix())),
-                buildParameterLine("Equalizer", safeConfig.getEqualizerMode()),
+                buildParameterLine("Форма волны", safeConfig.getWaveform()),
+                buildParameterLine("Спектральный режим", safeConfig.getSpatialMode()),
+                buildParameterLine("Циклический префикс", String.valueOf(safeConfig.getCyclicPrefix())),
+                buildParameterLine("Эквалайзер", safeConfig.getEqualizerMode()),
                 buildParameterLine("Информационный блок", safeConfig.getInfoBlockLength() + " бит"),
                 buildParameterLine("Диапазон SNR", formatFixed(Math.min(safeConfig.getSnrStart(), safeConfig.getSnrEnd()))
                         + " ... "
@@ -90,9 +90,9 @@ public class ReportService {
                         + " дБ"),
                 buildParameterLine("Шаг SNR", formatFixed(safeConfig.getSnrStep()) + " дБ"),
                 buildParameterLine("Количество блоков на точку (базово)", String.valueOf(safeConfig.getBlocks())),
-                buildParameterLine("Adaptive stop", safeConfig.isAdaptiveStopEnabled() ? "включен" : "выключен"),
-                buildParameterLine("Min error events per SNR", String.valueOf(safeConfig.getMinErrorEventsPerSnr())),
-                buildParameterLine("Max blocks per SNR", String.valueOf(safeConfig.getMaxBlocksPerSnr())),
+                buildParameterLine("Адаптивная остановка", safeConfig.isAdaptiveStopEnabled() ? "включен" : "выключен"),
+                buildParameterLine("Минимальное количество ошибок на SNR", String.valueOf(safeConfig.getMinErrorEventsPerSnr())),
+                buildParameterLine("Максимальное количество блоков на SNR", String.valueOf(safeConfig.getMaxBlocksPerSnr())),
                 buildParameterLine("уровень доверия", formatFixed(safeConfig.getConfidenceLevel())),
                 buildParameterLine("Максимум итераций декодера", String.valueOf(safeConfig.getMaxIterations())),
                 buildParameterLine("Коэффициент нормализации", formatFixed(safeConfig.getNormalization())),
@@ -119,19 +119,19 @@ public class ReportService {
                 "Результаты показывают, что при увеличении SNR не только уменьшаются BER и BLER, но и растёт полезная скорость, поскольку снижается доля потерянных блоков. Это позволяет анализировать LDPC-кодирование не только с позиции надёжности, но и с позиции полезной скорости передачи данных.",
                 "Спектральная эффективность определяется как произведение числа бит на символ, скорости кода и доли успешно доставленных блоков. Поэтому для более высоких порядков модуляции она потенциально выше, но в неблагоприятных условиях канала может снижаться из-за возрастания BLER.",
                 "Требуемый SNR по целевым порогам BER и BLER является удобной инженерной характеристикой, показывающей, какой энергетический запас необходим системе для достижения заданного качества обслуживания. Разность между этим порогом для режима без кодирования и режима с LDPC образует энергетический выигрыш кодирования.",
-                "Для рассматриваемого сценария пиковый throughput достигается в точке SNR = " + formatFixed(bestThroughputPoint.getSnr()) + " дБ, а пиковая спектральная эффективность — в точке SNR = " + formatFixed(bestEfficiencyPoint.getSnr()) + " дБ. Эти значения полезны для инженерной интерпретации компромисса между надёжностью и производительностью канала.",
+                "Для рассматриваемого сценария пиковая пропускная способность достигается в точке SNR = " + formatFixed(bestThroughputPoint.getSnr()) + " дБ, а пиковая спектральная эффективность — в точке SNR = " + formatFixed(bestEfficiencyPoint.getSnr()) + " дБ. Эти значения полезны для инженерной интерпретации компромисса между надёжностью и производительностью канала.",
                 "",
                 "4. Итоговый вывод",
                 buildShortNarrative(safeConfig, points),
                 "",
                 "5. Ограничения модели",
-                "Модель является 5G-like имитацией канального уровня и предназначена для сравнительного исследования помехоустойчивого кодирования.",
-                "Реализация не покрывает полный набор процедур 3GPP NR PHY и содержит упрощения в части канала, OFDM/MIMO-представления и декодирования.",
-                "Полученные результаты следует интерпретировать как исследовательские сравнительные оценки, а не как сертификационные характеристики промышленного оборудования.",
+                "Приложение предназначено для исследовательского сравнения 5G NR LDPC и 4G LTE Turbo в контролируемых сценариях канала.",
+                "Поддерживаются AWGN/Rayleigh, OFDM-like и пространственные режимы, наборы скоростей кода, BER/BLER и теоретические референсы (Q-функция BPSK, граница Шеннона).",
+                "Модель не покрывает полный стек процедур 3GPP NR PHY/MAC и содержит упрощения в части канала, OFDM/MIMO, rate matching, HARQ и декодирования.",
                 "",
                 "6. Воспроизводимость эксперимента",
                 "Для воспроизводимости необходимо фиксировать seed, полную конфигурацию эксперимента и режим статистической остановки.",
-                "Рекомендуется сохранять adaptive stop параметры (min error events per SNR, max blocks per SNR), уровень доверия и полный набор экспортируемых артефактов (CSV, графики, отчёт, manifest).",
+                "Рекомендуется сохранять адаптивную остановку параметры (минимальное количество ошибок на SNR, максимально количество блоков на SNR), уровень доверия и полный набор экспортируемых артефактов (CSV, графики, отчёт).",
                 "При повторном запуске с идентичной конфигурацией и seed результаты должны быть сопоставимы в пределах статистической погрешности.",
                 "",
                 "7. Статистическая достоверность",
