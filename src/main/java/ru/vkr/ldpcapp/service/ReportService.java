@@ -54,7 +54,7 @@ public class ReportService {
                 + formatFixed(summary.getAverageIterations())
                 + ", доля успешной сходимости составляет "
                 + formatPercent(summary.getAverageSuccessRatio())
-                + ". Для последней точки SNR оценка сопровождается доверительными интервалами (confidence level = "
+                + ". Для последней точки SNR оценка сопровождается доверительными интервалами (уровень доверия = "
                 + formatFixed(lastPoint.getConfidenceLevel())
                 + ").";
     }
@@ -93,7 +93,7 @@ public class ReportService {
                 buildParameterLine("Adaptive stop", safeConfig.isAdaptiveStopEnabled() ? "включен" : "выключен"),
                 buildParameterLine("Min error events per SNR", String.valueOf(safeConfig.getMinErrorEventsPerSnr())),
                 buildParameterLine("Max blocks per SNR", String.valueOf(safeConfig.getMaxBlocksPerSnr())),
-                buildParameterLine("Confidence level", formatFixed(safeConfig.getConfidenceLevel())),
+                buildParameterLine("уровень доверия", formatFixed(safeConfig.getConfidenceLevel())),
                 buildParameterLine("Максимум итераций декодера", String.valueOf(safeConfig.getMaxIterations())),
                 buildParameterLine("Коэффициент нормализации", formatFixed(safeConfig.getNormalization())),
                 "",
@@ -102,11 +102,11 @@ public class ReportService {
                         + " при SNR = " + formatFixed(bestBerPoint.getSnr()) + " дБ"),
                 buildParameterLine("Лучший выигрыш по BLER", formatGain(summary.getBestBlerGain())
                         + " при SNR = " + formatFixed(bestBlerPoint.getSnr()) + " дБ"),
-                buildParameterLine("Пиковый effective throughput", formatFixed(summary.getPeakThroughputMbps())
+                buildParameterLine("Пиковая полезная скорость", formatFixed(summary.getPeakThroughputMbps())
                         + " Мбит/с при SNR = " + formatFixed(bestThroughputPoint.getSnr()) + " дБ"),
                 buildParameterLine("Пиковая спектральная эффективность", formatFixed(summary.getPeakSpectralEfficiency())
                         + " бит/с/Гц при SNR = " + formatFixed(bestEfficiencyPoint.getSnr()) + " дБ"),
-                buildParameterLine("Средний effective throughput", formatFixed(summary.getAverageThroughputMbps()) + " Мбит/с"),
+                buildParameterLine("Средняя полезная скорость", formatFixed(summary.getAverageThroughputMbps()) + " Мбит/с"),
                 buildParameterLine("Средняя спектральная эффективность", formatFixed(summary.getAverageSpectralEfficiency()) + " бит/с/Гц"),
                 buildParameterLine("Требуемый SNR при BER = 10^-3", formatDb(summary.getRequiredSnrBerDb())),
                 buildParameterLine("Требуемый SNR при BLER = 10^-1", formatDb(summary.getRequiredSnrBlerDb())),
@@ -116,7 +116,7 @@ public class ReportService {
                 buildParameterLine("Средняя доля успешной сходимости", formatPercent(summary.getAverageSuccessRatio())),
                 "",
                 "3. Интерпретация результатов",
-                "Результаты показывают, что при увеличении SNR не только уменьшаются BER и BLER, но и растёт effective throughput, поскольку снижается доля потерянных блоков. Это позволяет анализировать LDPC-кодирование не только с позиции надёжности, но и с позиции полезной скорости передачи данных.",
+                "Результаты показывают, что при увеличении SNR не только уменьшаются BER и BLER, но и растёт полезная скорость, поскольку снижается доля потерянных блоков. Это позволяет анализировать LDPC-кодирование не только с позиции надёжности, но и с позиции полезной скорости передачи данных.",
                 "Спектральная эффективность определяется как произведение числа бит на символ, скорости кода и доли успешно доставленных блоков. Поэтому для более высоких порядков модуляции она потенциально выше, но в неблагоприятных условиях канала может снижаться из-за возрастания BLER.",
                 "Требуемый SNR по целевым порогам BER и BLER является удобной инженерной характеристикой, показывающей, какой энергетический запас необходим системе для достижения заданного качества обслуживания. Разность между этим порогом для режима без кодирования и режима с LDPC образует энергетический выигрыш кодирования.",
                 "Для рассматриваемого сценария пиковый throughput достигается в точке SNR = " + formatFixed(bestThroughputPoint.getSnr()) + " дБ, а пиковая спектральная эффективность — в точке SNR = " + formatFixed(bestEfficiencyPoint.getSnr()) + " дБ. Эти значения полезны для инженерной интерпретации компромисса между надёжностью и производительностью канала.",
@@ -131,7 +131,7 @@ public class ReportService {
                 "",
                 "6. Воспроизводимость эксперимента",
                 "Для воспроизводимости необходимо фиксировать seed, полную конфигурацию эксперимента и режим статистической остановки.",
-                "Рекомендуется сохранять adaptive stop параметры (min error events per SNR, max blocks per SNR), confidence level и полный набор экспортируемых артефактов (CSV, графики, отчёт, manifest).",
+                "Рекомендуется сохранять adaptive stop параметры (min error events per SNR, max blocks per SNR), уровень доверия и полный набор экспортируемых артефактов (CSV, графики, отчёт, manifest).",
                 "При повторном запуске с идентичной конфигурацией и seed результаты должны быть сопоставимы в пределах статистической погрешности.",
                 "",
                 "7. Статистическая достоверность",
@@ -165,7 +165,7 @@ public class ReportService {
                 + last.getTotalBits()
                 + " бит / "
                 + last.getTotalBlocks()
-                + " блоков, confidence level = "
+                + " блоков, уровень доверия = "
                 + formatFixed(last.getConfidenceLevel())
                 + ". "
                 + reliabilityNote;

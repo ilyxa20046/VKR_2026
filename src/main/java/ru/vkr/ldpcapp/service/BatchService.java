@@ -44,12 +44,13 @@ public class BatchService {
 
                 int total = modulations.size() * channels.size() * profiles.size() * effectiveRates.size();
                 int done = 0;
+                int skipped = 0;
+                int seedOffset = 0;
 
                 updateProgress(0, Math.max(1, total));
                 updateMessage("Подготовка пакетного анализа...");
 
                 List<BatchScenarioResult> out = new ArrayList<>();
-                int seedOffset = 0;
 
                 for (String modulation : modulations) {
                     for (String channel : channels) {
@@ -65,7 +66,6 @@ public class BatchService {
                                 cfg.setChannelModel(channel);
                                 cfg.setLdpcProfile(profile);
 
-                                // Нормализуем длину блока под выбранный профиль/BG/Z
                                 cfg.setInfoBlockLength(SimulationConfigFactory.normalizeInfoBlockLength(
                                         cfg.getInfoBlockLength(),
                                         cfg.getLdpcProfile(),
@@ -73,13 +73,17 @@ public class BatchService {
                                         cfg.getNrBaseGraph()
                                 ));
 
-                                // Детерминированно меняем seed для разных сценариев
                                 cfg.setSeed(baseConfig.getSeed() + seedOffset * 97);
                                 seedOffset++;
 
                                 applyRatePreset(cfg, rate);
 
-                                configValidator.validate(cfg);
+                                // Авто-починка: если TB не помещается в одно кодовое слово -> включаем сегментацию
+                                int codeK = SimulationConfigFactory.getCodeInfoLength(cfg);
+                                int tbWithCrc = cfg.getInfoBlockLength() + (cfg.isCrcEnabled() ? cfg.getCrcBits() : 0);
+                                if (!cfg.isSegmentationEnabled() && tbWithCrc > codeK) {
+                                    cfg.setSegmentationEnabled(true);
+                                }
 
                                 String rateLabel = rate == null
                                         ? "R=base"
@@ -91,24 +95,27 @@ public class BatchService {
                                                 SimulationConfigFactory.getProfileUiName(profile) + " · " +
                                                 rateLabel;
 
-                                List<ResultPoint> points = simulationService.runBlocking(cfg);
-                                BatchScenarioResult scenario = buildScenarioResult(scenarioLabel, cfg, points);
-                                out.add(scenario);
+                                try {
+                                    configValidator.validate(cfg);
+                                    List<ResultPoint> points = simulationService.runBlocking(cfg);
+                                    BatchScenarioResult scenario = buildScenarioResult(scenarioLabel, cfg, points);
+                                    out.add(scenario);
+                                } catch (IllegalArgumentException ex) {
+                                    skipped++;
+                                    updateMessage("Пропущен сценарий: " + scenarioLabel + " (" + ex.getMessage() + ")");
+                                } catch (Exception ex) {
+                                    skipped++;
+                                    updateMessage("Пропущен сценарий: " + scenarioLabel + " (ошибка расчёта)");
+                                }
 
                                 done++;
                                 updateProgress(done, total);
-                                updateMessage(String.format(
-                                        Locale.US,
-                                        "Рассчитано сценариев: %d / %d",
-                                        done,
-                                        total
-                                ));
                             }
                         }
                     }
                 }
 
-                updateMessage("Пакетный анализ завершён: " + out.size() + " сценариев");
+                updateMessage("Пакетный анализ завершён: рассчитано " + out.size() + ", пропущено " + skipped);
                 return out;
             }
         };

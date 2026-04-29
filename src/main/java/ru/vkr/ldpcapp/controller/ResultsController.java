@@ -767,13 +767,13 @@ public class ResultsController {
         double harqSucc = points.stream().mapToDouble(ResultPoint::getHarqSuccessRatio).average().orElse(0.0);
 
         return String.format(
-                "Статистическая достоверность:%n"
-                        + "• confidence level: %.2f%n"
-                        + "• BER LDPC CI (последняя точка): [%s; %s]%n"
-                        + "• BLER LDPC CI (последняя точка): [%s; %s]%n"
-                        + "• объём выборки последней точки: %d бит, %d блоков%n"
-                        + "• HARQ avg extra tx/codeword: %.2f%n"
-                        + "• HARQ decode success ratio: %.2f%%",
+                "Статистическая достоверность:%n" +
+                        "• уровень доверия: %.2f%n" +
+                        "• BER LDPC, доверительный интервал (последняя точка): [%s; %s]%n" +
+                        "• BLER LDPC, доверительный интервал (последняя точка): [%s; %s]%n" +
+                        "• объём выборки последней точки: %d бит, %d блоков%n" +
+                        "• HARQ, среднее число дополнительных передач на кодовое слово: %.2f%n" +
+                        "• HARQ, доля успешного декодирования: %.2f%%",
                 last.getConfidenceLevel(),
                 formatSci(last.getBerLdpcCiLow()),
                 formatSci(last.getBerLdpcCiHigh()),

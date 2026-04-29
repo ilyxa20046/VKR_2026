@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -20,10 +19,9 @@
         <VBox spacing="10.0" styleClass="top-shell-wrap">
             <children>
                 <ToolBar styleClass="top-toolbar top-toolbar-refined">
-                    <VBox spacing="1.0">
+                    <VBox alignment="CENTER_LEFT" spacing="1.0">
                         <children>
-                            <Label styleClass="screen-eyebrow" text="LDPC RESEARCH STUDIO" />
-                            <Label styleClass="shell-title" text="Мультиплатформенная исследовательская среда моделирования 5G-like PHY" />
+                            <Label styleClass="shell-title" text="Мультиплатформенная исследовательская среда моделирования 5G PHY" />
                         </children>
                     </VBox>
                     <Region HBox.hgrow="ALWAYS" />
@@ -44,10 +42,6 @@
                 <Insets bottom="18.0" left="18.0" right="18.0" top="16.0" />
             </padding>
             <VBox spacing="4.0" styleClass="sidebar-header-box">
-                <children>
-                    <Label styleClass="sidebar-title" text="Навигация" />
-                    <Label styleClass="sidebar-subtitle" text="Экраны исследования и анализа" wrapText="true" />
-                </children>
             </VBox>
             <VBox spacing="8.0" styleClass="sidebar-nav-group">
                 <children>
@@ -59,10 +53,6 @@
                 </children>
             </VBox>
             <VBox spacing="8.0" styleClass="info-card pastel-card-violet shell-info-card">
-                <children>
-                    <Label styleClass="info-title" text="Research mode" />
-                    <Label styleClass="helper-text shell-helper" wrapText="true" text="AWGN, Rayleigh, OFDM-like waveform, 2x2 diversity, QC-inspired LDPC и инженерные метрики в одном приложении." />
-                </children>
                 <padding>
                     <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
                 </padding>
@@ -85,7 +75,7 @@
             </padding>
             <Label fx:id="statusLabel" styleClass="status-label-main" text="Статус: приложение запущено" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label styleClass="status-label-secondary" text="LDPC Research Studio · JavaFX 17" />
+            <Label styleClass="status-label-secondary" text="JavaFX 17" />
         </HBox>
     </bottom>
 </BorderPane>

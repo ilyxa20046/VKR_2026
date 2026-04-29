@@ -2417,3 +2417,15 @@
     -fx-stroke-width: 2.2px;
     -fx-stroke-dash-array: 10 6;
 }
+.compact-action-check-shell {
+    -fx-padding: 0 10 0 10;
+    -fx-alignment: center-left;
+}
+
+.compact-action-check {
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+.compact-action-check {
+    -fx-translate-y: -1;
+}

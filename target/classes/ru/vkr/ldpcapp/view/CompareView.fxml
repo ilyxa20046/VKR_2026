@@ -18,6 +18,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.layout.FlowPane?>
 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="results-scroll-pane" xmlns:fx="http://javafx.com/fxml" fx:controller="ru.vkr.ldpcapp.controller.CompareController">
     <content>
         <VBox spacing="18.0" styleClass="screen-root results-screen-content">
@@ -33,9 +34,8 @@
             </children>
         </VBox>
 
-        <VBox spacing="8.0" styleClass="panel-card compact-card action-panel-card results-actions-panel results-actions-panel-top results-actions-panel-minimal">
-            <children>
-                <HBox spacing="8.0" styleClass="compact-action-flow results-toolbar-flow">
+        <FlowPane hgap="8.0" vgap="8.0" prefWrapLength="1100.0" styleClass="panel-card compact-card action-panel-card results-actions-panel results-actions-panel-top results-actions-panel-minimal">
+
                     <children>
                         <MenuButton mnemonicParsing="false" styleClass="secondary-button compact-action-button" text="Сводка и отчёты">
                             <items>
@@ -49,11 +49,10 @@
                                 <MenuItem mnemonicParsing="false" onAction="#onCopyComparisonNarrative" text="Скопировать текст сравнения" />
                             </items>
                         </MenuButton>
-                        <CheckBox fx:id="defenseModeCheckBox" onAction="#onToggleDefenseMode" styleClass="check-box" text="Режим защиты" />
+                        <CheckBox fx:id="defenseModeCheckBox" onAction="#onToggleDefenseMode" styleClass="check-box" text="Режим демонстрации" />
                     </children>
-                </HBox>
-            </children>
-        </VBox>
+
+        </FlowPane>
 
         <HBox fx:id="defenseSummaryBox" managed="false" spacing="14.0" styleClass="defense-strip" visible="false">
             <children>

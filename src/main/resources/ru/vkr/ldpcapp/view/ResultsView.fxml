@@ -183,7 +183,7 @@
                         </VBox>
                         <VBox HBox.hgrow="ALWAYS" spacing="8.0" styleClass="defense-kpi defense-kpi-mint">
                             <children>
-                                <Label styleClass="defense-kpi-label" text="Peak throughput" />
+                                <Label styleClass="defense-kpi-label" text="Максимальная полезная скорость" />
                                 <Label fx:id="defenseThroughputLabel" styleClass="defense-kpi-value" text="-" />
                                 <Label styleClass="defense-kpi-meta" text="Максимальная полезная скорость передачи" />
                             </children>

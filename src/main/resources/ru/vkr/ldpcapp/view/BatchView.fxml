@@ -18,6 +18,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.FlowPane?>
 
 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="results-scroll-pane" xmlns:fx="http://javafx.com/fxml" fx:controller="ru.vkr.ldpcapp.controller.BatchController">
     <content>
@@ -25,10 +26,9 @@
     <children>
         <VBox spacing="10.0" styleClass="panel-card compact-card results-actions-panel results-actions-panel-top results-actions-panel-minimal">
             <children>
-                <Label styleClass="panel-title results-toolbar-title" text="Панель действий" />
-                <HBox spacing="8.0" styleClass="compact-action-flow results-toolbar-flow">
+                <HBox spacing="8.0" alignment="CENTER_LEFT" styleClass="compact-action-flow results-toolbar-flow">
                     <children>
-                        <Button fx:id="batchRunButton" onAction="#onRunBatch" styleClass="primary-button compact-action-button" text="Запустить анализ" />
+                        <Button fx:id="batchRunButton" onAction="#onRunBatch" styleClass="simulation-run-button" text="Запустить анализ" />
                         <MenuButton styleClass="secondary-button compact-action-button" text="Сценарии">
                             <items>
                                 <MenuItem onAction="#onLoadCurrentExperiment" text="Добавить текущий сценарий" />
@@ -52,7 +52,14 @@
                                 <MenuItem onAction="#onCopyBatchReport" text="Скопировать текст отчёта" />
                             </items>
                         </MenuButton>
-                        <CheckBox fx:id="defenseModeCheckBox" onAction="#onToggleDefenseMode" styleClass="check-box" text="Режим защиты" />
+                        <HBox alignment="CENTER_LEFT" minHeight="38.0" prefHeight="38.0" styleClass="compact-action-check-shell">
+                            <children>
+                                <CheckBox fx:id="defenseModeCheckBox"
+                                          onAction="#onToggleDefenseMode"
+                                          styleClass="check-box compact-action-check"
+                                          text="Режим демонстрации" />
+                            </children>
+                        </HBox>
                     </children>
                 </HBox>
                 <ProgressBar fx:id="batchProgressBar" prefWidth="Infinity" progress="0.0" />
@@ -130,7 +137,6 @@
                         <ColumnConstraints percentWidth="66.0" />
                     </columnConstraints>
                     <children>
-                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Параметр" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Значение" />
 
                         <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Сценарии для сравнения" />
@@ -158,7 +164,7 @@
                                 <VBox spacing="8.0" styleClass="compact-card pastel-card-mint">
                                     <children>
                                         <Label styleClass="field-label" text="Модуляции" />
-                                        <HBox spacing="14.0">
+                                        <FlowPane hgap="14.0" vgap="8.0" prefWrapLength="520.0">
                                             <children>
                                                 <CheckBox fx:id="bpskCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="BPSK" />
                                                 <CheckBox fx:id="qpskCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="QPSK" />
@@ -166,26 +172,26 @@
                                                 <CheckBox fx:id="qam64CheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="64-QAM" />
                                                 <CheckBox fx:id="qam256CheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="256-QAM" />
                                             </children>
-                                        </HBox>
+                                        </FlowPane>
                                     </children>
                                 </VBox>
 
                                 <VBox spacing="8.0" styleClass="compact-card pastel-card-yellow">
                                     <children>
                                         <Label styleClass="field-label" text="Каналы" />
-                                        <HBox spacing="14.0">
+                                        <FlowPane hgap="14.0" vgap="8.0" prefWrapLength="520.0">
                                             <children>
                                                 <CheckBox fx:id="awgnCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="AWGN" />
                                                 <CheckBox fx:id="rayleighCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Рэлеевский" />
                                             </children>
-                                        </HBox>
+                                        </FlowPane>
                                     </children>
                                 </VBox>
 
                                 <VBox spacing="8.0" styleClass="compact-card pastel-card-pink">
                                     <children>
                                         <Label styleClass="field-label" text="Профили кодирования" />
-                                        <HBox spacing="14.0">
+                                        <FlowPane hgap="14.0" vgap="8.0" prefWrapLength="520.0">
                                             <children>
                                                 <CheckBox fx:id="educationalProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Учебный (24,12)" />
                                                 <CheckBox fx:id="qcProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="QC-подобный (96,48)" />
@@ -193,21 +199,21 @@
                                                 <CheckBox fx:id="turboProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="4G LTE Turbo (R=1/3)" />
                                                 <CheckBox fx:id="polarProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Polar-подобный (128,64)" />
                                             </children>
-                                        </HBox>
+                                        </FlowPane>
                                     </children>
                                 </VBox>
 
                                 <VBox spacing="8.0" styleClass="compact-card pastel-card-violet">
                                     <children>
                                         <Label styleClass="field-label" text="Скорость кода (rate presets)" />
-                                        <HBox spacing="14.0">
+                                        <FlowPane hgap="14.0" vgap="8.0" prefWrapLength="520.0">
                                             <children>
                                                 <CheckBox fx:id="rateR13CheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="R=1/3" />
                                                 <CheckBox fx:id="rateR12CheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="R=1/2" />
                                                 <CheckBox fx:id="rateR23CheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="R=2/3" />
                                                 <CheckBox fx:id="rateR56CheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="R=5/6" />
                                             </children>
-                                        </HBox>
+                                        </FlowPane>
                                     </children>
                                 </VBox>
                             </children>
@@ -222,7 +228,6 @@
                                         <ColumnConstraints percentWidth="58.0" />
                                     </columnConstraints>
                                     <children>
-                                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
                                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
                                         <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Принцип расчёта" />
                                         <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note"
@@ -277,7 +282,6 @@
                         <ColumnConstraints percentWidth="58.0" />
                     </columnConstraints>
                     <children>
-                        <Label GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="summary-table-header-cell" text="Раздел" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="summary-table-header-cell summary-table-header-value" text="Описание" />
                         <Label GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="summary-table-key-cell" text="Сводка по сценариям" />
                         <Label GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="summary-table-value-cell summary-table-inline-note" text="Содержит итоговые метрики всех рассчитанных сценариев: BER/BLER выигрыш, полезная скорость, спектральная эффективность и требуемый SNR." wrapText="true" />
