@@ -1,7 +1,6 @@
 package ru.vkr.ldpcapp.service;
 
 import ru.vkr.ldpcapp.model.SimulationConfig;
-import ru.vkr.ldpcapp.service.config.SimulationConfigFactory;
 import ru.vkr.ldpcapp.service.config.SimulationConfigValidator;
 
 import java.io.IOException;
@@ -29,6 +28,23 @@ public class ConfigFileService {
     private static final String KEY_CYCLIC_PREFIX = "cyclicPrefix";
     private static final String KEY_EQUALIZER_MODE = "equalizerMode";
     private static final String KEY_BLER_CRITERION = "blerCriterion";
+
+    private static final String KEY_ADAPTIVE_STOP_ENABLED = "adaptiveStopEnabled";
+    private static final String KEY_MIN_ERROR_EVENTS_PER_SNR = "minErrorEventsPerSnr";
+    private static final String KEY_MAX_BLOCKS_PER_SNR = "maxBlocksPerSnr";
+    private static final String KEY_CONFIDENCE_LEVEL = "confidenceLevel";
+    private static final String KEY_SNR_DOMAIN = "snrDomain";
+    private static final String KEY_DECODER_TYPE = "decoderType";
+    private static final String KEY_NR_BASE_GRAPH = "nrBaseGraph";
+    private static final String KEY_LIFTING_SIZE = "liftingSize";
+    private static final String KEY_CRC_ENABLED = "crcEnabled";
+    private static final String KEY_CRC_BITS = "crcBits";
+    private static final String KEY_SEGMENTATION_ENABLED = "segmentationEnabled";
+    private static final String KEY_RATE_MATCHING_ENABLED = "rateMatchingEnabled";
+    private static final String KEY_TARGET_CODEWORD_LENGTH = "targetCodewordLength";
+    private static final String KEY_HARQ_ENABLED = "harqEnabled";
+    private static final String KEY_HARQ_MAX_RETX = "harqMaxRetx";
+
     private final SimulationConfigValidator configValidator = new SimulationConfigValidator();
 
     public void save(Path path, SimulationConfig config) throws IOException {
@@ -49,6 +65,22 @@ public class ConfigFileService {
         properties.setProperty(KEY_CYCLIC_PREFIX, Integer.toString(config.getCyclicPrefix()));
         properties.setProperty(KEY_EQUALIZER_MODE, config.getEqualizerMode());
         properties.setProperty(KEY_BLER_CRITERION, config.getBlerCriterion());
+
+        properties.setProperty(KEY_ADAPTIVE_STOP_ENABLED, Boolean.toString(config.isAdaptiveStopEnabled()));
+        properties.setProperty(KEY_MIN_ERROR_EVENTS_PER_SNR, Integer.toString(config.getMinErrorEventsPerSnr()));
+        properties.setProperty(KEY_MAX_BLOCKS_PER_SNR, Integer.toString(config.getMaxBlocksPerSnr()));
+        properties.setProperty(KEY_CONFIDENCE_LEVEL, Double.toString(config.getConfidenceLevel()));
+        properties.setProperty(KEY_SNR_DOMAIN, config.getSnrDomain());
+        properties.setProperty(KEY_DECODER_TYPE, config.getDecoderType());
+        properties.setProperty(KEY_NR_BASE_GRAPH, config.getNrBaseGraph());
+        properties.setProperty(KEY_LIFTING_SIZE, Integer.toString(config.getLiftingSize()));
+        properties.setProperty(KEY_CRC_ENABLED, Boolean.toString(config.isCrcEnabled()));
+        properties.setProperty(KEY_CRC_BITS, Integer.toString(config.getCrcBits()));
+        properties.setProperty(KEY_SEGMENTATION_ENABLED, Boolean.toString(config.isSegmentationEnabled()));
+        properties.setProperty(KEY_RATE_MATCHING_ENABLED, Boolean.toString(config.isRateMatchingEnabled()));
+        properties.setProperty(KEY_TARGET_CODEWORD_LENGTH, Integer.toString(config.getTargetCodewordLength()));
+        properties.setProperty(KEY_HARQ_ENABLED, Boolean.toString(config.isHarqEnabled()));
+        properties.setProperty(KEY_HARQ_MAX_RETX, Integer.toString(config.getHarqMaxRetx()));
 
         if (path.getParent() != null) {
             Files.createDirectories(path.getParent());
@@ -82,6 +114,44 @@ public class ConfigFileService {
         config.setCyclicPrefix(readInt(properties, KEY_CYCLIC_PREFIX));
         config.setEqualizerMode(require(properties, KEY_EQUALIZER_MODE));
         config.setBlerCriterion(properties.getProperty(KEY_BLER_CRITERION, SimulationConfig.BLER_BY_BIT_MISMATCH));
+
+        config.setAdaptiveStopEnabled(
+                readOptionalBoolean(properties, KEY_ADAPTIVE_STOP_ENABLED, SimulationConfig.DEFAULT_ADAPTIVE_STOP_ENABLED)
+        );
+        config.setMinErrorEventsPerSnr(
+                readOptionalInt(properties, KEY_MIN_ERROR_EVENTS_PER_SNR, SimulationConfig.DEFAULT_MIN_ERROR_EVENTS_PER_SNR)
+        );
+        config.setMaxBlocksPerSnr(
+                readOptionalInt(properties, KEY_MAX_BLOCKS_PER_SNR, SimulationConfig.DEFAULT_MAX_BLOCKS_PER_SNR)
+        );
+        config.setConfidenceLevel(
+                readOptionalDouble(properties, KEY_CONFIDENCE_LEVEL, SimulationConfig.DEFAULT_CONFIDENCE_LEVEL)
+        );
+        config.setSnrDomain(readOptionalString(properties, KEY_SNR_DOMAIN, SimulationConfig.SNR_DOMAIN_EB_N0));
+        config.setDecoderType(readOptionalString(properties, KEY_DECODER_TYPE, SimulationConfig.DECODER_NMS));
+        config.setNrBaseGraph(readOptionalString(properties, KEY_NR_BASE_GRAPH, SimulationConfig.NR_BG_AUTO));
+        config.setLiftingSize(readOptionalInt(properties, KEY_LIFTING_SIZE, 8));
+        config.setCrcEnabled(readOptionalBoolean(properties, KEY_CRC_ENABLED, false));
+        config.setCrcBits(readOptionalInt(properties, KEY_CRC_BITS, SimulationConfig.CRC_NONE));
+
+        boolean hasSegmentationKey = properties.containsKey(KEY_SEGMENTATION_ENABLED);
+        config.setSegmentationEnabled(readOptionalBoolean(properties, KEY_SEGMENTATION_ENABLED, false));
+
+        config.setRateMatchingEnabled(readOptionalBoolean(properties, KEY_RATE_MATCHING_ENABLED, false));
+        config.setTargetCodewordLength(readOptionalInt(properties, KEY_TARGET_CODEWORD_LENGTH, 0));
+        config.setHarqEnabled(readOptionalBoolean(properties, KEY_HARQ_ENABLED, SimulationConfig.DEFAULT_HARQ_ENABLED));
+        config.setHarqMaxRetx(readOptionalInt(properties, KEY_HARQ_MAX_RETX, SimulationConfig.DEFAULT_HARQ_MAX_RETX));
+
+        // Backward compatibility for old files:
+        // if segmentation flag was absent and TB does not fit one codeword, enable segmentation automatically.
+        if (!hasSegmentationKey) {
+            int tbBits = config.getInfoBlockLength() + config.getCrcBits();
+            int codewordK = ru.vkr.ldpcapp.service.config.SimulationConfigFactory.getCodeInfoLength(config);
+            if (tbBits > codewordK) {
+                config.setSegmentationEnabled(true);
+            }
+        }
+
         configValidator.validate(config);
         return config;
     }
@@ -102,7 +172,7 @@ public class ConfigFileService {
     private double readDouble(Properties properties, String key) {
         String value = require(properties, key);
         try {
-            return Double.parseDouble(value.trim());
+            return Double.parseDouble(value.trim().replace(',', '.'));
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Некорректное вещественное значение параметра: " + key);
         }
@@ -118,6 +188,34 @@ public class ConfigFileService {
         } catch (NumberFormatException exception) {
             throw new IllegalArgumentException("Некорректное целое значение параметра: " + key);
         }
+    }
+
+    private double readOptionalDouble(Properties properties, String key, double defaultValue) {
+        String value = properties.getProperty(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        try {
+            return Double.parseDouble(value.trim().replace(',', '.'));
+        } catch (NumberFormatException exception) {
+            throw new IllegalArgumentException("Некорректное вещественное значение параметра: " + key);
+        }
+    }
+
+    private boolean readOptionalBoolean(Properties properties, String key, boolean defaultValue) {
+        String value = properties.getProperty(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return Boolean.parseBoolean(value.trim());
+    }
+
+    private String readOptionalString(Properties properties, String key, String defaultValue) {
+        String value = properties.getProperty(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        return value.trim();
     }
 
     private String require(Properties properties, String key) {
