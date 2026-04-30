@@ -2429,4 +2429,103 @@
 .compact-action-check {
     -fx-translate-y: -1;
 }
+/* Matplotlib-like style for BER/BLER charts */
+.chart.chart-mpl {
+    -fx-background-color: #f2f2f2;
+    -fx-padding: 10 12 10 12;
+}
+
+.chart-mpl .chart-plot-background {
+    -fx-background-color: #f2f2f2;
+    -fx-border-color: #555555;
+    -fx-border-width: 1;
+}
+
+.chart-mpl .chart-vertical-grid-lines,
+.chart-mpl .chart-horizontal-grid-lines {
+    -fx-stroke: #b7b7b7;
+    -fx-stroke-width: 1;
+}
+
+.chart-mpl .axis {
+    -fx-tick-label-fill: #2f2f2f;
+    -fx-font-size: 12px;
+}
+
+.chart-mpl .axis-label {
+    -fx-text-fill: #2a2a2a;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.chart-mpl .chart-legend {
+    -fx-background-color: rgba(245,245,245,0.92);
+    -fx-border-color: #c8c8c8;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+/* Line colors like blue/orange */
+.chart-mpl .default-color0.chart-series-line { -fx-stroke: #1f77b4; -fx-stroke-width: 2.2; }
+.chart-mpl .default-color1.chart-series-line { -fx-stroke: #ff7f0e; -fx-stroke-width: 2.2; }
+
+.chart-mpl .default-color0.chart-line-symbol {
+    -fx-background-color: #1f77b4, #1f77b4;
+    -fx-background-radius: 4px;
+    -fx-padding: 3px;
+}
+.chart-mpl .default-color1.chart-line-symbol {
+    -fx-background-color: #ff7f0e, #ff7f0e;
+    -fx-background-radius: 4px;
+    -fx-padding: 3px;
+}
+/* Matplotlib-like style */
+.chart.chart-mpl {
+    -fx-background-color: #f2f2f2;
+    -fx-padding: 10 12 10 12;
+}
+
+.chart-mpl .chart-plot-background {
+    -fx-background-color: #f2f2f2;
+    -fx-border-color: #555555;
+    -fx-border-width: 1;
+}
+
+.chart-mpl .chart-vertical-grid-lines,
+.chart-mpl .chart-horizontal-grid-lines {
+    -fx-stroke: #b7b7b7;
+    -fx-stroke-width: 1;
+}
+
+.chart-mpl .axis {
+    -fx-tick-label-fill: #2f2f2f;
+    -fx-font-size: 12px;
+}
+
+.chart-mpl .axis-label {
+    -fx-text-fill: #2a2a2a;
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.chart-mpl .chart-legend {
+    -fx-background-color: rgba(245,245,245,0.92);
+    -fx-border-color: #c8c8c8;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.chart-mpl .default-color0.chart-series-line { -fx-stroke: #1f77b4; -fx-stroke-width: 2.2; }
+.chart-mpl .default-color1.chart-series-line { -fx-stroke: #ff7f0e; -fx-stroke-width: 2.2; }
+
+.chart-mpl .default-color0.chart-line-symbol {
+    -fx-background-color: #1f77b4, #1f77b4;
+    -fx-background-radius: 4px;
+    -fx-padding: 3px;
+}
+.chart-mpl .default-color1.chart-line-symbol {
+    -fx-background-color: #ff7f0e, #ff7f0e;
+    -fx-background-radius: 4px;
+    -fx-padding: 3px;
+}
 

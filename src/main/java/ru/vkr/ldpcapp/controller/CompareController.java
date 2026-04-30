@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import javafx.scene.chart.NumberAxis;
+import javafx.util.StringConverter;
 
 public class CompareController {
 
@@ -153,6 +155,8 @@ public class CompareController {
         updateCharts(leftResults, rightResults);
         updateTable(leftResults, rightResults);
         updateNarrative(leftConfig, rightConfig, leftResults, rightResults);
+        compareBerChart.getStyleClass().add("chart-mpl");
+        compareBlerChart.getStyleClass().add("chart-mpl");
         compareStatusLabel.setText("Сравнение сформировано. Ниже доступны итоговый вывод, графики и детальные секции анализа.");
     }
 

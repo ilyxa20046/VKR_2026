@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import javafx.util.StringConverter;
 
 public class ResultsController {
 
@@ -98,6 +99,10 @@ public class ResultsController {
 
     @FXML
     public void initialize() {
+        berChart.getStyleClass().add("chart-mpl");
+        blerChart.getStyleClass().add("chart-mpl");
+        throughputChart.getStyleClass().add("chart-mpl");
+        spectralChart.getStyleClass().add("chart-mpl");
         configureTable();
         updateDefenseModeState(false);
         updateCompareScenarioStatus();
@@ -292,6 +297,26 @@ public class ResultsController {
         blerY.setLowerBound(-6.0);
         blerY.setUpperBound(0.0);
         blerY.setTickUnit(1.0);
+
+        berX.setLabel("SNR (дБ)");
+        blerX.setLabel("SNR (дБ)");
+        berY.setLabel("log10(BER)");
+        blerY.setLabel("log10(BLER)");
+
+
+        javafx.util.StringConverter<Number> logFormatter = new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return "10^" + (int) Math.round(value.doubleValue());
+            }
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        };
+
+        berY.setTickLabelFormatter(logFormatter);
+        blerY.setTickLabelFormatter(logFormatter);
     }
 
     private void configureMetricAxes(double minSnr, double maxSnr, double maxThroughput, double maxSpectral) {
@@ -307,6 +332,8 @@ public class ResultsController {
             y.setLowerBound(0.0);
             y.setUpperBound(Math.max(1.0, maxThroughput * 1.15));
             y.setTickUnit(Math.max(1.0, y.getUpperBound() / 8.0));
+            x.setLabel("SNR, дБ");
+            y.setLabel("Скорость передачи, Мбит/с");
         }
 
         if (spectralChart != null) {
@@ -321,6 +348,8 @@ public class ResultsController {
             y.setLowerBound(0.0);
             y.setUpperBound(Math.max(0.2, maxSpectral * 1.15));
             y.setTickUnit(Math.max(0.1, y.getUpperBound() / 8.0));
+            x.setLabel("SNR, дБ");
+            y.setLabel("бит/с/Гц");
         }
     }
 
@@ -715,6 +744,12 @@ public class ResultsController {
         }
         if (defenseModeCheckBox != null) {
             defenseModeCheckBox.setSelected(enabled);
+        }
+    }
+
+    private void applyMplStyle(LineChart<Number, Number> chart) {
+        if (chart != null && !chart.getStyleClass().contains("chart-mpl")) {
+            chart.getStyleClass().add("chart-mpl");
         }
     }
 

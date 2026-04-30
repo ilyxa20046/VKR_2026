@@ -35,6 +35,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import javafx.scene.chart.NumberAxis;
+import javafx.util.StringConverter;
 
 public class BatchController {
 
@@ -170,6 +172,8 @@ public class BatchController {
         updateDefenseModeState(false);
         restoreSuggestedSelection();
         loadBaseConfigFromSession();
+        batchBerChart.getStyleClass().add("chart-mpl");
+        batchBlerChart.getStyleClass().add("chart-mpl");
         batchProgressBar.setProgress(0.0);
         batchStatusLabel.setText("Выберите набор сценариев и запустите пакетный анализ для прямого сравнения нескольких режимов передачи.");
         batchNarrativeArea.setText("Пакетный анализ позволяет сравнить несколько комбинаций модуляции, канала и LDPC-профиля в рамках одного исследовательского запуска.");
@@ -619,6 +623,34 @@ public class BatchController {
         return batchStatusLabel == null || batchStatusLabel.getScene() == null ? null : batchStatusLabel.getScene().getWindow();
     }
 
+    private void configureLogAxes(LineChart<Number, Number> chart) {
+        NumberAxis x = (NumberAxis) chart.getXAxis();
+        NumberAxis y = (NumberAxis) chart.getYAxis();
+
+        x.setLabel("Eb/N0 (dB)");
+        y.setLabel("FER");
+
+        y.setAutoRanging(false);
+        y.setLowerBound(-6.0);
+        y.setUpperBound(0.0);
+        y.setTickUnit(1.0);
+
+        y.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return "10^" + (int) Math.round(value.doubleValue());
+            }
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        });
+    }
+
+    private double toLog10(double value) {
+        return Math.log10(Math.max(1e-8, value));
+    }
+
     private List<String> selectedModulations() {
         List<String> values = new ArrayList<>();
         if (bpskCheckBox.isSelected()) values.add(SimulationConfig.MOD_BPSK);
@@ -775,4 +807,5 @@ public class BatchController {
     private double safe(double value) {
         return Double.isInfinite(value) ? 1000.0 : value;
     }
+
 }
