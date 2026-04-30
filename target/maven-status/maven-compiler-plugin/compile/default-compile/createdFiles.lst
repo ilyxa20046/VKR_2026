@@ -16,6 +16,7 @@ ru\vkr\ldpcapp\controller\BatchController$1.class
 ru\vkr\ldpcapp\service\view\ViewManagerService.class
 ru\vkr\ldpcapp\service\phy\channel\ChannelEngine$WaveformProfile.class
 ru\vkr\ldpcapp\service\PresentationSummaryService.class
+ru\vkr\ldpcapp\controller\ResultsController$1.class
 ru\vkr\ldpcapp\service\phy\codec\CodecEngine$TurboDecodeInternal.class
 ru\vkr\ldpcapp\controller\SimulationController$12.class
 ru\vkr\ldpcapp\controller\SimulationController$19.class
@@ -38,6 +39,7 @@ ru\vkr\ldpcapp\MainApplication.class
 ru\vkr\ldpcapp\service\config\SimulationConfigFactory.class
 ru\vkr\ldpcapp\service\phy\channel\ChannelEngine.class
 ru\vkr\ldpcapp\service\phy\codec\ldpc\LdpcCodec$Spec.class
+ru\vkr\ldpcapp\controller\BatchController$3.class
 ru\vkr\ldpcapp\controller\SimulationController$10.class
 ru\vkr\ldpcapp\service\SimulationService.class
 ru\vkr\ldpcapp\model\ResultPoint.class

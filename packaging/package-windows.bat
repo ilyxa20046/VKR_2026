@@ -1,6 +1,13 @@
 @echo off
 setlocal EnableExtensions
 
+REM Go to project root (works even when started from packaging\ folder)
+pushd "%~dp0.."
+if not exist "pom.xml" (
+  echo ERROR: pom.xml not found in %CD%
+  goto :fail
+)
+
 REM =========================
 REM Fixed local tool paths
 REM =========================
@@ -113,6 +120,8 @@ if /I "%PKG_TYPE%"=="exe" (
   echo Portable app-image:
   echo dist\%APP_NAME%\%APP_NAME%.exe
 )
+
+popd
 pause
 exit /b 0
 
@@ -120,5 +129,6 @@ exit /b 0
 echo.
 echo BUILD FAILED
 echo If EXE build fails, install WiX Toolset 3.x and add candle/light to PATH.
+popd
 pause
 exit /b 1
