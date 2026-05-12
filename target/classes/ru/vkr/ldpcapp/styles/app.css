@@ -2528,4 +2528,15 @@
     -fx-background-radius: 4px;
     -fx-padding: 3px;
 }
-
+/* ── Линия «Без кодирования» — серая пунктирная опорная кривая ── */
+.chart-series-line.uncoded-series {
+    -fx-stroke: #9ca3af;          /* серый */
+-fx-stroke-width: 1.5px;
+    -fx-stroke-dash-array: 6 4;   /* пунктир */
+}
+/* Применяется через getStyleClass().add("uncoded-series") */
+/* Скрываем символы точек для uncoded серии */
+.uncoded-series .chart-line-symbol {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+}

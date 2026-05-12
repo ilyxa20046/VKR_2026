@@ -211,12 +211,6 @@
                                             <children>
                                                 <VBox spacing="6.0" HBox.hgrow="ALWAYS">
                                                     <children>
-                                                        <Label text="Базовый граф" styleClass="dashboard-bullet" />
-                                                        <ComboBox fx:id="nrBaseGraphComboBox" prefWidth="220.0" />
-                                                    </children>
-                                                </VBox>
-                                                <VBox spacing="6.0" HBox.hgrow="ALWAYS">
-                                                    <children>
                                                         <Label text="Коэффициент подъема Z" styleClass="dashboard-bullet" />
                                                         <ComboBox fx:id="liftingSizeComboBox" prefWidth="220.0" />
                                                     </children>

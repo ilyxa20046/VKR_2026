@@ -16,6 +16,7 @@ public class SimulationConfig {
     public static final String PROFILE_POLAR = "polar-128-64";
     public static final String PROFILE_5GNR_BG1 = "5gnr-bg1-z8";
     public static final String PROFILE_5GNR_BG2 = "5gnr-bg2-z8";
+
     public static final String PROFILE_TURBO_LTE = "turbo-lte";
 
     public static final String WAVEFORM_SC = "Single-carrier";

@@ -597,6 +597,27 @@ public class BatchController {
         batchBerChart.getData().clear();
         batchBlerChart.getData().clear();
 
+        // ── Линия «Без кодирования» (Uncoded BER/BLER) ────────────────────
+        if (!scenarios.isEmpty()) {
+            XYChart.Series<Number, Number> uncodedBerSeries = new XYChart.Series<>();
+            uncodedBerSeries.setName("Без кодирования (BER)");
+            XYChart.Series<Number, Number> uncodedBlerSeries = new XYChart.Series<>();
+            uncodedBlerSeries.setName("Без кодирования (BLER)");
+            // Берём SNR-точки из первого сценария — ось X одна для всех
+            for (ResultPoint point : scenarios.get(0).getPoints()) {
+                uncodedBerSeries.getData().add(
+                        new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
+                uncodedBlerSeries.getData().add(
+                        new XYChart.Data<>(point.getSnr(), point.getBlerUncoded()));
+            }
+            // Добавляем первыми — они будут опорной линией на графике
+            batchBerChart.getData().add(uncodedBerSeries);
+            batchBlerChart.getData().add(uncodedBlerSeries);
+            // Стилизуем пунктиром (через CSS-класс)
+            styleUncodedSeries(uncodedBerSeries);
+            styleUncodedSeries(uncodedBlerSeries);
+        }
+
         for (BatchScenarioResult scenario : scenarios) {
             XYChart.Series<Number, Number> berSeries = new XYChart.Series<>();
             berSeries.setName(scenario.getScenarioLabel());
@@ -699,6 +720,17 @@ public class BatchController {
         if (rateR23CheckBox.isSelected()) values.add(2.0 / 3.0);
         if (rateR56CheckBox.isSelected()) values.add(5.0 / 6.0);
         return values;
+    }
+
+    private void styleUncodedSeries(XYChart.Series<Number, Number> series) {
+        if (series.getNode() != null) {
+            series.getNode().getStyleClass().add("uncoded-series");
+        }
+        series.getData().forEach(d -> {
+            if (d.getNode() != null) {
+                d.getNode().setVisible(false); // убираем маркеры точек
+            }
+        });
     }
 
     private void updateNrBgVisibility() {
