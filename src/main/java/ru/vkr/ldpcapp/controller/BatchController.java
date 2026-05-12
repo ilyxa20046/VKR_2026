@@ -76,6 +76,8 @@ public class BatchController {
     @FXML private CheckBox nrProfileCheckBox;
     @FXML private CheckBox turboProfileCheckBox;
     @FXML private CheckBox polarProfileCheckBox;
+    @FXML private CheckBox nrBg1CheckBox;
+    @FXML private CheckBox nrBg2CheckBox;
 
     @FXML private CheckBox rateR13CheckBox;
     @FXML private CheckBox rateR12CheckBox;
@@ -171,7 +173,8 @@ public class BatchController {
         configureTable();
         updateDefenseModeState(false);
         restoreSuggestedSelection();
-        loadBaseConfigFromSession();
+        currentBaseConfig = configProfiles.recommendedProfile();
+        updateBaseConfigPreview();
         batchBerChart.getStyleClass().add("chart-mpl");
         batchBlerChart.getStyleClass().add("chart-mpl");
         batchProgressBar.setProgress(0.0);
@@ -467,6 +470,10 @@ public class BatchController {
         rateR12CheckBox.setSelected(true);
         rateR23CheckBox.setSelected(false);
         rateR56CheckBox.setSelected(false);
+
+        if (nrBg1CheckBox != null) nrBg1CheckBox.setSelected(true);
+        if (nrBg2CheckBox != null) nrBg2CheckBox.setSelected(true);
+        updateNrBgVisibility();
     }
 
     private void loadBaseConfigFromSession() {
@@ -671,10 +678,19 @@ public class BatchController {
     private List<String> selectedProfiles() {
         List<String> values = new ArrayList<>();
         if (educationalProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_EDU);
-        if (qcProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_QC);
-        if (nrProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_5GNR_BG1);
+        if (qcProfileCheckBox.isSelected())          values.add(SimulationConfig.PROFILE_QC);
+
+        if (nrProfileCheckBox.isSelected()) {
+            boolean bg1 = nrBg1CheckBox == null || nrBg1CheckBox.isSelected();
+            boolean bg2 = nrBg2CheckBox != null && nrBg2CheckBox.isSelected();
+            if (bg1) values.add(SimulationConfig.PROFILE_5GNR_BG1);
+            if (bg2) values.add(SimulationConfig.PROFILE_5GNR_BG2);
+            // Если ни один не выбран — добавляем BG1 по умолчанию
+            if (!bg1 && !bg2) values.add(SimulationConfig.PROFILE_5GNR_BG1);
+        }
+
         if (turboProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_TURBO_LTE);
-        if (polarProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_POLAR);
+        if (polarProfileCheckBox.isSelected())  values.add(SimulationConfig.PROFILE_POLAR);
         return values;
     }
     private List<Double> selectedRates() {
@@ -684,6 +700,24 @@ public class BatchController {
         if (rateR23CheckBox.isSelected()) values.add(2.0 / 3.0);
         if (rateR56CheckBox.isSelected()) values.add(5.0 / 6.0);
         return values;
+    }
+
+    private void updateNrBgVisibility() {
+        boolean nrSelected = nrProfileCheckBox != null && nrProfileCheckBox.isSelected();
+        if (nrBg1CheckBox != null) {
+            nrBg1CheckBox.setVisible(nrSelected);
+            nrBg1CheckBox.setManaged(nrSelected);
+        }
+        if (nrBg2CheckBox != null) {
+            nrBg2CheckBox.setVisible(nrSelected);
+            nrBg2CheckBox.setManaged(nrSelected);
+        }
+    }
+
+    @FXML
+    private void onNrProfileChanged() {
+        updateNrBgVisibility();
+        onSelectionChanged();
     }
 
     private SimulationConfig copyConfig(SimulationConfig source) {

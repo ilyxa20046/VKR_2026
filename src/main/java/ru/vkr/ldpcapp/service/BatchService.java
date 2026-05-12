@@ -66,6 +66,24 @@ public class BatchService {
                                 cfg.setChannelModel(channel);
                                 cfg.setLdpcProfile(profile);
 
+                                if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
+                                    cfg.setNrBaseGraph(SimulationConfig.NR_BG1);
+                                } else if (SimulationConfig.PROFILE_5GNR_BG2.equals(profile)) {
+                                    cfg.setNrBaseGraph(SimulationConfig.NR_BG2);
+                                }
+
+                                if (SimulationConfig.PROFILE_POLAR.equals(cfg.getLdpcProfile())) {
+                                    cfg.setInfoBlockLength(64);
+                                    cfg.setCrcEnabled(false);
+                                    cfg.setCrcBits(SimulationConfig.CRC_NONE);
+                                    cfg.setSegmentationEnabled(false);
+                                    cfg.setRateMatchingEnabled(false);
+                                    cfg.setTargetCodewordLength(0);
+                                    cfg.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
+                                    cfg.setHarqEnabled(false);
+                                    cfg.setHarqMaxRetx(0);
+                                }
+
                                 cfg.setInfoBlockLength(SimulationConfigFactory.normalizeInfoBlockLength(
                                         cfg.getInfoBlockLength(),
                                         cfg.getLdpcProfile(),

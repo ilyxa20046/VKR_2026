@@ -209,7 +209,8 @@ public final class SimulationConfigFactory {
         if (SimulationConfig.PROFILE_EDU.equals(profile)) return 12.0 / 24.0;
         if (SimulationConfig.PROFILE_QC.equals(profile)) return 48.0 / 96.0;
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) return 64.0 / 128.0;
-        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return 22.0 / 68.0;
+        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return 8.0 / 22.0;
+        if (SimulationConfig.PROFILE_5GNR_BG2.equals(profile)) return 1.0 / 5.0;
         return 0.5;
     }
 
@@ -243,7 +244,7 @@ public final class SimulationConfigFactory {
         if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "3GPP NR / Базовый граф";
         if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-подобный / SC";
         if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "4G LTE / Turbo";
-        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-подобный / 5G-like" : "Учебный";
+        return SimulationConfig.PROFILE_QC.equals(profile) ? "QC-подобный / 5G" : "Учебный";
     }
 
     public static String getProfileDescription(String profile) {
@@ -282,13 +283,17 @@ public final class SimulationConfigFactory {
         return "5G NR " + bg + ", Z=" + z + ", k=" + k;
     }
 
-    public static String getProfileUiName(String profile) {
-        if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) return "5G NR LDPC (выбрать BG1/BG2)";
-        if (SimulationConfig.PROFILE_POLAR.equals(profile)) return "Polar-подобный (128,64) · Сравнение";
-        if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) return "4G LTE Turbo (R=1/3) · Базовый";
-        return SimulationConfig.PROFILE_QC.equals(profile)
-                ? "QC-LDPC (96,48) · Базовый"
-                : "Учебный LDPC (24,12)";
+    public static String getProfileUiName(String profileId) {
+        if (profileId == null) return "";
+        return switch (profileId) {
+            case SimulationConfig.PROFILE_EDU        -> "Учебный";
+            case SimulationConfig.PROFILE_QC         -> "QC-подобный";
+            case SimulationConfig.PROFILE_5GNR_BG1   -> "5G NR LDPC (BG1)";
+            case SimulationConfig.PROFILE_5GNR_BG2   -> "5G NR LDPC (BG2)";
+            case SimulationConfig.PROFILE_POLAR      -> "Polar-подобный";
+            case SimulationConfig.PROFILE_TURBO_LTE  -> "Turbo LTE-подобный";
+            default -> profileId;
+        };
     }
     public static List<Double> supportedRateComparisons() {
         return List.of(1.0 / 3.0, 1.0 / 2.0, 2.0 / 3.0, 5.0 / 6.0);

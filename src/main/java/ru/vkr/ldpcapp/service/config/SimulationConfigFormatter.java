@@ -49,7 +49,7 @@ public class SimulationConfigFormatter {
                 SimulationConfigFactory.getDecoderTypeUiName(c.getDecoderType()),
                 c.getMaxIterations(),
                 c.getNormalization(),
-                SimulationConfigFactory.getCodeRate(c),
+                SimulationConfigFactory.getEffectiveCodeRate(c),
                 SimulationConfigFactory.getProfileDescription(c.getLdpcProfile())
         );
     }

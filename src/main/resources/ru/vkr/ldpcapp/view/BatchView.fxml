@@ -193,11 +193,32 @@
                                         <Label styleClass="field-label" text="Профили кодирования" />
                                         <FlowPane hgap="14.0" vgap="8.0" prefWrapLength="520.0">
                                             <children>
-                                                <CheckBox fx:id="educationalProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Учебный (24,12)" />
-                                                <CheckBox fx:id="qcProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="QC-подобный (96,48)" />
-                                                <CheckBox fx:id="nrProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="5G NR LDPC (BG1/BG2)" />
-                                                <CheckBox fx:id="turboProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="4G LTE Turbo (R=1/3)" />
-                                                <CheckBox fx:id="polarProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Polar-подобный (128,64)" />
+                                                <CheckBox fx:id="educationalProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Учебный" />
+                                                <CheckBox fx:id="qcProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="QC-подобный" />
+                                                <VBox spacing="4.0">
+                                                    <children>
+                                                        <CheckBox fx:id="nrProfileCheckBox"
+                                                                  onAction="#onNrProfileChanged"
+                                                                  styleClass="check-box"
+                                                                  text="5G NR LDPC" />
+                                                        <!-- Вложенные опции BG — видны только когда NR выбран -->
+                                                        <HBox spacing="12.0" styleClass="nr-bg-subgroup">
+                                                            <padding><Insets left="20.0" /></padding>
+                                                            <children>
+                                                                <CheckBox fx:id="nrBg1CheckBox"
+                                                                          onAction="#onSelectionChanged"
+                                                                          styleClass="check-box"
+                                                                          text="BG1" />
+                                                                <CheckBox fx:id="nrBg2CheckBox"
+                                                                          onAction="#onSelectionChanged"
+                                                                          styleClass="check-box"
+                                                                          text="BG2" />
+                                                            </children>
+                                                        </HBox>
+                                                    </children>
+                                                </VBox>
+                                                <CheckBox fx:id="turboProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="4G LTE Turbo" />
+                                                <CheckBox fx:id="polarProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Polar-подобный" />
                                             </children>
                                         </FlowPane>
                                     </children>

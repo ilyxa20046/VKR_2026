@@ -204,8 +204,24 @@ public class SimulationConfigProfiles {
     public SimulationConfig profileDefenseLdpcVsPolarPolarRef() {
         SimulationConfig c = profileDefenseLdpcVsPolarLdpcRef();
         c.setLdpcProfile(SimulationConfig.PROFILE_POLAR);
-        c.setInfoBlockLength(256);
+
+        // Для Polar фиксируем "чистый" K/N и отключаем NR-надстройку
+        c.setInfoBlockLength(64); // K для Polar(128,64)
         c.setDecoderType(SimulationConfig.DECODER_SUM_PRODUCT);
+
+        c.setCrcEnabled(false);
+        c.setCrcBits(SimulationConfig.CRC_NONE);
+        c.setSegmentationEnabled(false);
+        c.setRateMatchingEnabled(false);
+        c.setTargetCodewordLength(0);
+        c.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
+
+        c.setHarqEnabled(false);
+        c.setHarqMaxRetx(0);
+
+        c.setNrBaseGraph(SimulationConfig.NR_BG_AUTO);
+        c.setLiftingSize(8);
+
         return c;
     }
 
