@@ -39,7 +39,7 @@ public class BatchReportService {
         builder.append("Количество рассчитанных сценариев: ").append(scenarios.size()).append("\n");
         if (baseConfig != null) {
             builder.append("Базовая численная конфигурация:\n");
-            builder.append(configFormatter.toSummaryText(baseConfig)).append("\n\n");
+            builder.append(configFormatter.toBaseParamsText(baseConfig)).append("\n\n");
         }
 
         builder.append("Наиболее сильный сценарий по интегральной оценке:\n");

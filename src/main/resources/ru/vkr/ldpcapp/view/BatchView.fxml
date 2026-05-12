@@ -218,7 +218,7 @@
                                                     </children>
                                                 </VBox>
                                                 <CheckBox fx:id="turboProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="4G LTE Turbo" />
-                                                <CheckBox fx:id="polarProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Polar-подобный" />
+<!--                                                <CheckBox fx:id="polarProfileCheckBox" onAction="#onSelectionChanged" styleClass="check-box" text="Polar-подобный" />-->
                                             </children>
                                         </FlowPane>
                                     </children>

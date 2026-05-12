@@ -71,22 +71,7 @@ public class BatchService {
                                 } else if (SimulationConfig.PROFILE_5GNR_BG2.equals(profile)) {
                                     cfg.setNrBaseGraph(SimulationConfig.NR_BG2);
                                 }
-
-                                if (SimulationConfig.PROFILE_POLAR.equals(cfg.getLdpcProfile())) {
-                                    // ВАЖНО: нормализацию делаем ПОСЛЕ явной установки K
-                                    cfg.setInfoBlockLength(64);     // K для Polar(128,64) = 64
-                                    cfg.setCrcEnabled(false);
-                                    cfg.setCrcBits(SimulationConfig.CRC_NONE);
-                                    cfg.setSegmentationEnabled(false);
-                                    cfg.setRateMatchingEnabled(false);
-                                    cfg.setTargetCodewordLength(0);
-                                    cfg.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
-                                    cfg.setHarqEnabled(false);
-                                    cfg.setHarqMaxRetx(0);
-                                    // НЕ вызываем normalizeInfoBlockLength для Polar — K=64 зафиксирован
-                                    // Пропускаем общий вызов normalizeInfoBlockLength ниже
-                                }
-                                // Вызов normalizeInfoBlockLength только для не-Polar профилей:
+                                forcePolarSafeConfig(cfg);
                                 if (!SimulationConfig.PROFILE_POLAR.equals(cfg.getLdpcProfile())) {
                                     cfg.setInfoBlockLength(SimulationConfigFactory.normalizeInfoBlockLength(
                                             cfg.getInfoBlockLength(),
@@ -107,6 +92,7 @@ public class BatchService {
                                 if (!cfg.isSegmentationEnabled() && tbWithCrc > codeK) {
                                     cfg.setSegmentationEnabled(true);
                                 }
+                                forcePolarSafeConfig(cfg);
 
                                 String rateLabel = rate == null
                                         ? "R=base"
@@ -147,6 +133,9 @@ public class BatchService {
     private void applyRatePreset(SimulationConfig cfg, Double rate) {
         if (rate == null) {
             return;
+        }
+        if (SimulationConfig.PROFILE_POLAR.equals(cfg.getLdpcProfile())) {
+            return; // для Polar rate-matching отключаем
         }
         cfg.setRateMatchingEnabled(true);
         int e = SimulationConfigFactory.computeTargetCodewordLengthForRate(cfg, rate);
@@ -224,5 +213,20 @@ public class BatchService {
         c.setHarqMaxRetx(source.getHarqMaxRetx());
 
         return c;
+    }
+    private void forcePolarSafeConfig(SimulationConfig cfg) {
+        if (!SimulationConfig.PROFILE_POLAR.equals(cfg.getLdpcProfile())) {
+            return;
+        }
+
+        cfg.setInfoBlockLength(64); // K для Polar(128,64)
+        cfg.setCrcEnabled(false);
+        cfg.setCrcBits(SimulationConfig.CRC_NONE);
+        cfg.setSegmentationEnabled(false);
+        cfg.setRateMatchingEnabled(false);
+        cfg.setTargetCodewordLength(0);
+        cfg.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
+        cfg.setHarqEnabled(false);
+        cfg.setHarqMaxRetx(0);
     }
 }

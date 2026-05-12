@@ -184,46 +184,46 @@ public class SimulationConfigProfiles {
         return c;
     }
 
-    public SimulationConfig profileDefenseLdpcVsPolarLdpcRef() {
-        SimulationConfig c = base(
-                256, 0.0, 12.0, 1.0, 220, 18, 0.80, 2026,
-                SimulationConfig.MOD_QPSK,
-                SimulationConfig.CHANNEL_AWGN,
-                SimulationConfig.PROFILE_QC,
-                SimulationConfig.WAVEFORM_SC,
-                SimulationConfig.SPATIAL_SISO,
-                0,
-                SimulationConfig.EQUALIZER_NONE
-        );
-        applyNrChain(c, SimulationConfig.NR_BG_AUTO, 8, true, true, false, 0, SimulationConfig.BLER_BY_CRC_FAIL);
-        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 2000, 0.95);
-        applyHarq(c, false, 0);
-        return c;
-    }
+//    public SimulationConfig profileDefenseLdpcVsPolarLdpcRef() {
+//        SimulationConfig c = base(
+//                256, 0.0, 12.0, 1.0, 220, 18, 0.80, 2026,
+//                SimulationConfig.MOD_QPSK,
+//                SimulationConfig.CHANNEL_AWGN,
+//                SimulationConfig.PROFILE_QC,
+//                SimulationConfig.WAVEFORM_SC,
+//                SimulationConfig.SPATIAL_SISO,
+//                0,
+//                SimulationConfig.EQUALIZER_NONE
+//        );
+//        applyNrChain(c, SimulationConfig.NR_BG_AUTO, 8, true, true, false, 0, SimulationConfig.BLER_BY_CRC_FAIL);
+//        applyAdvanced(c, SimulationConfig.SNR_DOMAIN_EB_N0, SimulationConfig.DECODER_NMS, true, 100, 2000, 0.95);
+//        applyHarq(c, false, 0);
+//        return c;
+//    }
 
-    public SimulationConfig profileDefenseLdpcVsPolarPolarRef() {
-        SimulationConfig c = profileDefenseLdpcVsPolarLdpcRef();
-        c.setLdpcProfile(SimulationConfig.PROFILE_POLAR);
-
-        // Для Polar фиксируем "чистый" K/N и отключаем NR-надстройку
-        c.setInfoBlockLength(64); // K для Polar(128,64)
-        c.setDecoderType(SimulationConfig.DECODER_SUM_PRODUCT);
-
-        c.setCrcEnabled(false);
-        c.setCrcBits(SimulationConfig.CRC_NONE);
-        c.setSegmentationEnabled(false);
-        c.setRateMatchingEnabled(false);
-        c.setTargetCodewordLength(0);
-        c.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
-
-        c.setHarqEnabled(false);
-        c.setHarqMaxRetx(0);
-
-        c.setNrBaseGraph(SimulationConfig.NR_BG_AUTO);
-        c.setLiftingSize(8);
-
-        return c;
-    }
+//    public SimulationConfig profileDefenseLdpcVsPolarPolarRef() {
+//        SimulationConfig c = profileDefenseLdpcVsPolarLdpcRef();
+//        c.setLdpcProfile(SimulationConfig.PROFILE_POLAR);
+//
+//        // Для Polar фиксируем "чистый" K/N и отключаем NR-надстройку
+//        c.setInfoBlockLength(64); // K для Polar(128,64)
+//        c.setDecoderType(SimulationConfig.DECODER_SUM_PRODUCT);
+//
+//        c.setCrcEnabled(false);
+//        c.setCrcBits(SimulationConfig.CRC_NONE);
+//        c.setSegmentationEnabled(false);
+//        c.setRateMatchingEnabled(false);
+//        c.setTargetCodewordLength(0);
+//        c.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
+//
+//        c.setHarqEnabled(false);
+//        c.setHarqMaxRetx(0);
+//
+//        c.setNrBaseGraph(SimulationConfig.NR_BG_AUTO);
+//        c.setLiftingSize(8);
+//
+//        return c;
+//    }
 
     public SimulationConfig profile5gNrBg1Reference() {
         return profileResearchReference();
@@ -249,8 +249,8 @@ public class SimulationConfigProfiles {
                 "Защита · 16-QAM trade-off",
                 "Защита · 256-QAM stress",
                 "Защита · OFDM showcase",
-                "Защита · LDPC vs Polar · LDPC ref",
-                "Защита · LDPC vs Polar · Polar ref",
+//                "Защита · LDPC vs Polar · LDPC ref",
+//                "Защита · LDPC vs Polar · Polar ref",
                 "Защита · LDPC vs Turbo · Turbo ref",
                 "Защита · Rate R=1/3",
                 "Защита · Rate R=1/2",
@@ -328,8 +328,8 @@ public class SimulationConfigProfiles {
             case "Защита · 16-QAM trade-off" -> profileDefenseHighRateTradeoff();
             case "Защита · 256-QAM stress" -> profileDefense256QamStress();
             case "Защита · OFDM showcase" -> profileDefenseOfdmShowcase();
-            case "Защита · LDPC vs Polar · LDPC ref" -> profileDefenseLdpcVsPolarLdpcRef();
-            case "Защита · LDPC vs Polar · Polar ref" -> profileDefenseLdpcVsPolarPolarRef();
+//            case "Защита · LDPC vs Polar · LDPC ref" -> profileDefenseLdpcVsPolarLdpcRef();
+//            case "Защита · LDPC vs Polar · Polar ref" -> profileDefenseLdpcVsPolarPolarRef();
             case "Защита · LDPC vs Turbo · Turbo ref" -> profileDefenseLdpcVsTurboTurboRef();
             case "Защита · Rate R=1/3" -> profileDefenseRateR13();
             case "Защита · Rate R=1/2" -> profileDefenseRateR12();
@@ -338,6 +338,7 @@ public class SimulationConfigProfiles {
             default -> profileDefenseAwgnReference();
         };
     }
+
     public SimulationConfig profileDefenseLdpcVsTurboTurboRef() {
         SimulationConfig c = base(
                 240, 0.0, 8.0, 0.5, 260, 6, 0.85, 2026,

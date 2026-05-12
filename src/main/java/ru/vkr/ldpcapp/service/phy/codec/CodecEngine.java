@@ -28,18 +28,18 @@ public class CodecEngine {
     private static final LdpcCode NR_BG2_Z32_CODE = build5gNrBg2Code(32);
     private static final LdpcCode EDUCATIONAL_CODE = buildEducationalCode();
     private static final LdpcCode QC_LIKE_CODE = buildQcInspiredCode();
-    private static final PolarCode POLAR_128_64 = buildPolarCode128_64();
+//    private static final PolarCode POLAR_128_64 = buildPolarCode128_64();
     private static final double NEG_INF = -1e9;
     private static final TurboCode TURBO_LTE_CODE = buildTurboCode(40, 2026);
 
     public ActiveCode resolveActiveCode(SimulationConfig config) {
-        if (SimulationConfig.PROFILE_POLAR.equals(config.getLdpcProfile())) {
-            return new ActiveCode(
-                    true, false, false,
-                    null, POLAR_128_64, null, null,
-                    POLAR_128_64.k, POLAR_128_64.n, POLAR_128_64.rate
-            );
-        }
+//        if (SimulationConfig.PROFILE_POLAR.equals(config.getLdpcProfile())) {
+//            return new ActiveCode(
+//                    true, false, false,
+//                    null, POLAR_128_64, null, null,
+//                    POLAR_128_64.k, POLAR_128_64.n, POLAR_128_64.rate
+//            );
+//        }
 
         if (SimulationConfig.PROFILE_TURBO_LTE.equals(config.getLdpcProfile())) {
             return new ActiveCode(
@@ -59,10 +59,18 @@ public class CodecEngine {
             );
         }
 
+        if (SimulationConfig.PROFILE_5GNR_BG2.equals(config.getLdpcProfile())) {
+            LdpcCodec.Spec spec = resolveNrSpec(config); // resolveNrSpec уже поддерживает BG2
+            double rate = (double) spec.k() / (double) spec.n();
+            return new ActiveCode(
+                    false, false, true, null, null, null, spec,
+                    spec.k(), spec.n(), rate
+            );
+        }
+        // Остальные профили (EDU, QC, Turbo, Polar обрабатываются выше)
         LdpcCode ldpc = getLdpcCode(config.getLdpcProfile(), config);
         return new ActiveCode(
-                false, false, false,
-                ldpc, null, null, null,
+                false, false, false, ldpc, null, null, null,
                 ldpc.k, ldpc.n, ldpc.rate
         );
     }
@@ -504,24 +512,51 @@ public class CodecEngine {
     }
 
     private int[] encodePolar(int[] infoBits, PolarCode code) {
-        int[] u = new int[code.n];
-        int src = 0;
-        for (int i = 0; i < code.n; i++) {
-            u[i] = code.infoMask[i] ? infoBits[src++] : 0;
-        }
-        return polarTransform(u);
-    }
-
-    private DecodeResult decodePolarFromLlr(double[] llr, PolarCode code) {
-        int[] uHat = decodePolarRecursive(llr, code.infoMask, 0);
-        int[] info = new int[code.k];
-        int idx = 0;
-        for (int i = 0; i < code.n; i++) {
+        int n = code.n;
+        int[] u = new int[n];
+        int infoIdx = 0;
+        for (int i = 0; i < n && infoIdx < infoBits.length; i++) {
             if (code.infoMask[i]) {
-                info[idx++] = uHat[i];
+                u[i] = infoBits[infoIdx++];
             }
         }
-        return new DecodeResult(info, 1, true);
+        return polarTransform(u); // G^⊗log2(n) — матрица Кронекера
+    }
+
+    private DecodeResult decodePolarFromLlr(double[] channelLlr, PolarCode code) {
+        int n = code.n;
+        double[] llr = new double[n];
+        System.arraycopy(channelLlr, 0, llr, 0, Math.min(channelLlr.length, n));
+
+        int[] uHat = decodePolarRecursive(llr, code.infoMask, 0);
+
+        int[] decodedInfo = new int[code.k];
+        int idx = 0;
+        for (int i = 0; i < n; i++) {
+            if (code.infoMask[i]) {
+                decodedInfo[idx++] = uHat[i];
+            }
+        }
+        return new DecodeResult(decodedInfo, 1, true);
+    }
+
+    private double[] polarSoftTransform(double[] llr, int n) {
+        double[] result = Arrays.copyOf(llr, n);
+        for (int step = 1; step < n; step <<= 1) {
+            for (int i = 0; i < n; i += step << 1) {
+                for (int j = 0; j < step; j++) {
+                    double a = result[i + j];
+                    double b = result[i + j + step];
+                    result[i + j] = signProduct(a, b) * Math.min(Math.abs(a), Math.abs(b)); // f-функция
+                    result[i + j + step] = b + (result[i + j] > 0 ? -a : a);               // g-функция (приближение)
+                }
+            }
+        }
+        return result;
+    }
+
+    private double signProduct(double a, double b) {
+        return ((a < 0) ^ (b < 0)) ? -1.0 : 1.0;
     }
 
     private int[] polarTransform(int[] input) {
@@ -560,14 +595,14 @@ public class CodecEngine {
         int[] uRight = decodePolarRecursive(rightLlr, infoMask, offset + half);
 
         for (int i = 0; i < half; i++) {
-            u[i] = uLeft[i] ^ uRight[i];
+            u[i] = uLeft[i];
             u[i + half] = uRight[i];
         }
         return u;
     }
 
     private double fFunction(double a, double b) {
-        double sign = Math.signum(a) * Math.signum(b);
+        double sign = ((a < 0.0) ^ (b < 0.0)) ? -1.0 : 1.0;
         return sign * Math.min(Math.abs(a), Math.abs(b));
     }
 
@@ -726,16 +761,16 @@ public class CodecEngine {
         return new LdpcCode(k, m, n, rate, messageTaps, checkToVars, varToChecks);
     }
 
-    private static PolarCode buildPolarCode128_64() {
-        int n = 128;
-        int k = 64;
-        int[] reliabilityOrder = buildPolarReliabilityOrder(n);
-        boolean[] infoMask = new boolean[n];
-        for (int i = n - k; i < n; i++) {
-            infoMask[reliabilityOrder[i]] = true;
-        }
-        return new PolarCode(n, k, 0.5, infoMask);
-    }
+//    private static PolarCode buildPolarCode128_64() {
+//        int n = 128;
+//        int k = 64;
+//        int[] reliabilityOrder = buildPolarReliabilityOrder(n);
+//        boolean[] infoMask = new boolean[n];
+//        for (int i = 0; i < n; i++) {
+//            infoMask[reliabilityOrder[i]] = true;
+//        }
+//        return new PolarCode(n, k, (double)k/n, infoMask);
+//    }
 
     private static int[] buildPolarReliabilityOrder(int n) {
         class RankedIndex {
@@ -774,7 +809,14 @@ public class CodecEngine {
         String bg = (config == null || config.getNrBaseGraph() == null)
                 ? SimulationConfig.NR_BG_AUTO
                 : config.getNrBaseGraph();
-        String resolvedBg = SimulationConfig.NR_BG2.equals(bg) ? SimulationConfig.NR_BG2 : SimulationConfig.NR_BG1;
+        String resolvedBg;
+        if (SimulationConfig.NR_BG2.equals(bg)
+                || SimulationConfig.PROFILE_5GNR_BG2.equals(
+                config == null ? null : config.getLdpcProfile())) {
+            resolvedBg = SimulationConfig.NR_BG2;
+        } else {
+            resolvedBg = SimulationConfig.NR_BG1;
+        }
         String key = resolvedBg + "-Z" + z;
 
         return NR_SPEC_CACHE.computeIfAbsent(key, k ->

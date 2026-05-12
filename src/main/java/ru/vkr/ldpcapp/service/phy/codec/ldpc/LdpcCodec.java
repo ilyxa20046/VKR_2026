@@ -21,8 +21,10 @@ public final class LdpcCodec {
     ) {}
 
     public Spec buildSpec(String profile, String nrBaseGraph, int z, NrBaseGraphLoader loader) {
-        if (!SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
-            throw new IllegalArgumentException("LdpcCodec supports NR profile only in this builder.");
+        if (!SimulationConfig.PROFILE_5GNR_BG1.equals(profile)
+                && !SimulationConfig.PROFILE_5GNR_BG2.equals(profile)) {
+            throw new IllegalArgumentException(
+                    "LdpcCodec.buildSpec() supports only 5G NR profiles (BG1/BG2).");
         }
 
         final boolean bg2 = SimulationConfig.NR_BG2.equals(nrBaseGraph);

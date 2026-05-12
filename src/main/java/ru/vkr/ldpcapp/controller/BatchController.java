@@ -75,7 +75,7 @@ public class BatchController {
 
     @FXML private CheckBox nrProfileCheckBox;
     @FXML private CheckBox turboProfileCheckBox;
-    @FXML private CheckBox polarProfileCheckBox;
+//    @FXML private CheckBox polarProfileCheckBox;
     @FXML private CheckBox nrBg1CheckBox;
     @FXML private CheckBox nrBg2CheckBox;
 
@@ -463,7 +463,7 @@ public class BatchController {
         qcProfileCheckBox.setSelected(true);
         nrProfileCheckBox.setSelected(true);
         turboProfileCheckBox.setSelected(true);
-        polarProfileCheckBox.setSelected(false);
+//        polarProfileCheckBox.setSelected(false);
 
         rateR13CheckBox.setSelected(false);
         rateR12CheckBox.setSelected(true);
@@ -511,7 +511,7 @@ public class BatchController {
                 * selectedProfiles().size()
                 * Math.max(1, selectedRates().size());
 
-        String text = configFormatter.toSummaryText(currentBaseConfig) + String.format(
+        String text = configFormatter.toBaseParamsText(currentBaseConfig) + String.format(
                 Locale.US,
                 "%n%nКомбинации для пакетного анализа:%n" +
                         "• модуляции: %s%n" +
@@ -689,7 +689,7 @@ public class BatchController {
         }
 
         if (turboProfileCheckBox.isSelected()) values.add(SimulationConfig.PROFILE_TURBO_LTE);
-        if (polarProfileCheckBox.isSelected())  values.add(SimulationConfig.PROFILE_POLAR);
+//        if (polarProfileCheckBox.isSelected())  values.add(SimulationConfig.PROFILE_POLAR);
         return values;
     }
     private List<Double> selectedRates() {

@@ -334,15 +334,15 @@ public class SimulationController {
         applyNamedDefenseProfile("Защита · OFDM showcase");
     }
 
-    @FXML
-    private void onApplyDefenseLdpcVsPolarLdpcProfile() {
-        applyNamedDefenseProfile("Защита · LDPC vs Polar · LDPC ref");
-    }
-
-    @FXML
-    private void onApplyDefenseLdpcVsPolarPolarProfile() {
-        applyNamedDefenseProfile("Защита · LDPC vs Polar · Polar ref");
-    }
+//    @FXML
+//    private void onApplyDefenseLdpcVsPolarLdpcProfile() {
+//        applyNamedDefenseProfile("Защита · LDPC vs Polar · LDPC ref");
+//    }
+//
+//    @FXML
+//    private void onApplyDefenseLdpcVsPolarPolarProfile() {
+//        applyNamedDefenseProfile("Защита · LDPC vs Polar · Polar ref");
+//    }
 
     @FXML
     private void onToggleAdvancedMode() {
