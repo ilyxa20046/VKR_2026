@@ -73,7 +73,8 @@ public class BatchService {
                                 }
 
                                 if (SimulationConfig.PROFILE_POLAR.equals(cfg.getLdpcProfile())) {
-                                    cfg.setInfoBlockLength(64);
+                                    // ВАЖНО: нормализацию делаем ПОСЛЕ явной установки K
+                                    cfg.setInfoBlockLength(64);     // K для Polar(128,64) = 64
                                     cfg.setCrcEnabled(false);
                                     cfg.setCrcBits(SimulationConfig.CRC_NONE);
                                     cfg.setSegmentationEnabled(false);
@@ -82,14 +83,18 @@ public class BatchService {
                                     cfg.setBlerCriterion(SimulationConfig.BLER_BY_BIT_MISMATCH);
                                     cfg.setHarqEnabled(false);
                                     cfg.setHarqMaxRetx(0);
+                                    // НЕ вызываем normalizeInfoBlockLength для Polar — K=64 зафиксирован
+                                    // Пропускаем общий вызов normalizeInfoBlockLength ниже
                                 }
-
-                                cfg.setInfoBlockLength(SimulationConfigFactory.normalizeInfoBlockLength(
-                                        cfg.getInfoBlockLength(),
-                                        cfg.getLdpcProfile(),
-                                        cfg.getLiftingSize(),
-                                        cfg.getNrBaseGraph()
-                                ));
+                                // Вызов normalizeInfoBlockLength только для не-Polar профилей:
+                                if (!SimulationConfig.PROFILE_POLAR.equals(cfg.getLdpcProfile())) {
+                                    cfg.setInfoBlockLength(SimulationConfigFactory.normalizeInfoBlockLength(
+                                            cfg.getInfoBlockLength(),
+                                            cfg.getLdpcProfile(),
+                                            cfg.getLiftingSize(),
+                                            cfg.getNrBaseGraph()
+                                    ));
+                                }
 
                                 cfg.setSeed(baseConfig.getSeed() + seedOffset * 97);
                                 seedOffset++;

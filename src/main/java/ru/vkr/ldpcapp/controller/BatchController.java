@@ -174,7 +174,6 @@ public class BatchController {
         updateDefenseModeState(false);
         restoreSuggestedSelection();
         currentBaseConfig = configProfiles.recommendedProfile();
-        updateBaseConfigPreview();
         batchBerChart.getStyleClass().add("chart-mpl");
         batchBlerChart.getStyleClass().add("chart-mpl");
         batchProgressBar.setProgress(0.0);
@@ -182,8 +181,8 @@ public class BatchController {
         batchNarrativeArea.setText("Пакетный анализ позволяет сравнить несколько комбинаций модуляции, канала и LDPC-профиля в рамках одного исследовательского запуска.");
         if (BatchSession.getLastBaseConfig() != null) {
             currentBaseConfig = copyConfig(BatchSession.getLastBaseConfig());
-            updateBaseConfigPreview();
         }
+        updateBaseConfigPreview();
         if (BatchSession.hasResults()) {
             currentBatchResults = new ArrayList<>(BatchSession.getLastBatchResults());
             updateBatchResults(currentBatchResults);

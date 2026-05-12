@@ -34,6 +34,7 @@ public final class SimulationConfigFactory {
                 SimulationConfig.PROFILE_EDU,
                 SimulationConfig.PROFILE_QC,
                 SimulationConfig.PROFILE_5GNR_BG1,
+                SimulationConfig.PROFILE_5GNR_BG2,
                 SimulationConfig.PROFILE_POLAR,
                 SimulationConfig.PROFILE_TURBO_LTE
         );
