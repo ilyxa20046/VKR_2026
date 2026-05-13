@@ -34,6 +34,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
+
 import javafx.util.StringConverter;
 
 public class ResultsController {
@@ -372,7 +374,13 @@ public class ResultsController {
             resultsChannelChip.setText(currentConfig.getChannelModel());
             resultsWaveformChip.setText(currentConfig.getWaveform());
             resultsSpatialChip.setText(currentConfig.getSpatialMode());
-            resultsLdpcChip.setText(SimulationConfigFactory.getProfileDisplayName(currentConfig.getLdpcProfile(), currentConfig.getLiftingSize()));
+            resultsLdpcChip.setText(
+                    SimulationConfigFactory.getProfileDisplayName(
+                            currentConfig.getLdpcProfile(),
+                            currentConfig.getLiftingSize(),
+                            currentConfig.getNrBaseGraph()
+                    )
+            );
             resultsScenarioModeChip.setText("Канал: " + currentConfig.getChannelModel() + " / Эквалайзер: " + currentConfig.getEqualizerMode());
 
             if (blerCriterionLabel != null) {
@@ -768,11 +776,12 @@ public class ResultsController {
         }
     }
 
-    private String formatGain(double value) {
-        if (Double.isInfinite(value)) return "ошибки не наблюдались";
-        if (value >= 100.0) return String.format("%.0fx", value);
-        if (value >= 10.0) return String.format("%.1fx", value);
-        return String.format("%.2fx", value);
+    private String formatGain(double ratio) {
+        if (!Double.isFinite(ratio) || ratio <= 0.0) {
+            return "н/д";
+        }
+        double db = 10.0 * Math.log10(ratio);
+        return String.format(Locale.US, "%+.2f дБ", db);
     }
 
     private String formatThroughput(double value) {

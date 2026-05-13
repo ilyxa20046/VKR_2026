@@ -183,11 +183,6 @@ public class BatchController {
             currentBaseConfig = copyConfig(BatchSession.getLastBaseConfig());
         }
         updateBaseConfigPreview();
-        if (BatchSession.hasResults()) {
-            currentBatchResults = new ArrayList<>(BatchSession.getLastBatchResults());
-            updateBatchResults(currentBatchResults);
-            batchStatusLabel.setText("Загружены последние результаты пакетного анализа из текущего сеанса приложения.");
-        }
     }
 
     @FXML
@@ -775,17 +770,12 @@ public class BatchController {
         return values.isEmpty() ? "не выбрано" : String.join(", ", values);
     }
 
-    private String formatGain(double value) {
-        if (Double.isInfinite(value)) {
-            return "ошибки не наблюдались";
+    private String formatGain(double ratio) {
+        if (!Double.isFinite(ratio) || ratio <= 0.0) {
+            return "н/д";
         }
-        if (value >= 100.0) {
-            return String.format(Locale.US, "%.0fx", value);
-        }
-        if (value >= 10.0) {
-            return String.format(Locale.US, "%.1fx", value);
-        }
-        return String.format(Locale.US, "%.2fx", value);
+        double db = 10.0 * Math.log10(ratio);
+        return String.format(Locale.US, "%+.2f дБ", db);
     }
 
     private String formatDb(Double value) {

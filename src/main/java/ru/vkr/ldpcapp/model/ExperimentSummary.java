@@ -61,12 +61,12 @@ public class ExperimentSummary {
         }
 
         double bestBerGain = points.stream()
-                .mapToDouble(point -> gain(point.getBerUncoded(), point.getBerLdpc()))
+                .mapToDouble(p -> finiteGain(p.getBerUncoded(), p.getBerLdpc(), p.getTotalBits()))
                 .max()
                 .orElse(1.0);
 
         double bestBlerGain = points.stream()
-                .mapToDouble(point -> gain(point.getBlerUncoded(), point.getBlerLdpc()))
+                .mapToDouble(p -> finiteGain(p.getBlerUncoded(), p.getBlerLdpc(), p.getTotalBlocks()))
                 .max()
                 .orElse(1.0);
 
@@ -149,6 +149,20 @@ public class ExperimentSummary {
     public double getMinCodedBer() {
         return minCodedBer;
     }
+    private static double finiteGain(double uncoded, double coded, int totalCount) {
+        // Нижняя граница по объему выборки: если ошибок не наблюдали,
+        // считаем метрику как "< 1/N", чтобы gain оставался конечным.
+        double floor = (totalCount > 0) ? 1.0 / totalCount : 1e-12;
+
+        double base = Math.max(uncoded, floor);
+        double improved = Math.max(coded, floor);
+
+        if (base <= 0.0 || improved <= 0.0) {
+            return 1.0;
+        }
+        return base / improved;
+    }
+
 
     public double getMinCodedBler() {
         return minCodedBler;
@@ -238,6 +252,7 @@ public class ExperimentSummary {
 
         return null;
     }
+
 
     private static double metric(ResultPoint point, boolean berMetric, boolean coded) {
         if (berMetric) {

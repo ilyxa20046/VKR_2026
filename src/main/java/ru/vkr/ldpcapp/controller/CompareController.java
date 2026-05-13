@@ -329,7 +329,11 @@ public class CompareController {
                         "Итог:%n%s",
                 leftConfig.getModulation(),
                 leftConfig.getChannelModel(),
-                SimulationConfigFactory.getProfileDisplayName(leftConfig.getLdpcProfile(), leftConfig.getLiftingSize()),
+                SimulationConfigFactory.getProfileDisplayName(
+                        leftConfig.getLdpcProfile(),
+                        leftConfig.getLiftingSize(),
+                        leftConfig.getNrBaseGraph()
+                ),
                 formatGain(leftSummary.getBestBerGain()),
                 formatGain(leftSummary.getBestBlerGain()),
                 formatEnergy(leftSummary.getBerEnergyGainDb()),
@@ -340,7 +344,11 @@ public class CompareController {
                 formatRequiredSnr(leftSummary.getRequiredSnrBlerDb()),
                 rightConfig.getModulation(),
                 rightConfig.getChannelModel(),
-                SimulationConfigFactory.getProfileDisplayName(rightConfig.getLdpcProfile(), rightConfig.getLiftingSize()),
+                SimulationConfigFactory.getProfileDisplayName(
+                        rightConfig.getLdpcProfile(),
+                        rightConfig.getLiftingSize(),
+                        rightConfig.getNrBaseGraph()
+                ),
                 formatGain(rightSummary.getBestBerGain()),
                 formatGain(rightSummary.getBestBlerGain()),
                 formatEnergy(rightSummary.getBerEnergyGainDb()),
@@ -374,16 +382,11 @@ public class CompareController {
     }
 
     private String formatGain(double value) {
-        if (Double.isInfinite(value)) {
-            return "ошибки не наблюдались";
+        if (!Double.isFinite(value) || value <= 0.0) {
+            return "н/д";
         }
-        if (value >= 100.0) {
-            return String.format(Locale.US, "%.0fx", value);
-        }
-        if (value >= 10.0) {
-            return String.format(Locale.US, "%.1fx", value);
-        }
-        return String.format(Locale.US, "%.2fx", value);
+        double gainDb = 10.0 * Math.log10(value);
+        return String.format(Locale.US, "%+.2f дБ", gainDb);
     }
 
     private String formatEnergy(Double value) {
