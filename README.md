@@ -27,7 +27,7 @@
 - Поддержка модуляций **BPSK / QPSK / 16-QAM / 64-QAM / 256-QAM**
 - Поддержка волновых форм **Single-carrier / OFDM-64 / OFDM-128**
 - Пространственные режимы **SISO** и **2×2 Diversity (MIMO)**
-- Пять LDPC-профилей: **Учебный LDPC (24,12) / QC-подобный LDPC (96,48) / 5G NR Base Graph (1/2)**(3GPP)** / Polar-подобный (128,64) / Turbo LTE-подобный (R=1/3)**
+- Пять LDPC-профилей: **Учебный LDPC (24,12) / QC-подобный LDPC (96,48) / 5G NR Base Graph (1/2)**(3GPP)** / Turbo LTE-подобный (R=1/3)**
 - Итеративное декодирование методом **Normalized Min-Sum (Belief Propagation)**
 - Расчёт **BER, BLER, Throughput, Spectral Efficiency, Coding Gain**
 - **A/B-сравнение** двух сценариев и **пакетный (batch) анализ**
