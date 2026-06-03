@@ -141,12 +141,69 @@ public class SimulationService {
     }
 
     public List<ResultPoint> runBlocking(SimulationConfig config) {
-        List<ResultPoint> results = new ArrayList<>();
         List<Double> snrPoints = SimulationConfigFactory.buildSnrPoints(config);
-        for (int i = 0; i < snrPoints.size(); i++) {
-            results.add(experimentRunner.simulatePoint(snrPoints.get(i), config, i));
+        if (snrPoints.isEmpty()) {
+            return List.of();
         }
-        return results;
+
+        int workers = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+        workers = Math.min(workers, snrPoints.size());
+
+        ExecutorService pool = Executors.newFixedThreadPool(workers, r -> {
+            Thread t = new Thread(r, "ldpc-batch-snr-worker");
+            t.setDaemon(true);
+            return t;
+        });
+
+        CompletionService<IndexedPointResult> completion = new ExecutorCompletionService<>(pool);
+        List<Future<IndexedPointResult>> futures = new ArrayList<>(snrPoints.size());
+
+        try {
+            for (int i = 0; i < snrPoints.size(); i++) {
+                final int index = i;
+                final double snrDb = snrPoints.get(i);
+
+                Future<IndexedPointResult> f = completion.submit(() -> {
+                    // Отдельные движки на поток: безопасно по shared-state
+                    ExperimentRunner localRunner = new ExperimentRunner(
+                            new CrcEngine(),
+                            new BitTransport(),
+                            new StatsMath(),
+                            new ChannelEngine(),
+                            new CodecEngine(),
+                            new PhyMetricsEngine()
+                    );
+                    ResultPoint point = localRunner.simulatePoint(snrDb, config, index);
+                    return new IndexedPointResult(index, point);
+                });
+
+                futures.add(f);
+            }
+
+            List<IndexedPointResult> done = new ArrayList<>(snrPoints.size());
+            for (int i = 0; i < snrPoints.size(); i++) {
+                done.add(completion.take().get());
+            }
+
+            done.sort(Comparator.comparingInt(IndexedPointResult::index));
+
+            List<ResultPoint> ordered = new ArrayList<>(done.size());
+            for (IndexedPointResult r : done) {
+                ordered.add(r.point());
+            }
+            return ordered;
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Расчёт прерван", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Ошибка при расчёте точки SNR", e.getCause());
+        } finally {
+            for (Future<IndexedPointResult> f : futures) {
+                f.cancel(true);
+            }
+            pool.shutdownNow();
+        }
     }
 
     private record IndexedPointResult(int index, ResultPoint point) {}

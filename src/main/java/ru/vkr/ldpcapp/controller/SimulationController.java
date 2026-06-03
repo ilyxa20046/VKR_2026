@@ -209,7 +209,7 @@ public class SimulationController {
         }
         if (snrDomainComboBox != null) {
             snrDomainComboBox.setItems(FXCollections.observableArrayList(SimulationConfigFactory.supportedSnrDomains()));
-            snrDomainComboBox.setValue(SimulationConfig.SNR_DOMAIN_EB_N0);
+            snrDomainComboBox.setValue(SimulationConfig.SNR_DOMAIN_ES_N0);
         }
         if (decoderTypeComboBox != null) {
             decoderTypeComboBox.setItems(FXCollections.observableArrayList(
@@ -969,7 +969,7 @@ public class SimulationController {
         }
         if (snrDomainComboBox != null) {
             snrDomainComboBox.setValue(
-                    config.getSnrDomain() == null ? SimulationConfig.SNR_DOMAIN_EB_N0 : config.getSnrDomain()
+                    config.getSnrDomain() == null ? SimulationConfig.SNR_DOMAIN_ES_N0 : config.getSnrDomain()
             );
         }
         if (decoderTypeComboBox != null) {

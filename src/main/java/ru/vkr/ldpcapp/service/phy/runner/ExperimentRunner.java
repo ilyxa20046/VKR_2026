@@ -122,11 +122,25 @@ public class ExperimentRunner {
                 int attempts = harqEnabled ? (harqMaxRetx + 1) : 1;
 
                 for (int txAttempt = 0; txAttempt < attempts; txAttempt++) {
-                    ChannelEngine.Transmission transmission =
-                            channelEngine.transmitBits(txBitsBase, config, sigmaCoded, codedRandom);
 
-                    double[] llrTx = channelEngine.demapToLlr(transmission, sigmaCoded, config);
-                    double[] llr = rateMatchingEnabled ? bitTransport.rateDematchLlr(llrTx, codeN) : llrTx;
+                    int[] txBits = txBitsBase;
+                    int[] perm = null;
+
+                    if (SimulationConfig.CHANNEL_RAYLEIGH.equals(config.getChannelModel()) && txBitsBase.length > 1) {
+                        perm = bitTransport.randomPermutation(txBitsBase.length, codedRandom);
+                        txBits = bitTransport.permuteBits(txBitsBase, perm);
+                    }
+
+                    ChannelEngine.Transmission transmission = channelEngine.transmitBits(txBits, config, sigmaCoded, codedRandom);
+                    double[] llrAttempt = channelEngine.demapToLlr(transmission, sigmaCoded, config);
+
+                    if (perm != null) {
+                        llrAttempt = bitTransport.inversePermuteLlr(llrAttempt, perm);
+                    }
+
+                    double[] llr = rateMatchingEnabled
+                            ? bitTransport.rateDematchLlr(llrAttempt, codeN)
+                            : llrAttempt;
 
                     if (llrAccum == null) {
                         llrAccum = llr.clone();

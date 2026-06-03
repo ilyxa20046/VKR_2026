@@ -2,7 +2,7 @@ package ru.vkr.ldpcapp.service.phy.transport;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Random;
 public class BitTransport {
 
     public List<int[]> segmentBits(int[] bits, int segmentSize) {
@@ -70,6 +70,28 @@ public class BitTransport {
         for (int i = 0; i < rmLlr.length; i++) {
             out[i % originalLength] += rmLlr[i];
         }
+        return out;
+    }
+
+    public int[] randomPermutation(int n, Random rnd) {
+        int[] p = new int[n];
+        for (int i = 0; i < n; i++) p[i] = i;
+        for (int i = n - 1; i > 0; i--) {
+            int j = rnd.nextInt(i + 1);
+            int t = p[i]; p[i] = p[j]; p[j] = t;
+        }
+        return p;
+    }
+
+    public int[] permuteBits(int[] in, int[] p) {
+        int[] out = new int[in.length];
+        for (int i = 0; i < in.length; i++) out[i] = in[p[i]];
+        return out;
+    }
+
+    public double[] inversePermuteLlr(double[] in, int[] p) {
+        double[] out = new double[in.length];
+        for (int i = 0; i < in.length; i++) out[p[i]] = in[i];
         return out;
     }
 }

@@ -77,7 +77,7 @@ public class SimulationConfig {
     private int maxBlocksPerSnr;
     private double confidenceLevel;
 
-    private String snrDomain = SNR_DOMAIN_EB_N0;
+    private String snrDomain = SNR_DOMAIN_ES_N0;
     private String decoderType = DECODER_NMS;
 
     private String nrBaseGraph = NR_BG_AUTO;

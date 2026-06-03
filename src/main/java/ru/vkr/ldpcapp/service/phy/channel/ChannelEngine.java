@@ -151,7 +151,7 @@ public class ChannelEngine {
             double eqFactor = SimulationConfig.EQUALIZER_ZF.equals(config.getEqualizerMode()) ? 0.94 : 0.82;
             return new WaveformProfile(0.90 * cpPenalty * eqFactor, 1, 3);
         }
-        return new WaveformProfile(1.0, 12, 1);
+        return new WaveformProfile(1.0, 1, 1);
     }
 
     private static class WaveformProfile {

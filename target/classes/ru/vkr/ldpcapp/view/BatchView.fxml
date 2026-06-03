@@ -32,6 +32,7 @@
                         <MenuButton styleClass="secondary-button compact-action-button" text="Сценарии">
                             <items>
                                 <MenuItem onAction="#onLoadCurrentExperiment" text="Добавить текущий сценарий" />
+                                <MenuItem onAction="#onApplyModelingConfigToBatch" text="Принять параметры из «Моделирование»" />
                                 <MenuItem onAction="#onUseRecommendedProfile" text="Применить рекомендуемый пресет" />
                                 <MenuItem onAction="#onSaveBatchProject" text="Сохранить проект анализа" />
                                 <MenuItem onAction="#onLoadBatchProject" text="Открыть проект анализа" />

@@ -37,6 +37,8 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import javafx.scene.chart.NumberAxis;
 import javafx.util.StringConverter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class BatchController {
 
@@ -182,13 +184,14 @@ public class BatchController {
         if (BatchSession.getLastBaseConfig() != null) {
             currentBaseConfig = copyConfig(BatchSession.getLastBaseConfig());
         }
+        syncSelectionsWithBaseConfig();
         updateBaseConfigPreview();
+
     }
 
     @FXML
     private void onLoadCurrentExperiment() {
-        loadBaseConfigFromSession();
-        batchStatusLabel.setText("Базовая конфигурация загружена из последнего одиночного эксперимента.");
+        onApplyModelingConfigToBatch();
     }
 
     @FXML
@@ -210,10 +213,6 @@ public class BatchController {
         List<String> profiles = selectedProfiles();
         List<Double> rates = selectedRates();
 
-        currentBaseConfig.setAdaptiveStopEnabled(true);
-        currentBaseConfig.setMinErrorEventsPerSnr(100);
-        currentBaseConfig.setMaxBlocksPerSnr(2500);
-        currentBaseConfig.setBlocks(2500);
         try {
             Task<List<BatchScenarioResult>> task =
 
@@ -276,9 +275,7 @@ public class BatchController {
     }
 
     private double displayBler(ResultPoint p, boolean coded) {
-        double v = coded ? p.getBlerLdpc() : p.getBlerUncoded();
-        if (v > 0.0) return v;
-        return 1.0 / Math.max(1, p.getTotalBlocks()); // зависит от числа блоков
+        return coded ? p.getBlerLdpc() : p.getBlerUncoded();
     }
 
     @FXML
@@ -455,6 +452,104 @@ public class BatchController {
         }
     }
 
+    @FXML
+    private void onApplyModelingConfigToBatch() {
+        SimulationConfig fromSession = ExperimentSession.getLastConfig();
+        if (fromSession == null) {
+            batchStatusLabel.setText("Нет конфигурации из вкладки «Моделирование». Сначала запустите моделирование хотя бы один раз.");
+            return;
+        }
+
+        currentBaseConfig = copyConfig(fromSession);
+        syncSelectionsWithBaseConfig();
+        updateBaseConfigPreview();
+        batchStatusLabel.setText("Параметры из «Моделирование» применены к пакетному анализу.");
+    }
+
+    private void syncSelectionsWithBaseConfig() {
+        if (currentBaseConfig == null) {
+            return;
+        }
+
+        // 1) Сброс
+        bpskCheckBox.setSelected(false);
+        qpskCheckBox.setSelected(false);
+        qam16CheckBox.setSelected(false);
+        qam64CheckBox.setSelected(false);
+        qam256CheckBox.setSelected(false);
+
+        awgnCheckBox.setSelected(false);
+        rayleighCheckBox.setSelected(false);
+
+        educationalProfileCheckBox.setSelected(false);
+        qcProfileCheckBox.setSelected(false);
+        nrProfileCheckBox.setSelected(false);
+        turboProfileCheckBox.setSelected(false);
+
+        if (nrBg1CheckBox != null) nrBg1CheckBox.setSelected(false);
+        if (nrBg2CheckBox != null) nrBg2CheckBox.setSelected(false);
+
+        rateR13CheckBox.setSelected(false);
+        rateR12CheckBox.setSelected(false);
+        rateR23CheckBox.setSelected(false);
+        rateR56CheckBox.setSelected(false);
+
+        // 2) Модуляция
+        switch (currentBaseConfig.getModulation()) {
+            case SimulationConfig.MOD_BPSK -> bpskCheckBox.setSelected(true);
+            case SimulationConfig.MOD_QPSK -> qpskCheckBox.setSelected(true);
+            case SimulationConfig.MOD_16QAM -> qam16CheckBox.setSelected(true);
+            case SimulationConfig.MOD_64QAM -> qam64CheckBox.setSelected(true);
+            case SimulationConfig.MOD_256QAM -> qam256CheckBox.setSelected(true);
+            default -> qpskCheckBox.setSelected(true);
+        }
+
+        // 3) Канал
+        if (SimulationConfig.CHANNEL_AWGN.equals(currentBaseConfig.getChannelModel())) {
+            awgnCheckBox.setSelected(true);
+        } else if (SimulationConfig.CHANNEL_RAYLEIGH.equals(currentBaseConfig.getChannelModel())) {
+            rayleighCheckBox.setSelected(true);
+        } else {
+            awgnCheckBox.setSelected(true);
+        }
+
+        // 4) Профиль
+        String profile = currentBaseConfig.getLdpcProfile();
+        if (SimulationConfig.PROFILE_EDU.equals(profile)) {
+            educationalProfileCheckBox.setSelected(true);
+        } else if (SimulationConfig.PROFILE_QC.equals(profile)) {
+            qcProfileCheckBox.setSelected(true);
+        } else if (SimulationConfig.PROFILE_TURBO_LTE.equals(profile)) {
+            turboProfileCheckBox.setSelected(true);
+        } else if (SimulationConfig.PROFILE_5GNR_BG1.equals(profile) || SimulationConfig.PROFILE_5GNR_BG2.equals(profile)) {
+            nrProfileCheckBox.setSelected(true);
+            if (nrBg1CheckBox != null && SimulationConfig.PROFILE_5GNR_BG1.equals(profile)) {
+                nrBg1CheckBox.setSelected(true);
+            }
+            if (nrBg2CheckBox != null && SimulationConfig.PROFILE_5GNR_BG2.equals(profile)) {
+                nrBg2CheckBox.setSelected(true);
+            }
+        } else {
+            nrProfileCheckBox.setSelected(true);
+            if (nrBg1CheckBox != null) nrBg1CheckBox.setSelected(true);
+        }
+
+        updateNrBgVisibility();
+
+        // 5) Скорость кода: ближайший preset к effective rate
+        double rEff = SimulationConfigFactory.getEffectiveCodeRate(currentBaseConfig);
+        double d13 = Math.abs(rEff - 1.0 / 3.0);
+        double d12 = Math.abs(rEff - 1.0 / 2.0);
+        double d23 = Math.abs(rEff - 2.0 / 3.0);
+        double d56 = Math.abs(rEff - 5.0 / 6.0);
+
+        double min = Math.min(Math.min(d13, d12), Math.min(d23, d56));
+        if (min == d13) rateR13CheckBox.setSelected(true);
+        else if (min == d12) rateR12CheckBox.setSelected(true);
+        else if (min == d23) rateR23CheckBox.setSelected(true);
+        else rateR56CheckBox.setSelected(true);
+    }
+
     private void restoreSuggestedSelection() {
         bpskCheckBox.setSelected(false);
         qpskCheckBox.setSelected(true);
@@ -603,56 +698,102 @@ public class BatchController {
         batchBerChart.getData().clear();
         batchBlerChart.getData().clear();
 
-        if (!scenarios.isEmpty()) {
-            XYChart.Series<Number, Number> uncodedBerSeries = new XYChart.Series<>();
-            uncodedBerSeries.setName("Без кодирования (BER)");
-            XYChart.Series<Number, Number> uncodedBlerSeries = new XYChart.Series<>();
-            uncodedBlerSeries.setName("Без кодирования (BLER)");
-
-            for (ResultPoint point : scenarios.get(0).getPoints()) {
-                uncodedBerSeries.getData().add(
-                        new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
-                uncodedBlerSeries.getData().add(
-                        new XYChart.Data<>(point.getSnr(), toLog10(point.getBlerUncoded())));
-            }
-
-            batchBerChart.getData().add(uncodedBerSeries);
-            batchBlerChart.getData().add(uncodedBlerSeries);
-            styleUncodedSeries(uncodedBerSeries);
-            styleUncodedSeries(uncodedBlerSeries);
+        if (scenarios == null || scenarios.isEmpty()) {
+            return;
         }
 
+        Map<String, XYChart.Series<Number, Number>> uncodedBerByChannel = new LinkedHashMap<>();
+        Map<String, XYChart.Series<Number, Number>> uncodedBlerByChannel = new LinkedHashMap<>();
+
+        double minSnr = Double.POSITIVE_INFINITY;
+        double maxSnr = Double.NEGATIVE_INFINITY;
+
+        // 1) Отдельные uncoded-кривые по (модуляция + канал)
+        for (BatchScenarioResult scenario : scenarios) {
+            String uncodedKey = SimulationConfigFactory.getModulationUiName(scenario.getModulation())
+                    + " · "
+                    + SimulationConfigFactory.getChannelUiName(scenario.getChannel())
+                    + " · без кодирования";
+
+            XYChart.Series<Number, Number> uncodedBerSeries = uncodedBerByChannel.computeIfAbsent(
+                    uncodedKey,
+                    key -> {
+                        XYChart.Series<Number, Number> s = new XYChart.Series<>();
+                        s.setName(key + " (BER)");
+                        return s;
+                    }
+            );
+
+            XYChart.Series<Number, Number> uncodedBlerSeries = uncodedBlerByChannel.computeIfAbsent(
+                    uncodedKey,
+                    key -> {
+                        XYChart.Series<Number, Number> s = new XYChart.Series<>();
+                        s.setName(key + " (BLER)");
+                        return s;
+                    }
+            );
+
+            for (ResultPoint point : scenario.getPoints()) {
+                minSnr = Math.min(minSnr, point.getSnr());
+                maxSnr = Math.max(maxSnr, point.getSnr());
+
+                double berUncodedPlot = upperBoundIfZero(point.getBerUncoded(), point.getTotalBits());
+                double blerUncodedPlot = upperBoundIfZero(displayBler(point, false), point.getTotalBlocks());
+
+                uncodedBerSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10Safe(berUncodedPlot)));
+                uncodedBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10Safe(blerUncodedPlot)));
+            }
+        }
+
+        // 2) Добавляем uncoded сначала
+        for (XYChart.Series<Number, Number> s : uncodedBerByChannel.values()) {
+            batchBerChart.getData().add(s);
+            styleUncodedSeries(s);
+        }
+        for (XYChart.Series<Number, Number> s : uncodedBlerByChannel.values()) {
+            batchBlerChart.getData().add(s);
+            styleUncodedSeries(s);
+        }
+
+        // 3) Coded-кривые
         for (BatchScenarioResult scenario : scenarios) {
             XYChart.Series<Number, Number> berSeries = new XYChart.Series<>();
             berSeries.setName(scenario.getScenarioLabel());
+
             XYChart.Series<Number, Number> blerSeries = new XYChart.Series<>();
             blerSeries.setName(scenario.getScenarioLabel());
 
             for (ResultPoint point : scenario.getPoints()) {
-                berSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerLdpc()));
-                blerSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10(point.getBlerLdpc())));
+                double berCodedPlot = upperBoundIfZero(point.getBerLdpc(), point.getTotalBits());
+                double blerCodedPlot = upperBoundIfZero(displayBler(point, true), point.getTotalBlocks());
+
+                berSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10Safe(berCodedPlot)));
+                blerSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10Safe(blerCodedPlot)));
             }
 
             batchBerChart.getData().add(berSeries);
             batchBlerChart.getData().add(blerSeries);
         }
 
-        double minSnr = scenarios.stream()
-                .flatMap(s -> s.getPoints().stream())
-                .mapToDouble(ResultPoint::getSnr)
-                .min()
-                .orElse(0.0);
-        double maxSnr = scenarios.stream()
-                .flatMap(s -> s.getPoints().stream())
-                .mapToDouble(ResultPoint::getSnr)
-                .max()
-                .orElse(10.0);
-
+        configureBatchBerLogAxis(minSnr, maxSnr);
         configureBatchBlerLogAxis(minSnr, maxSnr);
     }
 
     private void updateNarrative(List<BatchScenarioResult> scenarios) {
         batchNarrativeArea.setText(batchReportService.buildBatchNarrative(currentBaseConfig, scenarios));
+    }
+
+    private List<XYChart.Data<Number, Number>> monotonicNonIncreasingLogSeries(List<XYChart.Data<Number, Number>> raw) {
+        List<XYChart.Data<Number, Number>> out = new ArrayList<>(raw.size());
+        double best = Double.POSITIVE_INFINITY; // в лог-шкале меньше = лучше (ниже)
+        for (XYChart.Data<Number, Number> p : raw) {
+            double y = p.getYValue().doubleValue();
+            if (y < best) {
+                best = y;
+            }
+            out.add(new XYChart.Data<>(p.getXValue(), best));
+        }
+        return out;
     }
 
     private boolean ensureBatchResults() {
@@ -691,6 +832,35 @@ public class BatchController {
         });
     }
 
+    private void configureBatchBerLogAxis(double minSnr, double maxSnr) {
+        NumberAxis x = (NumberAxis) batchBerChart.getXAxis();
+        NumberAxis y = (NumberAxis) batchBerChart.getYAxis();
+
+        x.setAutoRanging(false);
+        x.setLowerBound(Math.floor(minSnr) - 0.5);
+        x.setUpperBound(Math.ceil(maxSnr) + 0.5);
+        x.setTickUnit(1.0);
+        x.setLabel("SNR, дБ");
+
+        y.setAutoRanging(false);
+        y.setLowerBound(-8.0);
+        y.setUpperBound(0.0);
+        y.setTickUnit(1.0);
+        y.setLabel("BER");
+
+        y.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return "10^" + (int) Math.round(value.doubleValue());
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        });
+    }
+
     private void configureBatchBlerLogAxis(double minSnr, double maxSnr) {
         NumberAxis x = (NumberAxis) batchBlerChart.getXAxis();
         NumberAxis y = (NumberAxis) batchBlerChart.getYAxis();
@@ -721,7 +891,7 @@ public class BatchController {
     }
 
     private double toLog10(double value) {
-        return Math.log10(Math.max(1e-8, value));
+        return Math.log10(Math.max(1e-12, value));
     }
 
     private List<String> selectedModulations() {
@@ -732,6 +902,25 @@ public class BatchController {
         if (qam64CheckBox.isSelected()) values.add(SimulationConfig.MOD_64QAM);
         if (qam256CheckBox.isSelected()) values.add(SimulationConfig.MOD_256QAM);
         return values;
+    }
+
+    private static final double ALPHA_95 = 0.05;
+
+    private double upperBoundIfZero(double p, int nTrials) {
+        if (p > 0.0) return p;
+        if (nTrials <= 0) return Double.NaN;
+        return -Math.log(ALPHA_95) / nTrials; // ~2.996 / N
+    }
+
+    private double toLog10OrNaN(double p) {
+        if (p <= 0.0 || !Double.isFinite(p)) {
+            return Double.NaN; // разрыв линии
+        }
+        return Math.log10(Math.max(1e-12, p));
+    }
+
+    private double toLog10Safe(double p) {
+        return Math.log10(Math.max(1e-12, p));
     }
 
     private List<String> selectedChannels() {
