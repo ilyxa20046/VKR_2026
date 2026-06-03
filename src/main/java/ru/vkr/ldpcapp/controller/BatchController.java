@@ -816,7 +816,7 @@ public class BatchController {
         y.setLabel("FER");
 
         y.setAutoRanging(false);
-        y.setLowerBound(-8.0);
+        y.setLowerBound(-6.0);
         y.setUpperBound(0.0);
         y.setTickUnit(1.0);
 
@@ -843,7 +843,7 @@ public class BatchController {
         x.setLabel("SNR, дБ");
 
         y.setAutoRanging(false);
-        y.setLowerBound(-8.0);
+        y.setLowerBound(-6.0);
         y.setUpperBound(0.0);
         y.setTickUnit(1.0);
         y.setLabel("BER");
@@ -872,7 +872,7 @@ public class BatchController {
         x.setLabel("SNR, дБ");
 
         y.setAutoRanging(false);
-        y.setLowerBound(-8.0);
+        y.setLowerBound(-6.0);
         y.setUpperBound(0.0);
         y.setTickUnit(1.0);
         y.setLabel("BLER");
