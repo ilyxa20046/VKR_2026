@@ -224,13 +224,13 @@ public class CompareController {
         for (ResultPoint point : leftResults) {
             leftBerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerLdpc()));
             leftBerUncodedSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
-            leftBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerLdpc()));
+            leftBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10(point.getBlerLdpc())));
         }
 
         for (ResultPoint point : rightResults) {
             rightBerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerLdpc()));
             rightBerUncodedSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
-            rightBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerLdpc()));
+            rightBlerSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10(point.getBlerLdpc())));
         }
 
         compareBerChart.getData().add(leftBerSeries);
@@ -240,6 +240,16 @@ public class CompareController {
 
         compareBlerChart.getData().add(leftBlerSeries);
         compareBlerChart.getData().add(rightBlerSeries);
+
+        double minSnr = Math.min(
+                leftResults.stream().mapToDouble(ResultPoint::getSnr).min().orElse(0.0),
+                rightResults.stream().mapToDouble(ResultPoint::getSnr).min().orElse(0.0)
+        );
+        double maxSnr = Math.max(
+                leftResults.stream().mapToDouble(ResultPoint::getSnr).max().orElse(10.0),
+                rightResults.stream().mapToDouble(ResultPoint::getSnr).max().orElse(10.0)
+        );
+        configureBlerLogAxis(minSnr, maxSnr);
 
         chartInteractionService.installPointTooltips(compareBerChart, "SNR (dB)", "BER", true);
         chartInteractionService.installPointTooltips(compareBlerChart, "SNR (dB)", "BLER", true);
@@ -399,6 +409,39 @@ public class CompareController {
 
     private String formatThroughput(double value) {
         return String.format(Locale.US, "%.2f Мбит/с", value);
+    }
+
+    private double toLog10(double value) {
+        return Math.log10(Math.max(1e-8, value));
+    }
+
+    private void configureBlerLogAxis(double minSnr, double maxSnr) {
+        NumberAxis x = (NumberAxis) compareBlerChart.getXAxis();
+        NumberAxis y = (NumberAxis) compareBlerChart.getYAxis();
+
+        x.setAutoRanging(false);
+        x.setLowerBound(Math.floor(minSnr) - 0.5);
+        x.setUpperBound(Math.ceil(maxSnr) + 0.5);
+        x.setTickUnit(1.0);
+        x.setLabel("SNR, дБ");
+
+        y.setAutoRanging(false);
+        y.setLowerBound(-6.0);
+        y.setUpperBound(0.0);
+        y.setTickUnit(1.0);
+        y.setLabel("BLER");
+
+        y.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return "10^" + (int) Math.round(value.doubleValue());
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        });
     }
 
     @FXML

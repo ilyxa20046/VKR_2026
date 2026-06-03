@@ -210,8 +210,13 @@ public class BatchController {
         List<String> profiles = selectedProfiles();
         List<Double> rates = selectedRates();
 
+        currentBaseConfig.setAdaptiveStopEnabled(true);
+        currentBaseConfig.setMinErrorEventsPerSnr(100);
+        currentBaseConfig.setMaxBlocksPerSnr(2500);
+        currentBaseConfig.setBlocks(2500);
         try {
             Task<List<BatchScenarioResult>> task =
+
                     batchService.createTask(currentBaseConfig, modulations, channels, profiles, rates);
             batchRunButton.setDisable(true);
             batchProgressBar.progressProperty().unbind();
@@ -268,6 +273,12 @@ public class BatchController {
         } catch (Exception exception) {
             batchStatusLabel.setText("Ошибка сохранения отчёта пакетного анализа: " + exception.getMessage());
         }
+    }
+
+    private double displayBler(ResultPoint p, boolean coded) {
+        double v = coded ? p.getBlerLdpc() : p.getBlerUncoded();
+        if (v > 0.0) return v;
+        return 1.0 / Math.max(1, p.getTotalBlocks()); // зависит от числа блоков
     }
 
     @FXML
@@ -592,23 +603,21 @@ public class BatchController {
         batchBerChart.getData().clear();
         batchBlerChart.getData().clear();
 
-        // ── Линия «Без кодирования» (Uncoded BER/BLER) ────────────────────
         if (!scenarios.isEmpty()) {
             XYChart.Series<Number, Number> uncodedBerSeries = new XYChart.Series<>();
             uncodedBerSeries.setName("Без кодирования (BER)");
             XYChart.Series<Number, Number> uncodedBlerSeries = new XYChart.Series<>();
             uncodedBlerSeries.setName("Без кодирования (BLER)");
-            // Берём SNR-точки из первого сценария — ось X одна для всех
+
             for (ResultPoint point : scenarios.get(0).getPoints()) {
                 uncodedBerSeries.getData().add(
                         new XYChart.Data<>(point.getSnr(), point.getBerUncoded()));
                 uncodedBlerSeries.getData().add(
-                        new XYChart.Data<>(point.getSnr(), point.getBlerUncoded()));
+                        new XYChart.Data<>(point.getSnr(), toLog10(point.getBlerUncoded())));
             }
-            // Добавляем первыми — они будут опорной линией на графике
+
             batchBerChart.getData().add(uncodedBerSeries);
             batchBlerChart.getData().add(uncodedBlerSeries);
-            // Стилизуем пунктиром (через CSS-класс)
             styleUncodedSeries(uncodedBerSeries);
             styleUncodedSeries(uncodedBlerSeries);
         }
@@ -621,12 +630,25 @@ public class BatchController {
 
             for (ResultPoint point : scenario.getPoints()) {
                 berSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBerLdpc()));
-                blerSeries.getData().add(new XYChart.Data<>(point.getSnr(), point.getBlerLdpc()));
+                blerSeries.getData().add(new XYChart.Data<>(point.getSnr(), toLog10(point.getBlerLdpc())));
             }
 
             batchBerChart.getData().add(berSeries);
             batchBlerChart.getData().add(blerSeries);
         }
+
+        double minSnr = scenarios.stream()
+                .flatMap(s -> s.getPoints().stream())
+                .mapToDouble(ResultPoint::getSnr)
+                .min()
+                .orElse(0.0);
+        double maxSnr = scenarios.stream()
+                .flatMap(s -> s.getPoints().stream())
+                .mapToDouble(ResultPoint::getSnr)
+                .max()
+                .orElse(10.0);
+
+        configureBatchBlerLogAxis(minSnr, maxSnr);
     }
 
     private void updateNarrative(List<BatchScenarioResult> scenarios) {
@@ -653,7 +675,7 @@ public class BatchController {
         y.setLabel("FER");
 
         y.setAutoRanging(false);
-        y.setLowerBound(-6.0);
+        y.setLowerBound(-8.0);
         y.setUpperBound(0.0);
         y.setTickUnit(1.0);
 
@@ -662,6 +684,35 @@ public class BatchController {
             public String toString(Number value) {
                 return "10^" + (int) Math.round(value.doubleValue());
             }
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        });
+    }
+
+    private void configureBatchBlerLogAxis(double minSnr, double maxSnr) {
+        NumberAxis x = (NumberAxis) batchBlerChart.getXAxis();
+        NumberAxis y = (NumberAxis) batchBlerChart.getYAxis();
+
+        x.setAutoRanging(false);
+        x.setLowerBound(Math.floor(minSnr) - 0.5);
+        x.setUpperBound(Math.ceil(maxSnr) + 0.5);
+        x.setTickUnit(1.0);
+        x.setLabel("SNR, дБ");
+
+        y.setAutoRanging(false);
+        y.setLowerBound(-8.0);
+        y.setUpperBound(0.0);
+        y.setTickUnit(1.0);
+        y.setLabel("BLER");
+
+        y.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return "10^" + (int) Math.round(value.doubleValue());
+            }
+
             @Override
             public Number fromString(String string) {
                 return 0;
@@ -747,7 +798,7 @@ public class BatchController {
     }
 
     private SimulationConfig copyConfig(SimulationConfig source) {
-        return new SimulationConfig(
+        SimulationConfig copy = new SimulationConfig(
                 source.getInfoBlockLength(),
                 source.getSnrStart(),
                 source.getSnrEnd(),
@@ -764,6 +815,28 @@ public class BatchController {
                 source.getCyclicPrefix(),
                 source.getEqualizerMode()
         );
+
+        // ВАЖНО: чтобы batch не откатывался к дефолтам
+        copy.setAdaptiveStopEnabled(source.isAdaptiveStopEnabled());
+        copy.setMinErrorEventsPerSnr(source.getMinErrorEventsPerSnr());
+        copy.setMaxBlocksPerSnr(source.getMaxBlocksPerSnr());
+        copy.setConfidenceLevel(source.getConfidenceLevel());
+
+        // Доп. параметры цепочки NR
+        copy.setSnrDomain(source.getSnrDomain());
+        copy.setDecoderType(source.getDecoderType());
+        copy.setNrBaseGraph(source.getNrBaseGraph());
+        copy.setLiftingSize(source.getLiftingSize());
+        copy.setCrcEnabled(source.isCrcEnabled());
+        copy.setCrcBits(source.getCrcBits());
+        copy.setSegmentationEnabled(source.isSegmentationEnabled());
+        copy.setRateMatchingEnabled(source.isRateMatchingEnabled());
+        copy.setTargetCodewordLength(source.getTargetCodewordLength());
+        copy.setBlerCriterion(source.getBlerCriterion());
+        copy.setHarqEnabled(source.isHarqEnabled());
+        copy.setHarqMaxRetx(source.getHarqMaxRetx());
+
+        return copy;
     }
 
     private String join(List<String> values) {

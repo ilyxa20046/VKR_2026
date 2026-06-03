@@ -46,8 +46,8 @@ public class SimulationConfig {
     public static final String EQUALIZER_ZF = "One-tap ZF";
 
     public static final boolean DEFAULT_ADAPTIVE_STOP_ENABLED = true;
-    public static final int DEFAULT_MIN_ERROR_EVENTS_PER_SNR = 50;
-    public static final int DEFAULT_MAX_BLOCKS_PER_SNR = 2000;
+    public static final int DEFAULT_MIN_ERROR_EVENTS_PER_SNR = 100;
+    public static final int DEFAULT_MAX_BLOCKS_PER_SNR = 10000;
     public static final double DEFAULT_CONFIDENCE_LEVEL = 0.95;
 
     public static final boolean DEFAULT_HARQ_ENABLED = false;
